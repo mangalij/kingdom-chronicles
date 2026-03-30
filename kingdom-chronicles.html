@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)file:///C:/Users/joeem/Downloads/kingdom-chronicles.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kingdom Chronicles — ChristLife Church</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -23,37 +22,7 @@ canvas{image-rendering:pixelated;display:block}
 @keyframes pulseGlow{0%,100%{box-shadow:0 0 10px #4ade8033}50%{box-shadow:0 0 24px #4ade8077}}
 </style>
 </head><body>
-<div id="app"><div style="min-height:100vh;background:#0d0d0d;font-family:Georgia,serif"><div style="max-width:480px;margin:0 auto;padding-bottom:80px">
-  <div style="background:linear-gradient(135deg,#0d0d0d,#0a0a0a);border-bottom:1px solid #88822;padding:16px 14px 12px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="position:relative;cursor:pointer" onclick="go(&#39;wardrobe&#39;)">
-        <div data-sp="shepherd" data-sc="3" data-sk="0" data-hr="1" data-ot="0" data-gw="#666" data-an="spBob .7s ease-in-out infinite"><canvas width="96" height="96" style="image-rendering: pixelated; display: block; animation: 0.7s ease-in-out 0s infinite normal none running spBob;"></canvas></div>
-        <div style="position:absolute;bottom:-2px;right:-2px;background:#888;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:8px;border:2px solid #0a0a0a">✏</div>
-      </div>
-      <div style="flex:1"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:16px;font-weight:bold">The Shepherd</span><span style="color:#888;font-size:9px">★☆☆☆☆ Common</span></div><div style="font-size:9px;color:#666">New Believer</div><div style="display:flex;gap:8px;font-size:9px;color:#888;margin-top:2px"><span>Lv.1</span><span>🏆0W</span><span style="color:#7EB8F7">⚔️0PvP</span><span style="color:#FFD700">🃏1/11</span></div></div>
-      <button onclick="go(&#39;wardrobe&#39;)" style="background:#88822;border:1px solid #88844;color:#888;padding:5px 8px;border-radius:7px;font-size:9px">👗</button>
-    </div>
-    <div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:8px;color:#555;margin-bottom:2px"><span>XP TO LV 2</span><span>0/200</span></div><div style="height:5px;background:#111;border-radius:3px;overflow:hidden"><div style="width:0%;height:100%;background:linear-gradient(90deg,#888,#88866);border-radius:3px;transition:width .6s"></div></div></div>
-  </div>
-  <div style="display:flex;border-bottom:1px solid #111;background:#0a0a0a"><button onclick="setTab(&#39;home&#39;)" style="flex:1;padding:7px 0;background:none;border:none;color:#888;font-family:Georgia,serif;font-size:7px;border-bottom:2px solid #888;text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">⛺</div><div>Home</div></button><button onclick="setTab(&#39;missions&#39;)" style="flex:1;padding:7px 0;background:none;border:none;color:#444;font-family:Georgia,serif;font-size:7px;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">📜</div><div>Missions</div></button><button onclick="setTab(&#39;pvp&#39;)" style="flex:1;padding:7px 0;background:none;border:none;color:#444;font-family:Georgia,serif;font-size:7px;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">⚔️</div><div>PvP</div></button><button onclick="setTab(&#39;heroes&#39;)" style="flex:1;padding:7px 0;background:none;border:none;color:#444;font-family:Georgia,serif;font-size:7px;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">🃏</div><div>Heroes</div></button><button onclick="setTab(&#39;items&#39;)" style="flex:1;padding:7px 0;background:none;border:none;color:#444;font-family:Georgia,serif;font-size:7px;border-bottom:2px solid transparent;text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">🎒</div><div>Items</div></button></div>
-  <div style="padding:12px"><div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:13px;margin-bottom:10px;animation:slideUp .3s ease">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="font-size:22px">📍</div><div><div style="font-weight:bold;color:#C4A35A;font-size:13px">Church Check-In</div><div style="font-size:9px;color:#555">14071 Springdale St, Westminster, CA</div></div></div>
-    <p style="color:#666;font-size:10px;line-height:1.4;margin-bottom:8px">Tap when you're at ChristLife Church!</p>
-    
-    
-    <button onclick="doCheckIn()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">CHECK IN NOW</button>
-  </div>
-  <div style="background:linear-gradient(135deg,#1a0000,#0d0000);border:1px solid #FF444422;border-radius:12px;padding:13px;margin-bottom:10px">
-    <div style="color:#FF6B6B;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ Battle Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Fight biblical enemies for XP and hero unlocks!</p>
-    <button onclick="startArena()" style="width:100%;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:1px solid #FF4444;color:#FF6B6B;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">ENTER THE ARENA</button>
-  </div>
-  <div style="background:linear-gradient(135deg,#1a0020,#0d0010);border:1px solid #7EB8F733;border-radius:12px;padding:13px">
-    <div style="color:#7EB8F7;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ PvP Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Challenge congregation members! Win 5 PvP to unlock Elijah.</p>
-    <button onclick="go(&#39;pvp_lobby&#39;)" style="width:100%;background:transparent;border:1px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">OPEN PvP LOBBY</button>
-  </div></div>
-</div></div></div>
+<div id="app"></div>
 <div id="notifLayer" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;pointer-events:none"></div>
 <div id="flashLayer" style="position:fixed;inset:0;pointer-events:none;z-index:50;display:none"></div>
 <div id="bannerLayer" style="position:fixed;top:36%;left:50%;z-index:60;pointer-events:none;display:none;white-space:nowrap"></div>
@@ -344,5 +313,4 @@ function checkUnlocks(){const w=G.pd.wins;const pW=G.pd.pvpWins;const lv=glv();i
 // Boot
 G.wardTab="skin";G.tab="home";render();
 </script>
-
 </body></html>
