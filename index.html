@@ -63,7 +63,8 @@ let CFG = Object.assign({
   churchAddress:"14071 Springdale St, Westminster, CA",
   lat:33.7542, lng:-117.9943,
   radiusMeters:200,
-  locationRequired:true   // false = open check-in for anyone
+  locationRequired:true,  // false = open check-in for anyone
+  firebaseCfg:null        // set in Admin Panel for multiplayer
 }, lsGet(LS_SETTINGS,{}));
 
 function saveCFG(){lsSet(LS_SETTINGS,CFG);}
@@ -111,7 +112,65 @@ function drawLegion(c){const dark="#8B0000";rect(c,9,3,14,10,"#FF666688");for(le
 function drawKingSaul(c){const skin="#F4C585";rect(c,9,0,14,7,"#C0C0C0");rect(c,10,0,12,4,shade("#C0C0C0",30));rect(c,14,0,4,8,"#CC2200");rect(c,9,4,3,6,"#C0C0C0");rect(c,20,4,3,6,"#C0C0C0");rect(c,10,5,12,8,skin);rect(c,12,8,3,2,"#2a3a5a");rect(c,17,8,3,2,"#2a3a5a");rect(c,11,11,10,4,shade(skin,-30));rect(c,14,13,4,2,skin);rect(c,11,15,10,1,"#FFD700");rect(c,6,16,20,13,"#C0C0C0");rect(c,9,17,14,9,shade("#C0C0C0",20));rect(c,3,14,5,16,"#4B0082");rect(c,24,14,5,16,"#4B0082");rect(c,9,25,14,1,"#FFD700");rect(c,3,16,4,10,skin);rect(c,25,16,4,10,skin);rect(c,3,21,4,3,"#C0C0C0");rect(c,25,21,4,3,"#C0C0C0");rect(c,25,6,2,22,"#8B6914");rect(c,24,5,4,3,"#C0C0C0");rect(c,11,1,2,3,"#FFD700");rect(c,15,0,2,4,"#FFD700");rect(c,19,1,2,3,"#FFD700");}
 function drawPharaoh(c){const skin="#C68642";rect(c,12,0,8,3,"#FF2200");rect(c,14,0,4,8,"#FF2200");rect(c,10,2,12,3,"#FFFFFF");rect(c,9,5,14,3,"#FFD700");rect(c,8,5,2,8,"#FFD700");rect(c,22,5,2,8,"#FFD700");for(let i=0;i<5;i++){rect(c,10+i*3,5,2,3,i%2?"#1144AA":"#FFD700");}rect(c,10,7,12,8,skin);rect(c,11,10,4,2,"#1a0800");rect(c,17,10,4,2,"#1a0800");rect(c,10,9,5,1,"#1a0800");rect(c,17,9,5,1,"#1a0800");rect(c,13,14,6,6,"#FFD700");rect(c,14,14,4,3,skin);rect(c,7,17,18,13,"#1144AA");rect(c,10,18,12,9,"#1a55BB");rect(c,7,17,18,1,"#FFD700");rect(c,7,28,18,1,"#FFD700");rect(c,22,14,2,14,"#FFD700");rect(c,3,14,2,14,"#FFD700");rect(c,3,17,5,10,"#1144AA");rect(c,24,17,5,10,"#1144AA");rect(c,3,22,4,3,skin);rect(c,25,22,4,3,skin);}
 
-const DRAW_FN={shepherd:drawShepherd,david:drawDavid,esther:drawEsther,samson:drawSamson,deborah:drawDeborah,elijah:drawElijah,ruth:drawRuth,joshua:drawJoshua,daniel:drawDaniel,moses:drawMoses,solomon:drawSolomon,goliath:drawGoliath,philistine:drawPhilistine,false_prophet:drawFalseProphet,legion:drawLegion,king_saul:drawKingSaul,pharaoh:drawPharaoh};
+
+function drawJesus(c,sk,hr,ot){
+  // Jesus — white robe, light skin, brown hair, nail-scarred hands, warm golden glow
+  const skin="#F5DEB3";const hair="#8B4513";const sd=shade(skin,-25);
+  // Divine glow / halo
+  for(var g=0;g<3;g++){
+    c.fillStyle="rgba(255,215,0,"+(0.04-g*0.01)+")";
+    c.beginPath();c.arc(16,10,(14+g*3),0,Math.PI*2);c.fill();
+  }
+  // Halo ring
+  c.strokeStyle="#FFD700";c.lineWidth=1.5;
+  c.beginPath();c.arc(16,8,9,0,Math.PI*2);c.stroke();
+  c.strokeStyle="rgba(255,215,0,0.4)";c.lineWidth=0.5;
+  c.beginPath();c.arc(16,8,11,0,Math.PI*2);c.stroke();
+  // Hair — long flowing
+  rect(c,10,4,12,4,hair);
+  rect(c,9,6,3,12,shade(hair,-15));rect(c,20,6,3,12,shade(hair,-15));
+  rect(c,10,8,2,10,hair);rect(c,20,8,2,10,hair);
+  // Head
+  rect(c,11,5,10,9,skin);
+  // Eyes — warm compassionate
+  rect(c,13,9,2,2,"#5C3317");rect(c,17,9,2,2,"#5C3317");
+  rect(c,13,9,1,1,"#fff");rect(c,17,9,1,1,"#fff");
+  rect(c,13,8,3,1,shade(hair,-10));rect(c,17,8,3,1,shade(hair,-10));
+  // Nose subtle
+  rect(c,15,11,2,1,sd);
+  // Warm smile
+  rect(c,14,12,4,1,sd);rect(c,13,11,1,1,sd);rect(c,18,11,1,1,sd);
+  // Beard — full and neat
+  rect(c,11,12,10,5,shade(hair,15));rect(c,12,13,8,5,hair);
+  rect(c,13,15,6,4,shade(hair,-5));
+  // Neck
+  rect(c,14,14,4,3,skin);
+  // White/cream robe — full length
+  rect(c,6,17,20,15,"#FFFFF0");rect(c,8,18,16,12,"#FFFFFF");
+  // Robe sash / belt
+  rect(c,6,24,20,2,"#C4A35A");
+  // Gold trim
+  rect(c,6,17,20,1,"#FFD700");rect(c,6,31,20,1,"#FFD700");
+  rect(c,6,17,1,15,"#FFD700");rect(c,25,17,1,15,"#FFD700");
+  // Wide sleeves
+  rect(c,2,17,6,10,"#FFFFF0");rect(c,24,17,6,10,"#FFFFF0");
+  // Hands with nail marks
+  rect(c,2,26,5,3,skin);rect(c,25,26,5,3,skin);
+  // Nail marks (small cross mark on palms)
+  rect(c,4,27,1,1,"#8B0000");rect(c,27,27,1,1,"#8B0000");
+  // Arms of blessing — extended slightly
+  rect(c,3,22,4,4,skin);rect(c,25,22,4,4,skin);
+  // Divine light rays emanating
+  c.strokeStyle="rgba(255,215,0,0.2)";c.lineWidth=1;
+  for(var i=0;i<8;i++){
+    var a=i*Math.PI/4;
+    c.beginPath();c.moveTo(16+Math.cos(a)*12,8+Math.sin(a)*12);
+    c.lineTo(16+Math.cos(a)*18,8+Math.sin(a)*18);c.stroke();
+  }
+  // Sandals
+  rect(c,10,32,5,2,"#8B6914");rect(c,17,32,5,2,"#8B6914");
+}
+const DRAW_FN={shepherd:drawShepherd,david:drawDavid,esther:drawEsther,samson:drawSamson,deborah:drawDeborah,elijah:drawElijah,ruth:drawRuth,joshua:drawJoshua,daniel:drawDaniel,moses:drawMoses,solomon:drawSolomon,jesus:drawJesus,goliath:drawGoliath,philistine:drawPhilistine,false_prophet:drawFalseProphet,legion:drawLegion,king_saul:drawKingSaul,pharaoh:drawPharaoh};
 ["egyptian_guard","philistine_scout","armor_bearer","egyptian_captain","conspirator"].forEach(k=>DRAW_FN[k]=drawPhilistine);
 ["royal_sorcerer","jezebel"].forEach(k=>DRAW_FN[k]=drawFalseProphet);
 DRAW_FN.lions=drawLegion;DRAW_FN.storm=drawLegion;DRAW_FN.great_fish=drawGoliath;
@@ -134,7 +193,7 @@ function attachSprites(){
 }
 
 // ── Game data ────────────────────────────────
-const RARITY={common:{label:"Common",color:"#888",bg:"#0d0d0d",stars:1,glow:"#666"},uncommon:{label:"Uncommon",color:"#4ade80",bg:"#001a00",stars:2,glow:"#4ade80"},rare:{label:"Rare",color:"#7EB8F7",bg:"#000d1a",stars:3,glow:"#7EB8F7"},epic:{label:"Epic",color:"#CC00FF",bg:"#0d001a",stars:4,glow:"#CC00FF"},legendary:{label:"Legendary",color:"#FFD700",bg:"#1a0d00",stars:5,glow:"#FFD700"}};
+const RARITY={common:{label:"Common",color:"#888",bg:"#0d0d0d",stars:1,glow:"#666"},uncommon:{label:"Uncommon",color:"#4ade80",bg:"#001a00",stars:2,glow:"#4ade80"},rare:{label:"Rare",color:"#7EB8F7",bg:"#000d1a",stars:3,glow:"#7EB8F7"},epic:{label:"Epic",color:"#CC00FF",bg:"#0d001a",stars:4,glow:"#CC00FF"},legendary:{label:"Legendary",color:"#FFD700",bg:"#1a0d00",stars:5,glow:"#FFD700"},divine:{label:"Divine",color:"#FFFFFF",bg:"#0d0d00",stars:6,glow:"#FFD700"}};
 const ALL_CHARS=[
   {id:"shepherd",sprId:"shepherd",name:"The Shepherd",title:"New Believer",     rarity:"common",  color:"#888",   bg:"#0d0d0d",str:5, faith:5, hp:90, abilityName:"Simple Prayer",    abilityDmg:[8,18],  unlockHow:"Starting character"},
   {id:"ruth",    sprId:"ruth",    name:"Ruth",         title:"The Faithful",    rarity:"uncommon",color:"#90EE90",bg:"#001a00",str:6, faith:9, hp:100,abilityName:"Covenant Bond",     abilityDmg:[12,24], unlockHow:"Win your first battle"},
@@ -147,6 +206,7 @@ const ALL_CHARS=[
   {id:"daniel",  sprId:"daniel",  name:"Daniel",       title:"Lion Tamer",      rarity:"epic",    color:"#AAFFAA",bg:"#001a00",str:7, faith:12,hp:125,abilityName:"Angel's Shield",    abilityDmg:[20,42], unlockHow:"Complete Moses mission"},
   {id:"moses",   sprId:"moses",   name:"Moses",        title:"The Deliverer",   rarity:"legendary",color:"#FFD700",bg:"#1a1000",str:10,faith:13,hp:140,abilityName:"Staff of God",     abilityDmg:[50,82], unlockHow:"Complete all 5 missions"},
   {id:"solomon", sprId:"solomon", name:"Solomon",      title:"The Wisest King", rarity:"legendary",color:"#CC00FF",bg:"#0d001a",str:8, faith:12,hp:135,abilityName:"Wisdom's Blade",   abilityDmg:[45,72], unlockHow:"Reach Level 10"},
+  {id:"jesus",   sprId:"jesus",   name:"Jesus",         title:"The Son of God",  rarity:"divine",   color:"#FFD700",bg:"#1a1500",str:15,faith:20,hp:200,abilityName:"Word of God",       abilityDmg:[80,120],unlockHow:"Complete all 5 missions at Level 15"},
 ];
 const MISSIONS=[
   {id:"moses_m",title:"Let My People Go",heroEmoji:"🪄",accent:"#FFD700",bgCol:"#1a0d00",desc:"Face Pharaoh's armies, survive the plagues, and cross the Red Sea.",unlocked:true,xpReward:500,badge:"🏺",badgeName:"Staff of Moses",reward:{name:"Staff of Moses",emoji:"🪄",effect:"heal"},unlockCharId:"daniel",stages:[
@@ -182,7 +242,7 @@ const G={
   tab:"home",wardTab:"skin",
   charId:"shepherd",cos:{sk:0,hr:1,ot:0},
   username:null, // set during signup
-  pd:{xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[]},
+  pd:{xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],playerId:Math.random().toString(36).slice(2,10)},
   unlocked:["shepherd"],completedMissions:[],
   bs:null,log:[],
   battleType:"arena",activeMission:null,missionStage:0,
@@ -194,7 +254,7 @@ const G={
 const glv=()=>Math.floor(G.pd.xp/XP_LVL)+1;
 const gch=()=>ALL_CHARS.find(c=>c.id===G.charId)||ALL_CHARS[0];
 const gmhp=()=>{const c=gch(),l=glv();return(c.hp||100)+c.str*2+l*8;};
-const rb=r=>{const rr=RARITY[r];return`<span style="color:${rr.color};font-size:9px">${"★".repeat(rr.stars)}${"☆".repeat(5-rr.stars)} ${rr.label}</span>`;};
+const rb=r=>{const rr=RARITY[r];if(!rr)return"";const maxS=r==="divine"?6:5;return`<span style="color:${rr.color};font-size:9px;${r==="divine"?"text-shadow:0 0 6px #FFD700":""}">${"★".repeat(rr.stars)}${"☆".repeat(Math.max(0,maxS-rr.stars))} ${rr.label}</span>`;};
 const displayName=(n)=>n?`@${n}`:"";
 
 // ── Persist / restore player data ────────────
@@ -255,7 +315,7 @@ function addLog(m){G.log=[m,...G.log].slice(0,7);}
 // ── BOOT — check localStorage for returning user ──
 function rBoot(){
   const saved=lsGet(LS_PLAYER,null);
-  if(saved&&saved.username){restorePlayer(saved);setTimeout(()=>go("game"),0);}
+  if(saved&&saved.username){restorePlayer(saved);if(!G.pd.playerId)G.pd.playerId=Math.random().toString(36).slice(2,10);setTimeout(()=>go("game"),0);}
   else setTimeout(()=>go("signup"),0);
   return`<div style="min-height:100vh;background:#050505;display:flex;align-items:center;justify-content:center"><div style="font-size:48px;filter:drop-shadow(0 0 20px gold);animation:spBob .8s ease-in-out infinite">✝️</div></div>`;
 }
@@ -326,7 +386,7 @@ function rTitle(){return`
   <div style="font-size:10px;color:#C4A35A;background:#1a0d00;padding:4px 14px;border-radius:20px;border:1px solid #C4A35A44;margin-bottom:6px">Welcome, ${displayName(G.username)}!</div>
   <div style="font-size:9px;color:#555;margin-bottom:18px">ChristLife Church · Westminster, CA</div>
   <div style="display:flex;gap:7px;margin-bottom:22px;align-items:flex-end">
-    ${["shepherd","ruth","david","samson","moses","solomon"].map((id,i)=>{const c=ALL_CHARS.find(x=>x.id===id);const r=RARITY[c.rarity];return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div data-sp="${id}" data-sc="2" data-gw="${r.glow}" data-an="spBob ${.6+i*.07}s ease-in-out infinite" style="opacity:${i===3?1:.65}"></div><div style="font-size:7px;color:${r.color}">${c.name}</div></div>`;}).join("")}
+    ${["shepherd","ruth","david","samson","moses","solomon","jesus"].map((id,i)=>{const c=ALL_CHARS.find(x=>x.id===id);const r=RARITY[c.rarity];return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div data-sp="${id}" data-sc="2" data-gw="${r.glow}" data-an="spBob ${.6+i*.07}s ease-in-out infinite" style="opacity:${i===3?1:.65}"></div><div style="font-size:7px;color:${r.color}">${c.name}</div></div>`;}).join("")}
   </div>
   <button class="btn-gold" style="max-width:280px;margin-bottom:10px" onclick="go('game')">ENTER THE KINGDOM</button>
   <div style="font-size:9px;color:#333;cursor:pointer" onclick="go('admin_login')">⚙️ Admin Panel</div>
@@ -429,6 +489,29 @@ function rAdmin(){
       </div>
     </div>
 
+    <!-- Multiplayer / Firebase -->
+    <div class="section-card" style="border-color:#7EB8F733">
+      <div style="font-size:13px;font-weight:bold;color:#7EB8F7;margin-bottom:4px">🌐 Multiplayer — Live Church Presence</div>
+      <div style="font-size:10px;color:#555;margin-bottom:12px;line-height:1.6">
+        Lets congregation members see each other in the church world and chat in real time.
+        Uses <strong style="color:#FFA500">Firebase Realtime Database</strong> (free tier — 100 concurrent connections, 1GB storage).<br>
+        <br>
+        Setup: <span style="color:#7EB8F7">console.firebase.google.com</span> → New Project → Realtime Database → Create → Start in test mode → copy config below.
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:9px;color:#666;margin-bottom:4px;letter-spacing:1px">FIREBASE CONFIG JSON (paste entire object)</div>
+        <textarea id="cfgFirebase" rows="5" style="width:100%;background:#0d0d0d;border:1px solid #333;color:#aaa;border-radius:8px;padding:10px;font-size:9px;font-family:monospace;box-sizing:border-box;resize:vertical" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'>${CFG.firebaseCfg?JSON.stringify(CFG.firebaseCfg,null,2):''}</textarea>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="testFirebase()" style="flex:1;background:#000d1a;border:1px solid #7EB8F7;color:#7EB8F7;padding:9px;border-radius:8px;font-size:10px">🔌 Test Connection</button>
+        <button onclick="clearFirebase()" style="background:#1a0000;border:1px solid #ef444422;color:#ef444488;padding:9px 14px;border-radius:8px;font-size:10px">✕ Disable</button>
+      </div>
+      <div id="fbTestMsg" style="font-size:10px;margin-top:6px;min-height:14px;text-align:center"></div>
+      <div style="margin-top:8px;padding:8px;background:#001a00;border-radius:6px;border:1px solid #4ade8022">
+        <div style="font-size:9px;color:#4ade80">Status: ${CFG.firebaseCfg?'✅ Configured — multiplayer active when in church':'⚫ Not configured — church works in offline mode'}</div>
+      </div>
+    </div>
+
     <!-- Save -->
     <button class="btn-gold" onclick="saveAdminSettings()">💾 SAVE ALL SETTINGS</button>
 
@@ -473,8 +556,39 @@ function saveAdminSettings(){
   CFG.lat         = parseFloat(document.getElementById("cfgLat").value)  || CFG.lat;
   CFG.lng         = parseFloat(document.getElementById("cfgLng").value)  || CFG.lng;
   CFG.radiusMeters= parseInt(document.getElementById("cfgRadius").value) || CFG.radiusMeters;
+  var fbRaw=(document.getElementById("cfgFirebase")||{}).value||"";
+  if(fbRaw.trim()){
+    try{CFG.firebaseCfg=JSON.parse(fbRaw.trim());} 
+    catch(e){toast("⚠️ Firebase config JSON is invalid — check formatting","ok");}
+  }
   lsSet(LS_SETTINGS,CFG);
   toast("✅ Settings saved! Changes take effect immediately.","ok");
+}
+
+function testFirebase(){
+  var raw=(document.getElementById("cfgFirebase")||{}).value||"";
+  var msg=document.getElementById("fbTestMsg");
+  try{
+    var cfg=JSON.parse(raw.trim());
+    if(!cfg.databaseURL||!cfg.apiKey){msg.style.color="#ef4444";msg.textContent="❌ Missing databaseURL or apiKey";return;}
+    msg.style.color="#FFD700";msg.textContent="Connecting…";
+    CFG.firebaseCfg=cfg;lsSet(LS_SETTINGS,CFG);
+    MP.connect(cfg,G.pd.playerId||"test",G.username||"admin",G.charId,G.cos,
+      function(peers){msg.style.color="#4ade80";msg.textContent="✅ Connected! "+peers.length+" peer(s) online";},
+      function(){}
+    );
+    setTimeout(function(){if(msg.textContent==="Connecting…"){msg.style.color="#ef4444";msg.textContent="❌ Timeout — check databaseURL and rules";}},8000);
+  }catch(e){msg.style.color="#ef4444";msg.textContent="❌ Invalid JSON: "+e.message;}
+}
+
+function clearFirebase(){
+  CFG.firebaseCfg=null;lsSet(LS_SETTINGS,CFG);
+  MP.disconnect();
+  var msg=document.getElementById("fbTestMsg");
+  if(msg){msg.style.color="#888";msg.textContent="Multiplayer disabled";}
+  var ta=document.getElementById("cfgFirebase");
+  if(ta) ta.value="";
+  toast("Multiplayer disabled","ok");
 }
 
 function resetAllData(){
@@ -591,7 +705,7 @@ function rMissionsTab(){
   return`<div style="font-size:10px;color:#888;margin-bottom:10px;letter-spacing:1px">${G.completedMissions.length}/${MISSIONS.length} MISSIONS COMPLETE</div>`+MISSIONS.map(m=>{
     const done=G.completedMissions.includes(m.id);const isAvail=avail.has(m.id);const locked=!isAvail&&!done;
     return`<div style="background:${locked?"#0d0d0d":`linear-gradient(135deg,${m.bgCol},#0a0a0a)`};border:1px solid ${done?"#4ade8044":locked?"#1a1a1a":m.accent+"44"};border-radius:12px;padding:12px;margin-bottom:8px;opacity:${locked?.5:1}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:22px">${m.heroEmoji}</div><div style="flex:1"><div style="font-weight:bold;color:${done?"#4ade80":locked?"#444":m.accent};font-size:12px">${m.title}${done?" ✅":locked?" 🔒":""}</div><div style="font-size:8px;color:#666">${m.stages.length} stages · +${m.xpReward} XP · ${m.reward.emoji} ${m.badgeName}</div></div><div style="font-size:18px">${m.badge}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:22px">${m.heroEmoji}</div><div style="flex:1"><div style="font-weight:bold;color:${done?"#4ade80":locked?"#444":m.accent};font-size:12px">${m.title}${done?" ✅":locked?" 🔒":""}</div><div style="font-size:8px;color:#666">⚔️ Tower Defense · ${m.stages.length} stages · +${m.xpReward} XP · ${m.reward.emoji} ${m.badgeName}</div></div><div style="font-size:18px">${m.badge}</div></div>
       <p style="color:#666;font-size:9px;line-height:1.4;margin-bottom:6px">${m.desc}</p>
       ${locked?`<div style="font-size:9px;color:#555;font-style:italic;margin-bottom:6px">🔒 ${m.unlockReq}</div>`:""}
       <div style="display:flex;gap:2px;align-items:center;margin-bottom:7px">${m.stages.map((_,si)=>`<div style="display:flex;align-items:center;gap:2px"><div style="width:15px;height:15px;border-radius:50%;background:${done?"#4ade80":"#1a1a1a"};border:1px solid ${done?"#4ade80":m.accent+"44"};display:flex;align-items:center;justify-content:center;font-size:7px;color:${done?"#000":"#555"};font-weight:bold">${done?"✓":si+1}</div>${si<m.stages.length-1?`<div style="width:8px;height:1px;background:${done?"#4ade80":"#222"}"></div>`:""}</div>`).join("")}${m.stages.some(s=>s.isBoss)?`<span style="font-size:8px;color:#FFD700;margin-left:4px">👑 Boss</span>`:""}</div>
@@ -611,7 +725,7 @@ function rPvpTab(){return`
 
 function rHeroesTab(){return`
   <div style="text-align:center;margin-bottom:9px"><div style="font-size:12px;font-weight:bold;color:#FFD700">${G.unlocked.length}/${ALL_CHARS.length} Heroes Unlocked</div></div>
-  ${["common","uncommon","rare","epic","legendary"].map(rk=>{const chars=ALL_CHARS.filter(c=>c.rarity===rk);const r=RARITY[rk];return`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><div style="color:${r.color};font-size:9px;font-weight:bold;letter-spacing:1px">${"★".repeat(r.stars)} ${rk.toUpperCase()}</div><div style="flex:1;height:1px;background:${r.color}33"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">${chars.map(c=>{const owned=G.unlocked.includes(c.id);const active=G.charId===c.id;return`<div style="background:${owned?r.bg:"#0d0d0d"};border:2px solid ${active?"#4ade80":owned?r.color+"55":"#1a1a1a"};border-radius:10px;padding:10px;opacity:${owned?1:.45}"><div data-sp="${c.sprId||c.id}" data-sc="2" data-gw="${owned?r.glow:""}" data-an="${owned?"spBob .7s ease-in-out infinite":""}" ${!owned?"style='filter:grayscale(1)'":" "} style="display:flex;justify-content:center;margin-bottom:5px"></div><div style="font-size:10px;font-weight:bold;color:${owned?r.color:"#555"};text-align:center">${c.name}</div><div style="text-align:center;margin-top:3px">${rb(c.rarity)}</div>${owned?(active?`<div style="text-align:center;font-size:8px;color:#4ade80;margin-top:4px">✓ Active</div>`:`<button onclick="selectHero('${c.id}')" style="width:100%;margin-top:4px;background:${r.color}22;border:1px solid ${r.color};color:${r.color};padding:4px;border-radius:6px;font-size:8px">USE</button>`):`<div style="font-size:7px;color:#555;text-align:center;margin-top:4px">🔒 ${c.unlockHow}</div>`}</div>`;}).join("")}</div></div>`;}).join("")}`;}
+  ${["common","uncommon","rare","epic","legendary","divine"].map(rk=>{const chars=ALL_CHARS.filter(c=>c.rarity===rk);const r=RARITY[rk];return`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><div style="color:${r.color};font-size:9px;font-weight:bold;letter-spacing:1px">${"★".repeat(r.stars)} ${rk.toUpperCase()}</div><div style="flex:1;height:1px;background:${r.color}33"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">${chars.map(c=>{const owned=G.unlocked.includes(c.id);const active=G.charId===c.id;return`<div style="background:${owned?r.bg:"#0d0d0d"};border:2px solid ${active?"#4ade80":owned?r.color+(c.rarity==="divine"?"":"55"):"#1a1a1a"};border-radius:10px;padding:10px;opacity:${owned?1:.45};box-shadow:${owned&&c.rarity==="divine"?"0 0 18px #FFD70088,0 0 36px #FFD70033":owned&&active?"0 0 10px #4ade8044":"none"};background:${owned&&c.rarity==="divine"?"linear-gradient(135deg,#1a1200,#0d0900)":owned?r.bg:"#0d0d0d"}"><div data-sp="${c.sprId||c.id}" data-sc="2" data-gw="${owned?r.glow:""}" data-an="${owned?"spBob .7s ease-in-out infinite":""}" ${!owned?"style='filter:grayscale(1)'":" "} style="display:flex;justify-content:center;margin-bottom:5px"></div><div style="font-size:10px;font-weight:bold;color:${owned?r.color:"#555"};text-align:center">${c.name}</div><div style="text-align:center;margin-top:3px">${rb(c.rarity)}</div>${owned?(active?`<div style="text-align:center;font-size:8px;color:#4ade80;margin-top:4px">✓ Active</div>`:`<button onclick="selectHero('${c.id}')" style="width:100%;margin-top:4px;background:${r.color}22;border:1px solid ${r.color};color:${r.color};padding:4px;border-radius:6px;font-size:8px">USE</button>`):`<div style="font-size:7px;color:#555;text-align:center;margin-top:4px">🔒 ${c.unlockHow}${c.id==="jesus"?" ✝️":""}</div>`}</div>`;}).join("")}</div></div>`;}).join("")}`;}
 
 function selectHero(id){if(G.unlocked.includes(id)){G.charId=id;persistPlayer();toast(`✅ ${ALL_CHARS.find(c=>c.id===id).name} selected!`);render();}}
 function rItemsTab(){return`<div class="section-card"><div style="color:#C4A35A;font-weight:bold;margin-bottom:9px">🎒 Power-Ups</div>${G.pd.powerups.length===0?`<div style="text-align:center;padding:18px;color:#333"><div style="font-size:26px;margin-bottom:5px">📦</div><div style="font-size:10px">Check in or complete missions to earn items!</div></div>`:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${G.pd.powerups.map(pu=>`<div style="background:linear-gradient(135deg,#1a1a00,#111);border:1px solid #C4A35A22;border-radius:8px;padding:9px"><div style="font-size:20px;margin-bottom:3px">${pu.emoji}</div><div style="font-weight:bold;font-size:10px;color:#C4A35A">${pu.name}</div></div>`).join("")}</div>`}</div>`;}
@@ -738,7 +852,7 @@ function rBattle(){
   </div></div>`;}
 
 // ── BATTLE LOGIC ──────────────────────────────
-function beginMission(id){const m=MISSIONS.find(x=>x.id===id);if(!m)return;G.activeMission=m;G.missionStage=0;startMissionStage(m,0);}
+function beginMission(id){const m=MISSIONS.find(x=>x.id===id);if(!m)return;beginMissionTD(m,0);}
 function startMissionStage(m,idx,carryHp=null){const st=m.stages[idx];G.bs={e:{...st.enemy,hp:st.enemy.hp},pHp:carryHp||gmhp(),turn:"player",active:true,burn:false,defUp:false,sword:false,special:st.special||null,survLeft:st.survRounds||0,plagueCounter:0,angelCounter:0,isBoss:st.isBoss||false};G.survRound=0;G.log=[`📖 ${st.title}`,st.story];G.battleType="mission";go("battle");}
 function startArena(){const e=ARENA_ENEMIES[rand(0,ARENA_ENEMIES.length-1)];G.battleType="arena";G.activeMission=null;G.bs={e:{...e,hp:e.hp},pHp:gmhp(),turn:"player",active:true,burn:false,defUp:false,sword:false,special:null};G.log=[`⚔️ ${gch().name} faces ${e.name}!`];go("battle");}
 function pAtk(type){SFX&&SFX.resume&&SFX.resume();if(type==="ability"&&SFX)SFX.ability();const bs=G.bs;if(!bs||bs.turn!=="player")return;let b={...bs,e:{...bs.e}};const mc=gch();const crit=Math.random()<.15;let dmg=0,msg="";if(type==="basic"){let d=mc.str*2+rand(3,10)+glv()*2;if(b.sword){d*=2;b.sword=false;msg="⚔️ HOLY SWORD! ";}if(crit)d=Math.floor(d*1.8);dmg=Math.max(1,d-Math.floor(b.e.def*.4));msg+=crit?`💥 CRIT! ${dmg} dmg!`:`${mc.name} hits for ${dmg}!`;}else{doBanner(mc.abilityName,mc.color);doFlash(mc.color+"55",500);let d=rand(...mc.abilityDmg)+glv()*3;if(crit)d=Math.floor(d*1.8);dmg=Math.max(1,d-Math.floor(b.e.def*.2));msg=crit?`💥 CRIT ${mc.abilityName}! ${dmg}!`:`✨ ${mc.abilityName}! ${dmg}!`;}if(b.special==="plague"){b.plagueCounter=(b.plagueCounter||0)+1;if(b.plagueCounter%2===0){dmg+=8;msg+=" ⚠️+8!";doFlash("#88008855",250);}}b.e.hp=Math.max(0,b.e.hp-dmg);animHit("eHit",dmg,crit,b.e.color||"#FF4444");animEl("eSpr","spShake .35s ease");animEl("pSpr",type==="basic"?"lungL .4s ease":"none");addLog(msg);if(b.burn){b.e.hp=Math.max(0,b.e.hp-5);addLog("🔥 Burn ticks 5!");}if(b.special==="survival"){G.survRound++;b.survLeft=b.survLeft-1;addLog(`🌊 Red Sea: ${b.survLeft} rounds...`);if(b.survLeft<=0){addLog("🌊 THE SEA PARTS!");b.e.hp=0;doFlash("#4488CC88",600);}}if(b.e.hp<=0){handleVic(b);return;}b.turn="enemy";G.bs=b;go("battle");setTimeout(eAtk,950);}
@@ -748,7 +862,7 @@ function handleVic(b){SFX&&SFX.victory&&SFX.victory();const xp=G.battleType==="p
 function flee(){SFX&&SFX.defeat&&SFX.defeat();G.pd.losses++;persistPlayer();if(G.battleType==="pvp"){G.pd.pvpLosses++;G.pvpWon=false;setTimeout(()=>go("pvp_result"),200);}else setTimeout(()=>go("game"),200);}
 function animHit(elId,val,crit,col){if(SFX){if(elId==="eHit"&&crit)SFX.crit();else if(elId==="eHit")SFX.hit();else if(elId==="pHit")SFX.hit();}const el=document.getElementById(elId);if(!el)return;el.textContent=(crit?"💥":"")+val;el.style.color=crit?"#FFD700":col;el.style.display="block";el.style.animation="hitFloat .9s ease-out forwards";setTimeout(()=>{if(el){el.style.display="none";el.style.animation="";}},900);}
 function animEl(elId,anim){const el=document.getElementById(elId);if(!el)return;el.style.animation="none";void el.offsetWidth;el.style.animation=anim;}
-function checkUnlocks(){var _ulBefore=G.unlocked.length;const w=G.pd.wins;const pW=G.pd.pvpWins;const lv=glv();if(w>=1&&!G.unlocked.includes("ruth")){G.unlocked.push("ruth");toast("🎉 UNLOCKED: Ruth (Uncommon)!");}if(w>=10&&!G.unlocked.includes("deborah")){G.unlocked.push("deborah");toast("🎉 UNLOCKED: Deborah (Rare)!");}if(w>=15&&!G.unlocked.includes("joshua")){G.unlocked.push("joshua");toast("🎉 UNLOCKED: Joshua (Rare)!");}if(pW>=5&&!G.unlocked.includes("elijah")){G.unlocked.push("elijah");toast("🔥 UNLOCKED: Elijah (Epic)!");}if(G.completedMissions.length>=3&&!G.unlocked.includes("samson")){G.unlocked.push("samson");toast("💪 UNLOCKED: Samson (Epic)!");}if(G.completedMissions.includes("moses_m")&&!G.unlocked.includes("daniel")){G.unlocked.push("daniel");toast("🦁 UNLOCKED: Daniel (Epic)!");}if(G.completedMissions.includes("david_m")&&!G.unlocked.includes("david")){G.unlocked.push("david");toast("👑 UNLOCKED: David (Rare)!");}if(lv>=10&&!G.unlocked.includes("solomon")){G.unlocked.push("solomon");toast("👑 UNLOCKED: Solomon (Legendary)!");}if(G.completedMissions.length>=5&&!G.unlocked.includes("moses")){G.unlocked.push("moses");toast("⚡ UNLOCKED: Moses (Legendary)!");}if(G.unlocked.length>_ulBefore&&SFX)SFX.unlock();}
+function checkUnlocks(){var _ulBefore=G.unlocked.length;const w=G.pd.wins;const pW=G.pd.pvpWins;const lv=glv();if(w>=1&&!G.unlocked.includes("ruth")){G.unlocked.push("ruth");toast("🎉 UNLOCKED: Ruth (Uncommon)!");}if(w>=10&&!G.unlocked.includes("deborah")){G.unlocked.push("deborah");toast("🎉 UNLOCKED: Deborah (Rare)!");}if(w>=15&&!G.unlocked.includes("joshua")){G.unlocked.push("joshua");toast("🎉 UNLOCKED: Joshua (Rare)!");}if(pW>=5&&!G.unlocked.includes("elijah")){G.unlocked.push("elijah");toast("🔥 UNLOCKED: Elijah (Epic)!");}if(G.completedMissions.length>=3&&!G.unlocked.includes("samson")){G.unlocked.push("samson");toast("💪 UNLOCKED: Samson (Epic)!");}if(G.completedMissions.includes("moses_m")&&!G.unlocked.includes("daniel")){G.unlocked.push("daniel");toast("🦁 UNLOCKED: Daniel (Epic)!");}if(G.completedMissions.includes("david_m")&&!G.unlocked.includes("david")){G.unlocked.push("david");toast("👑 UNLOCKED: David (Rare)!");}if(lv>=10&&!G.unlocked.includes("solomon")){G.unlocked.push("solomon");toast("👑 UNLOCKED: Solomon (Legendary)!");}if(G.completedMissions.length>=5&&!G.unlocked.includes("moses")){G.unlocked.push("moses");toast("⚡ UNLOCKED: Moses (Legendary)!");}if(G.completedMissions.length>=5&&lv>=15&&!G.unlocked.includes("jesus")){G.unlocked.push("jesus");toast("✨ DIVINE UNLOCK: Jesus! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1200);}if(G.unlocked.length>_ulBefore&&SFX)SFX.unlock();}
 
 
 // ═══════════════════════════════════════════
@@ -756,42 +870,27 @@ function checkUnlocks(){var _ulBefore=G.unlocked.length;const w=G.pd.wins;const 
 // Plain globals (no IIFE) to avoid scope bugs
 // ═══════════════════════════════════════════
 
-// ── Tile type constants ──────────────────
-var TT = {FLOOR:0,WALL:1,PEW:2,ALTAR:3,STAGE:4,CARPET:5,DOOR:6,TABLE:7,CROSS:8,WINDOW:9,STEPS:10,FOYER:11,OFFERING:12,AISLE:13};
+// ═══════════════════════════════════════════════════════
+// CHURCH WORLD v3 — 32-bit graphics, NPC AI, mobile UI
+// ═══════════════════════════════════════════════════════
 
-// ── Tile colors [primary, detail] ────────
-var TC = {};
-TC[0]  = ['#C8B89A','#BFA98A']; // FLOOR
-TC[1]  = ['#5C4033','#4A3028']; // WALL
-TC[2]  = ['#7B4F2E','#5C3317']; // PEW
-TC[3]  = ['#D4AF7A','#B8935A']; // ALTAR
-TC[4]  = ['#8B6914','#7A5810']; // STAGE
-TC[5]  = ['#9B0000','#7A0000']; // CARPET
-TC[6]  = ['#8B5E3C','#6B4020']; // DOOR
-TC[7]  = ['#AA8833','#FFDD88']; // TABLE
-TC[8]  = ['#FFD700','#CCAA00']; // CROSS
-TC[9]  = ['#88CCFF','#66AAEE']; // WINDOW
-TC[10] = ['#B8A888','#A89878']; // STEPS
-TC[11] = ['#D4C4A4','#C4B494']; // FOYER
-TC[12] = ['#FFD700','#CC8800']; // OFFERING
-TC[13] = ['#9B0000','#7A0000']; // AISLE (same as carpet)
+// ── Tile constants ────────────────────────────────────
+var TT={FLOOR:0,WALL:1,PEW:2,ALTAR:3,STAGE:4,CARPET:5,DOOR:6,TABLE:7,CROSS:8,WINDOW:9,STEPS:10,FOYER:11,OFFERING:12,AISLE:13};
 
-// ── Map: 30 cols x 38 rows ───────────────
-// W=wall R=aisle(red carpet) P=pew S=stage/carpet A=altar
-// C=steps X=cross V=window T=table O=offering D=door F=foyer
-// Pew rows: left bank cols 2-8, center aisle cols 9-20, right bank cols 21-27
-var CW_W=30, CW_H=38;
-var CW_MAPSTR = [
-  "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 0 top wall
+// ── Map: 30 cols × 38 rows ────────────────────────────
+// Center aisle cols 9–20 open through all pew rows
+var CW_W=30,CW_H=38;
+var CW_MAPSTR=[
+  "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 0
   "WWVWWWWWWWWWWWWWWWWWWWWWWWWVWW", // 1 windows
   "WWSSSSSSSSSSSSSSSSSSSSSSSSSSSSW", // 2 stage
   "WWSSSSSSSSSSSSSSSSSSSSSSSSSSSSW", // 3 stage
   "WWSSSSSSSSSSSSSSSSSSSSSSSSSSSSW", // 4 stage
   "WWAAAAAAAAAAAAAXAAAAAAAAAAAAAAW", // 5 altar + cross
   "WWAAAAAAAAAAAAAAAAAAAAAAAAAAAAW", // 6 altar
-  "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 7 front aisle (fully open)
+  "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 7 front aisle
   "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 8 front aisle
-  "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 9  pew row 1 (center aisle cols 9-20)
+  "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 9  pew row 1
   "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 10 pew row 1
   "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 11 cross aisle
   "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 12 pew row 2
@@ -805,95 +904,81 @@ var CW_MAPSTR = [
   "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 20 cross aisle
   "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 21 pew row 5
   "WWPPPPPPPRRRRRRRRRRRRPPPPPPPPW",  // 22 pew row 5
-  "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 23 cross aisle (back)
-  "WWWWWWWWWWWWWDDDDDWWWWWWWWWWWW", // 24 WALL with door gap cols 13-17
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 25 foyer
-  "WWFFFFTTTTFFFFFFFFFFFFTTTTFFFFWW", // 26 fellowship tables
-  "WWFFFFTTTTFFFFFFFFFFFFTTTTFFFFWW", // 27 fellowship tables
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 28 foyer
-  "WWFFFFFFFFFFFFFFFFOFFFFFFFFFFFWW", // 29 offering col 18
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 30 foyer
-  "WWWWWWWWWWWWWDDDDDWWWWWWWWWWWWW", // 31 WALL with door gap
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 32 lobby
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 33 lobby
-  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W", // 34 lobby
+  "WWRRRRRRRRRRRRRRRRRRRRRRRRRRRW",  // 23 back aisle
+  "WWWWWWWWWWWWWDDDDDWWWWWWWWWWWW", // 24 wall + door
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 25 foyer
+  "WWFFFFTTTTFFFFFFFFFFFFTTTTFFFFWW",// 26 fellowship tables
+  "WWFFFFTTTTFFFFFFFFFFFFTTTTFFFFWW",// 27 fellowship tables
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 28 foyer
+  "WWFFFFFFFFFFFFFFFFOFFFFFFFFFFFWW",// 29 offering
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 30 foyer
+  "WWWWWWWWWWWWWDDDDDWWWWWWWWWWWWW",// 31 wall + door
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 32 lobby
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 33 lobby
+  "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 34 lobby
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 35
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 36
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 37
 ];
 
-function cw_charToTile(ch) {
-  var m={'W':1,'R':13,'P':2,'S':4,'A':3,'X':8,'V':9,'T':7,'O':12,'D':6,'F':11,'C':10,' ':11};
-  return m[ch]!==undefined ? m[ch] : 0;
+function cw_charToTile(ch){
+  return{'W':1,'R':13,'P':2,'S':4,'A':3,'X':8,'V':9,'T':7,'O':12,'D':6,'F':11,'C':10,' ':11}[ch]||0;
 }
-
-var CW_MAP = [];
-(function buildMap(){
-  for(var row of CW_MAPSTR){
-    var r=[];
-    for(var i=0;i<CW_W;i++) r.push(cw_charToTile(row[i]||'W'));
-    CW_MAP.push(r);
-  }
-})();
+var CW_MAP=[];
+(function(){for(var r of CW_MAPSTR){var row=[];for(var i=0;i<CW_W;i++)row.push(cw_charToTile(r[i]||'W'));CW_MAP.push(row);}})();
 
 function cw_walkable(tx,ty){
   if(tx<0||ty<0||tx>=CW_W||ty>=CW_H) return false;
   var t=(CW_MAP[ty]||[])[tx];
-  // PEW=2, WALL=1, TABLE=7, CROSS=8, WINDOW=9 are solid
-  return t!==1 && t!==2 && t!==7 && t!==8 && t!==9;
+  return t!==1&&t!==2&&t!==7&&t!==8&&t!==9;
 }
 
-// ── NPCs ─────────────────────────────────
-var CW_NPCS = [
-  {id:"pastor",   x:14, y:5,  name:"Pastor Dave",      emoji:"👨‍💼", color:"#C4A35A",
-   talk:[
-    {text:'"The Lord is my shepherd; I shall not want." — Psalm 23:1',             xp:20},
-    {text:'"Trust in the Lord with all your heart." — Proverbs 3:5',              xp:20},
-    {text:'"I can do all things through Christ who strengthens me." — Phil 4:13', xp:20},
-    {text:'"For God so loved the world He gave His only Son." — John 3:16',       xp:20},
-   ]},
-  {id:"melody",   x:7,  y:3,  name:"Sister Melody",    emoji:"🎵", color:"#E8A0BF",
-   talk:[{text:'"Sing to the Lord a new song!" — Psalm 96:1', xp:10}]},
-  {id:"dre",      x:22, y:3,  name:"Brother Dre",      emoji:"🥁", color:"#FF6B35",
-   talk:[{text:'"Make a joyful noise unto the Lord!" — Psalm 100:1', xp:10}]},
-  {id:"marcus",   x:5,  y:11, name:"Brother Marcus",   emoji:"🙏", color:"#7EB8F7",
-   talk:[{text:'"God has been so good to me this week! How is your walk with Him?\"', xp:10}]},
-  {id:"grace",    x:23, y:14, name:"Sister Grace",     emoji:"😊", color:"#90EE90",
-   talk:[{text:'"So glad you are here today! Community is such a blessing.\"', xp:10}]},
-  {id:"deacon",   x:14, y:20, name:"Deacon Thomas",    emoji:"📖", color:"#FFD700",
-   talk:[{text:'"Walk to the blue tiles at the back aisle for the 📖 Verse Challenge — fill in the blank and earn XP!"', xp:10}]},
-  {id:"priscilla",x:5,  y:17, name:"Sister Priscilla", emoji:"🌸", color:"#CC00FF",
-   talk:[{text:'"Let us not give up meeting together." — Hebrews 10:25', xp:10}]},
-  {id:"hannah",   x:7,  y:27, name:"Sister Hannah",    emoji:"☕", color:"#E8B88A",
-   talk:[{text:'"Coffee and fellowship — two of God\'s greatest Sunday blessings!\"', xp:5}]},
-  {id:"elder",    x:23, y:27, name:"Elder Solomon",    emoji:"📿", color:"#C4A35A",
-   talk:[{text:'"Wisdom is more precious than rubies. Seek the Lord first in all things.\"', xp:30}]},
+// ── NPC definitions with wander bounds ───────────────
+var CW_NPCS=[
+  {id:"pastor",  x:14,y:5,  wx1:10,wy1:3, wx2:18,wy2:6,  name:"Pastor Dave",       emoji:"👨‍💼",color:"#C4A35A",speed:80,
+   talk:[{text:'"The Lord is my shepherd; I shall not want." — Psalm 23:1',xp:20},{text:'"Trust in the Lord with all your heart." — Proverbs 3:5',xp:20},{text:'"I can do all things through Christ who strengthens me." — Phil 4:13',xp:20},{text:'"For God so loved the world, He gave His only Son." — John 3:16',xp:20}]},
+  {id:"melody",  x:7, y:3,  wx1:3, wy1:2, wx2:11,wy2:5,  name:"Sister Melody",     emoji:"🎵",color:"#E8A0BF",speed:100,
+   talk:[{text:'"Sing to the Lord a new song!" — Psalm 96:1',xp:10}]},
+  {id:"dre",     x:22,y:3,  wx1:18,wy1:2, wx2:27,wy2:5,  name:"Brother Dre",       emoji:"🥁",color:"#FF6B35",speed:90,
+   talk:[{text:'"Make a joyful noise unto the Lord!" — Psalm 100:1',xp:10}]},
+  {id:"marcus",  x:5, y:11, wx1:2, wy1:8, wx2:8, wy2:20, name:"Brother Marcus",    emoji:"🙏",color:"#7EB8F7",speed:70,
+   talk:[{text:'"God has been so good to me this week! How is your walk with Him?',xp:10}]},
+  {id:"grace",   x:23,y:14, wx1:21,wy1:8, wx2:28,wy2:22, name:"Sister Grace",      emoji:"😊",color:"#90EE90",speed:75,
+   talk:[{text:'"So glad you are here today! Community is such a blessing."',xp:10}]},
+  {id:"deacon",  x:14,y:20, wx1:10,wy1:17,wx2:18,wy2:23, name:"Deacon Thomas",     emoji:"📖",color:"#FFD700",speed:65,
+   talk:[{text:'"Walk to the back aisle for the 📖 Verse Challenge — earn XP!"',xp:10}]},
+  {id:"pris",    x:5, y:17, wx1:2, wy1:14,wx2:8, wy2:22, name:"Sister Priscilla",  emoji:"🌸",color:"#CC00FF",speed:72,
+   talk:[{text:'"Let us not give up meeting together." — Hebrews 10:25',xp:10}]},
+  {id:"hannah",  x:7, y:27, wx1:2, wy1:25,wx2:12,wy2:30, name:"Sister Hannah",     emoji:"☕",color:"#E8B88A",speed:68,
+   talk:[{text:'"Coffee and fellowship — two of God\'s greatest Sunday blessings!"',xp:5}]},
+  {id:"elder",   x:23,y:27, wx1:18,wy1:25,wx2:28,wy2:30, name:"Elder Solomon",     emoji:"📿",color:"#C4A35A",speed:60,
+   talk:[{text:'"Wisdom is more precious than rubies. Seek the Lord first in all things."',xp:30}]},
 ];
 
-// ── Activity zones ────────────────────────
-var CW_ZONES = [
-  {id:"pew_l1",  x:2,  y:9,  w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_r1",  x:21, y:9,  w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_l2",  x:2,  y:12, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_r2",  x:21, y:12, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_l3",  x:2,  y:15, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_r3",  x:21, y:15, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_l4",  x:2,  y:18, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"pew_r4",  x:21, y:18, w:7, h:2, label:"Sit & Reflect", icon:"🪑", type:"pew"},
-  {id:"altar",   x:2,  y:5,  w:26,h:2, label:"Kneel & Pray",  icon:"🙏", type:"prayer"},
-  {id:"worship", x:2,  y:2,  w:26,h:3, label:"Join Worship",  icon:"🎵", type:"worship"},
-  {id:"offering",x:16, y:29, w:4, h:1, label:"Give Offering", icon:"💝", type:"offering"},
-  {id:"versequiz",x:9, y:23, w:12,h:1, label:"Verse Challenge",icon:"📖", type:"versequiz"},
-  {id:"exit",    x:12, y:31, w:6, h:1, label:"Exit Church",   icon:"🚪", type:"exit"},
+// ── Activity zones ─────────────────────────────────────
+var CW_ZONES=[
+  {id:"pew_l1",  x:2, y:9,  w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_r1",  x:21,y:9,  w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_l2",  x:2, y:12, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_r2",  x:21,y:12, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_l3",  x:2, y:15, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_r3",  x:21,y:15, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_l4",  x:2, y:18, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"pew_r4",  x:21,y:18, w:7,h:2,label:"Sit & Reflect",  icon:"🪑",type:"pew"},
+  {id:"altar",   x:2, y:5,  w:26,h:2,label:"Kneel & Pray",  icon:"🙏",type:"prayer"},
+  {id:"worship", x:2, y:2,  w:26,h:3,label:"Join Worship",  icon:"🎵",type:"worship"},
+  {id:"offering",x:16,y:29, w:4, h:1,label:"Give Offering", icon:"💝",type:"offering"},
+  {id:"versequiz",x:9,y:23, w:12,h:1,label:"Verse Challenge",icon:"📖",type:"versequiz"},
+  {id:"exit",    x:12,y:31, w:6, h:1,label:"Exit Church",   icon:"🚪",type:"exit"},
 ];
 
 var CW_VERSES=[
   {ref:"Psalm 46:10",    text:"Be still and know that I am God."},
   {ref:"Isaiah 40:31",   text:"Those who hope in the Lord will renew their strength."},
   {ref:"Romans 8:28",    text:"In all things God works for the good of those who love Him."},
-  {ref:"Matthew 11:28",  text:"Come to me, all you who are weary, and I will give you rest."},
+  {ref:"Matthew 11:28",  text:"Come to me, all who are weary, and I will give you rest."},
   {ref:"Philippians 4:7",text:"The peace of God will guard your hearts and minds."},
-  {ref:"Joshua 1:9",     text:"Be strong and courageous. Do not be afraid; God is with you."},
+  {ref:"Joshua 1:9",     text:"Be strong and courageous. God is with you wherever you go."},
   {ref:"Proverbs 3:5",   text:"Trust in the Lord with all your heart."},
   {ref:"John 14:27",     text:"Peace I leave with you; my peace I give you."},
 ];
@@ -908,661 +993,676 @@ var CW_PRAYERS=[
 var CW_BEATS=[["⬆","⬇","⬅","➡","⬆","⬆"],["⬅","⬅","⬆","➡","⬇","⬆"],["⬆","➡","⬇","⬅","⬆","➡"],["⬇","⬆","➡","⬅","⬇","⬇"]];
 var CW_ARROWS={ArrowUp:"⬆",ArrowDown:"⬇",ArrowLeft:"⬅",ArrowRight:"➡",w:"⬆",s:"⬇",a:"⬅",d:"➡"};
 
-// ── ESV Fill-in-the-Blank verses ─────────
-// Each entry: ref, the full ESV text, the blank word(s), and 4 answer choices
 var CW_VERSE_QUIZ=[
-  {ref:"John 3:16",
-   before:"For God so loved the world, that he gave his only",
-   blank:"Son",
-   after:", that whoever believes in him should not perish but have eternal life.",
-   choices:["Son","Spirit","grace","Word"],xp:30},
-
-  {ref:"Psalm 23:1",
-   before:"The LORD is my",
-   blank:"shepherd",
-   after:"; I shall not want.",
-   choices:["shepherd","fortress","portion","refuge"],xp:25},
-
-  {ref:"Philippians 4:13",
-   before:"I can do all things through him who",
-   blank:"strengthens",
-   after:"me.",
-   choices:["strengthens","saves","guides","loves"],xp:25},
-
-  {ref:"Romans 8:28",
-   before:"And we know that for those who love God all things work together for",
-   blank:"good",
-   after:", for those who are called according to his purpose.",
-   choices:["good","peace","glory","joy"],xp:25},
-
-  {ref:"Isaiah 40:31",
-   before:"But they who wait for the LORD shall renew their",
-   blank:"strength",
-   after:"; they shall mount up with wings like eagles.",
-   choices:["strength","faith","hope","mind"],xp:25},
-
-  {ref:"Proverbs 3:5",
-   before:"Trust in the LORD with all your heart, and do not lean on your own",
-   blank:"understanding",
-   after:".",
-   choices:["understanding","wisdom","feelings","knowledge"],xp:25},
-
-  {ref:"Joshua 1:9",
-   before:"Be strong and courageous. Do not be frightened, and do not be",
-   blank:"dismayed",
-   after:", for the LORD your God is with you wherever you go.",
-   choices:["dismayed","worried","ashamed","afraid"],xp:30},
-
-  {ref:"Matthew 6:33",
-   before:"But seek first the kingdom of God and his",
-   blank:"righteousness",
-   after:", and all these things will be added to you.",
-   choices:["righteousness","blessing","mercy","peace"],xp:30},
-
-  {ref:"Jeremiah 29:11",
-   before:"For I know the plans I have for you, declares the LORD, plans for",
-   blank:"welfare",
-   after:"and not for evil, to give you a future and a hope.",
-   choices:["welfare","victory","riches","comfort"],xp:30},
-
-  {ref:"2 Timothy 3:16",
-   before:"All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in",
-   blank:"righteousness",
-   after:".",
-   choices:["righteousness","wisdom","faith","holiness"],xp:30},
-
-  {ref:"Galatians 2:20",
-   before:"It is no longer I who live, but",
-   blank:"Christ",
-   after:"who lives in me.",
-   choices:["Christ","God","grace","faith"],xp:25},
-
-  {ref:"Ephesians 2:8",
-   before:"For by grace you have been saved through",
-   blank:"faith",
-   after:". And this is not your own doing; it is the gift of God.",
-   choices:["faith","works","prayer","love"],xp:25},
-
-  {ref:"Romans 6:23",
-   before:"For the wages of sin is death, but the free gift of God is eternal life in Christ Jesus our",
-   blank:"Lord",
-   after:".",
-   choices:["Lord","God","Savior","King"],xp:25},
-
-  {ref:"1 John 1:9",
-   before:"If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all",
-   blank:"unrighteousness",
-   after:".",
-   choices:["unrighteousness","darkness","sin","evil"],xp:30},
-
-  {ref:"Hebrews 11:1",
-   before:"Now faith is the",
-   blank:"assurance",
-   after:"of things hoped for, the conviction of things not seen.",
-   choices:["assurance","evidence","substance","proof"],xp:30},
-
-  {ref:"James 1:2–3",
-   before:"Count it all joy, my brothers, when you meet trials of various kinds, for you know that the testing of your faith produces",
-   blank:"steadfastness",
-   after:".",
-   choices:["steadfastness","patience","wisdom","endurance"],xp:35},
-
-  {ref:"Psalm 119:105",
-   before:"Your word is a lamp to my",
-   blank:"feet",
-   after:"and a light to my path.",
-   choices:["feet","soul","heart","eyes"],xp:25},
-
-  {ref:"Matthew 28:19",
-   before:"Go therefore and make",
-   blank:"disciples",
-   after:"of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.",
-   choices:["disciples","converts","believers","members"],xp:30},
+  {ref:"John 3:16",before:"For God so loved the world, that he gave his only",blank:"Son",after:", that whoever believes in him should not perish but have eternal life.",choices:["Son","Spirit","grace","Word"],xp:30},
+  {ref:"Psalm 23:1",before:"The LORD is my",blank:"shepherd",after:"; I shall not want.",choices:["shepherd","fortress","portion","refuge"],xp:25},
+  {ref:"Philippians 4:13",before:"I can do all things through him who",blank:"strengthens",after:"me.",choices:["strengthens","saves","guides","loves"],xp:25},
+  {ref:"Romans 8:28",before:"And we know that for those who love God all things work together for",blank:"good",after:", for those who are called according to his purpose.",choices:["good","peace","glory","joy"],xp:25},
+  {ref:"Isaiah 40:31",before:"But they who wait for the LORD shall renew their",blank:"strength",after:"; they shall mount up with wings like eagles.",choices:["strength","faith","hope","mind"],xp:25},
+  {ref:"Proverbs 3:5",before:"Trust in the LORD with all your heart, and do not lean on your own",blank:"understanding",after:".",choices:["understanding","wisdom","feelings","knowledge"],xp:25},
+  {ref:"Joshua 1:9",before:"Be strong and courageous. Do not be frightened, and do not be",blank:"dismayed",after:", for the LORD your God is with you wherever you go.",choices:["dismayed","worried","ashamed","afraid"],xp:30},
+  {ref:"Matthew 6:33",before:"But seek first the kingdom of God and his",blank:"righteousness",after:", and all these things will be added to you.",choices:["righteousness","blessing","mercy","peace"],xp:30},
+  {ref:"Jeremiah 29:11",before:"For I know the plans I have for you, declares the LORD, plans for",blank:"welfare",after:"and not for evil, to give you a future and a hope.",choices:["welfare","victory","riches","comfort"],xp:30},
+  {ref:"2 Timothy 3:16",before:"All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in",blank:"righteousness",after:".",choices:["righteousness","wisdom","faith","holiness"],xp:30},
+  {ref:"Galatians 2:20",before:"It is no longer I who live, but",blank:"Christ",after:"who lives in me.",choices:["Christ","God","grace","faith"],xp:25},
+  {ref:"Ephesians 2:8",before:"For by grace you have been saved through",blank:"faith",after:". And this is not your own doing; it is the gift of God.",choices:["faith","works","prayer","love"],xp:25},
+  {ref:"Romans 6:23",before:"For the wages of sin is death, but the free gift of God is eternal life in Christ Jesus our",blank:"Lord",after:".",choices:["Lord","God","Savior","King"],xp:25},
+  {ref:"1 John 1:9",before:"If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all",blank:"unrighteousness",after:".",choices:["unrighteousness","darkness","sin","evil"],xp:30},
+  {ref:"Hebrews 11:1",before:"Now faith is the",blank:"assurance",after:"of things hoped for, the conviction of things not seen.",choices:["assurance","evidence","substance","proof"],xp:30},
+  {ref:"James 1:2-3",before:"Count it all joy, my brothers, when you meet trials of various kinds, for you know that the testing of your faith produces",blank:"steadfastness",after:".",choices:["steadfastness","patience","wisdom","endurance"],xp:35},
+  {ref:"Psalm 119:105",before:"Your word is a lamp to my",blank:"feet",after:"and a light to my path.",choices:["feet","soul","heart","eyes"],xp:25},
+  {ref:"Matthew 28:19",before:"Go therefore and make",blank:"disciples",after:"of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.",choices:["disciples","converts","believers","members"],xp:30},
 ];
 
-// ── World state (plain object, no IIFE) ──
-var CWS = {
-  active:false, canvas:null, ctx:null, rafId:null,
-  px:14, py:20,        // player position (center aisle row 20)
-  pDir:"down", pAnim:0,
-  camX:0, camY:0,
-  keys:{}, moveTimer:0,
-  dialog:null, activity:null,
-  nearZone:null, nearNpc:null,
-  done:{},             // activities completed this session
-  talkIdx:{},          // dialogue index per NPC
-  onExit:null,
-  TILE:22,             // pixel size per tile
+// ── World state ───────────────────────────────────────
+var CWS={
+  active:false,canvas:null,ctx:null,rafId:null,
+  px:14,py:20,pDir:"down",pAnim:0,
+  camX:0,camY:0,
+  keys:{},moveTimer:0,
+  dialog:null,activity:null,
+  nearZone:null,nearNpc:null,
+  done:{},talkIdx:{},onExit:null,
+  TILE:22,
+  npcTimers:{}, // per-npc wander timer
 };
 
-// ── Tile renderer ─────────────────────────
-function cw_drawTile(ctx, tileType, px, py, ts) {
-  var cols = TC[tileType] || TC[0];
-  ctx.fillStyle = cols[0];
-  ctx.fillRect(px, py, ts, ts);
+// ── 32-BIT TILE RENDERER ─────────────────────────────
+function cw_drawTile(ctx,t,px,py,ts){
+  // Base fill
+  var bg={
+    0:'#C8B89A',1:'#5C4033',2:'#7B4F2E',3:'#D4AF7A',4:'#8B6914',
+    5:'#9B0000',6:'#8B5E3C',7:'#AA8833',8:'#FFD700',9:'#88CCFF',
+    10:'#B8A888',11:'#D4C4A4',12:'#FFD700',13:'#9B0000'
+  }[t]||'#C8B89A';
+  ctx.fillStyle=bg;ctx.fillRect(px,py,ts,ts);
 
-  if(tileType===2){ // PEW
-    ctx.fillStyle=cols[1];
-    ctx.fillRect(px+1,py+Math.floor(ts*.25),ts-2,Math.floor(ts*.5));
-    ctx.fillStyle='#3A1A0A';
-    ctx.fillRect(px,py,ts,3);
-    ctx.fillRect(px,py+ts-3,ts,3);
+  if(t===1){ // WALL — stone blocks with mortar lines
+    var g=ctx.createLinearGradient(px,py,px+ts,py+ts);
+    g.addColorStop(0,'#6B4A38');g.addColorStop(1,'#4A3028');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(px,py+ts-3,ts,3);ctx.fillRect(px+ts-3,py,3,ts);
+    ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fillRect(px+1,py+1,ts-4,ts-4);
+    // Stone block grid
+    ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.8;
+    if(Math.floor(py/ts)%2===0){ctx.strokeRect(px,py,ts/2,ts/2);ctx.strokeRect(px+ts/2,py+ts/2,ts/2,ts/2);}
+    else{ctx.strokeRect(px+ts/4,py,ts/2,ts/2);ctx.strokeRect(px,py+ts/2,ts/2,ts/2);}
   }
-  if(tileType===13||tileType===5){ // AISLE / CARPET
-    ctx.fillStyle=cols[1];
-    for(var i=0;i<ts;i+=5){ctx.fillRect(px+i,py,1,ts);}
+  if(t===2){ // PEW — polished wood
+    var g=ctx.createLinearGradient(px,py,px,py+ts);
+    g.addColorStop(0,'#9B6535');g.addColorStop(0.3,'#7B4F2E');g.addColorStop(1,'#5C3317');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    // Wood grain
+    ctx.fillStyle='rgba(0,0,0,0.12)';
+    for(var i=0;i<ts;i+=4)ctx.fillRect(px+i,py,1,ts);
+    // Top rail
+    var rg=ctx.createLinearGradient(px,py,px,py+4);
+    rg.addColorStop(0,'#CC8855');rg.addColorStop(1,'#8B5520');
+    ctx.fillStyle=rg;ctx.fillRect(px,py,ts,5);
+    // Bottom rail
+    ctx.fillStyle='#4A2810';ctx.fillRect(px,py+ts-4,ts,4);
+    // Highlight edge
+    ctx.fillStyle='rgba(255,200,150,0.2)';ctx.fillRect(px,py,2,ts);
   }
-  if(tileType===3){ // ALTAR
-    ctx.fillStyle='rgba(255,215,0,0.25)';
-    ctx.fillRect(px,py,ts,ts);
+  if(t===3){ // ALTAR — golden marble
+    var g=ctx.createLinearGradient(px,py,px+ts,py+ts);
+    g.addColorStop(0,'#E8C87A');g.addColorStop(0.5,'#D4AF7A');g.addColorStop(1,'#B8935A');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(px+2,py+2,ts-4,ts*0.4);
+    ctx.fillStyle='rgba(255,215,0,0.2)';ctx.fillRect(px,py,ts,ts);
+    ctx.strokeStyle='rgba(200,160,80,0.5)';ctx.lineWidth=0.5;
+    for(var i=0;i<ts;i+=6)ctx.strokeRect(px+i%ts,py,1,ts);
   }
-  if(tileType===8){ // CROSS
-    ctx.fillStyle='#FFD700';
-    ctx.fillRect(px+Math.floor(ts/2)-2,py+2,4,ts-4);
-    ctx.fillRect(px+4,py+Math.floor(ts*.3),ts-8,4);
+  if(t===4){ // STAGE — hardwood floor
+    var g=ctx.createLinearGradient(px,py,px,py+ts);
+    g.addColorStop(0,'#A07830');g.addColorStop(1,'#7A5810');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    ctx.fillStyle='rgba(0,0,0,0.1)';
+    for(var i=0;i<ts;i+=5)ctx.fillRect(px+i,py,1,ts);
+    ctx.fillStyle='rgba(255,220,120,0.08)';ctx.fillRect(px,py,ts,ts/3);
+    ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(px,py+ts-2,ts,2);
   }
-  if(tileType===9){ // WINDOW
-    ctx.fillStyle='#AADDFF';
-    ctx.fillRect(px+2,py+2,ts-4,ts-4);
-    ctx.fillStyle='#6699BB44';
-    ctx.fillRect(px+Math.floor(ts/2)-1,py+2,2,ts-4);
-    ctx.fillRect(px+2,py+Math.floor(ts/2)-1,ts-4,2);
+  if(t===5||t===13){ // CARPET / AISLE — rich red with pattern
+    var g=ctx.createLinearGradient(px,py,px+ts,py+ts);
+    g.addColorStop(0,'#AA1111');g.addColorStop(1,'#7A0000');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    // Diamond pattern
+    ctx.strokeStyle='rgba(180,60,60,0.4)';ctx.lineWidth=0.5;
+    for(var i=0;i<ts;i+=6){ctx.beginPath();ctx.moveTo(px+i,py);ctx.lineTo(px,py+i);ctx.stroke();}
+    ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fillRect(px,py,ts,2);
   }
-  if(tileType===7){ // TABLE
-    ctx.fillStyle='#AA8833';
-    ctx.fillRect(px+2,py+2,ts-4,ts-4);
-    ctx.fillStyle='#FFDD88';
-    ctx.fillRect(px+4,py+4,ts-8,ts-8);
+  if(t===6){ // DOOR — wooden with frame
+    var g=ctx.createLinearGradient(px,py,px+ts,py);
+    g.addColorStop(0,'#3A1A08');g.addColorStop(0.1,'#8B5E3C');g.addColorStop(0.9,'#7A4A28');g.addColorStop(1,'#3A1A08');
+    ctx.fillStyle=g;ctx.fillRect(px,py,ts,ts);
+    // Door panels
+    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1;
+    ctx.strokeRect(px+3,py+3,ts-6,ts*0.45);
+    ctx.strokeRect(px+3,py+ts*0.5,ts-6,ts*0.45);
+    // Handle
+    ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(px+ts*0.65,py+ts*0.5,2,0,Math.PI*2);ctx.fill();
+    // Glow hint at top
+    ctx.fillStyle='rgba(255,220,150,0.15)';ctx.fillRect(px,py,ts,4);
   }
-  if(tileType===12){ // OFFERING plate
-    ctx.fillStyle='#FFD700';
-    ctx.beginPath();ctx.arc(px+ts/2,py+ts/2,ts/3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#8B6914';
-    ctx.fillRect(px+ts/2-1,py+ts/2-4,2,8);
-    ctx.fillRect(px+ts/2-4,py+ts/2-1,8,2);
+  if(t===7){ // TABLE — fellowship table
+    ctx.fillStyle='#5C3A0A';ctx.fillRect(px,py,ts,ts);
+    var tg=ctx.createLinearGradient(px,py+3,px,py+ts-3);
+    tg.addColorStop(0,'#CC9933');tg.addColorStop(0.5,'#AA7722');tg.addColorStop(1,'#885500');
+    ctx.fillStyle=tg;ctx.fillRect(px+2,py+3,ts-4,ts-6);
+    // Items on table (coffee cups etc)
+    ctx.fillStyle='rgba(255,255,255,0.1)';
+    for(var i=0;i<3;i++){ctx.beginPath();ctx.arc(px+4+i*(ts/3),py+ts/2,2,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(px,py+ts-3,ts,3);
   }
-  if(tileType===6){ // DOOR
-    ctx.fillStyle='#6B4020';
-    ctx.fillRect(px+3,py,ts-6,ts);
-    ctx.fillStyle='#8B6914';
-    ctx.fillRect(px+ts/2-1,py+ts*.3,2,ts*.4);
+  if(t===8){ // CROSS — glowing gold
+    ctx.fillStyle='#5C3A10';ctx.fillRect(px,py,ts,ts);
+    ctx.fillStyle='rgba(255,215,0,0.15)';ctx.fillRect(px,py,ts,ts);
+    // Cross beam
+    var cg=ctx.createLinearGradient(px,py,px+ts,py+ts);
+    cg.addColorStop(0,'#FFE566');cg.addColorStop(0.5,'#FFD700');cg.addColorStop(1,'#CC9900');
+    ctx.fillStyle=cg;
+    ctx.fillRect(px+ts/2-3,py+2,6,ts-4);
+    ctx.fillRect(px+4,py+ts*0.28,ts-8,6);
+    // Glow
+    ctx.shadowColor='#FFD700';ctx.shadowBlur=8;
+    ctx.fillStyle='rgba(255,215,0,0.6)';ctx.fillRect(px+ts/2-2,py+3,4,ts-6);
+    ctx.shadowBlur=0;
   }
-  if(tileType===10){ // STEPS
+  if(t===9){ // WINDOW — stained glass
+    ctx.fillStyle='#2A1A0A';ctx.fillRect(px,py,ts,ts);
+    // Pane colors
+    var panes=[['#4488FF','#6699FF'],['#FF8833','#FFAA55'],['#44BB44','#66DD66']];
+    var p=panes[Math.floor((px/ts)%3)];
+    var wg=ctx.createLinearGradient(px+2,py+2,px+ts-2,py+ts-2);
+    wg.addColorStop(0,p[0]);wg.addColorStop(1,p[1]);
+    ctx.fillStyle=wg;ctx.fillRect(px+2,py+2,ts-4,ts-4);
+    // Lead lines
+    ctx.strokeStyle='rgba(30,20,10,0.8)';ctx.lineWidth=1.5;
+    ctx.strokeRect(px+2,py+2,ts-4,ts-4);
+    ctx.beginPath();ctx.moveTo(px+ts/2,py+2);ctx.lineTo(px+ts/2,py+ts-2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px+2,py+ts/2);ctx.lineTo(px+ts-2,py+ts/2);ctx.stroke();
+    // Glow
+    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(px+3,py+3,ts-6,ts*0.35);
+  }
+  if(t===10){ // STEPS — marble
     for(var s=0;s<3;s++){
-      ctx.fillStyle='rgb('+(180-s*18)+','+(162-s*16)+','+(138-s*13)+')';
-      ctx.fillRect(px,py+Math.floor(s*ts/3),ts,Math.floor(ts/3));
+      var sg=ctx.createLinearGradient(px,py+s*ts/3,px+ts,py+(s+1)*ts/3);
+      sg.addColorStop(0,'#D0C0A0');sg.addColorStop(1,'#A89870');
+      ctx.fillStyle=sg;ctx.fillRect(px,py+Math.floor(s*ts/3),ts,Math.ceil(ts/3));
+      ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(px,py+Math.floor(s*ts/3),ts,2);
+      ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(px,py+Math.floor(s*ts/3)+Math.ceil(ts/3)-2,ts,2);
     }
   }
-  if(tileType===1){ // WALL — add depth edge
-    ctx.fillStyle=cols[1];
-    ctx.fillRect(px,py+ts-4,ts,4);
-    ctx.fillRect(px+ts-4,py,4,ts);
+  if(t===11){ // FOYER — checkered tile
+    var even=(Math.floor(px/ts)+Math.floor(py/ts))%2===0;
+    var fg=ctx.createLinearGradient(px,py,px+ts,py+ts);
+    if(even){fg.addColorStop(0,'#E8DCC8');fg.addColorStop(1,'#C8B898');}
+    else{fg.addColorStop(0,'#D0C0A4');fg.addColorStop(1,'#B0A080');}
+    ctx.fillStyle=fg;ctx.fillRect(px,py,ts,ts);
+    ctx.fillStyle='rgba(0,0,0,0.08)';ctx.fillRect(px,py+ts-1,ts,1);ctx.fillRect(px+ts-1,py,1,ts);
+    ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(px+1,py+1,ts*0.4,ts*0.4);
   }
-  if(tileType===11){ // FOYER checkerboard
-    if((Math.floor(px/ts)+Math.floor(py/ts))%2===1){
-      ctx.fillStyle=cols[1];
-      ctx.fillRect(px,py,ts,ts);
-    }
+  if(t===12){ // OFFERING plate
+    ctx.fillStyle='#5C3A10';ctx.fillRect(px,py,ts,ts);
+    // Plate
+    ctx.fillStyle='#AA8833';
+    ctx.beginPath();ctx.ellipse(px+ts/2,py+ts/2,ts/2.5,ts/3.5,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath();ctx.ellipse(px+ts/2,py+ts/2,ts/3.5,ts/5,0,0,Math.PI*2);ctx.fill();
+    // Glow
+    ctx.fillStyle='rgba(255,215,0,0.2)';
+    ctx.beginPath();ctx.ellipse(px+ts/2,py+ts/2,ts/2.2,ts/3,0,0,Math.PI*2);ctx.fill();
   }
 }
 
-// ── Character sprite ──────────────────────
-function cw_drawChar(ctx, wx, wy, ts, skinIdx, outIdx, dir, animF, tag, isPlayer) {
+// ── 32-BIT CHARACTER RENDERER ─────────────────────────
+function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
   var skin=['#FDDBB4','#E8B88A','#C68642','#8D5524','#4A2912'][skinIdx]||'#FDDBB4';
+  var skinD=['#DDAA88','#C89060','#A06020','#6D3A0A','#2A0D04'][skinIdx]||'#DDAA88';
   var outC=['#1E3A8A','#7f1d1d','#14532d','#4c1d95','#78350f','#134e4a'][outIdx]||'#1E3A8A';
-  var cx=wx+ts/2, cy=wy+ts/2;
-  var legOff = (animF===1?2:animF===3?-2:0);
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.25)';
-  ctx.beginPath();ctx.ellipse(cx,cy+ts*.38,ts*.2,ts*.07,0,0,Math.PI*2);ctx.fill();
-  // Legs
-  ctx.fillStyle=outC;
-  ctx.fillRect(cx-ts*.18,cy+ts*.15,ts*.14,ts*.22+legOff);
-  ctx.fillRect(cx+ts*.04,cy+ts*.15,ts*.14,ts*.22-legOff);
-  // Body
-  ctx.fillStyle=outC;
-  ctx.fillRect(cx-ts*.2,cy-ts*.05,ts*.4,ts*.25);
-  // Head
+  var outL=['#2E4A9A','#8f2d2d','#24693d','#5c2da5','#88450f','#245e6a'][outIdx]||'#2E4A9A';
+  var cx=wx+ts/2,cy=wy+ts/2;
+  var walk=[0,3,-3,0][animF%4];
+  // Drop shadow
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.beginPath();ctx.ellipse(cx,cy+ts*.42,ts*.22,ts*.07,0,0,Math.PI*2);ctx.fill();
+  // Legs with walk animation
+  var lg=ctx.createLinearGradient(cx-ts*.2,cy+ts*.1,cx+ts*.2,cy+ts*.45);
+  lg.addColorStop(0,outL);lg.addColorStop(1,outC);
+  ctx.fillStyle=lg;
+  ctx.fillRect(cx-ts*.18,cy+ts*.12,ts*.14,ts*.26+walk);
+  ctx.fillRect(cx+ts*.04,cy+ts*.12,ts*.14,ts*.26-walk);
+  // Shoe detail
+  ctx.fillStyle=skinD;
+  ctx.fillRect(cx-ts*.2,cy+ts*.35+walk,ts*.17,ts*.06);
+  ctx.fillRect(cx+ts*.03,cy+ts*.35-walk,ts*.17,ts*.06);
+  // Body with gradient
+  var bg2=ctx.createLinearGradient(cx-ts*.2,cy-ts*.08,cx+ts*.2,cy+ts*.18);
+  bg2.addColorStop(0,outL);bg2.addColorStop(0.4,outC);bg2.addColorStop(1,outC);
+  ctx.fillStyle=bg2;
+  ctx.fillRect(cx-ts*.2,cy-ts*.08,ts*.4,ts*.26);
+  // Chest highlight
+  ctx.fillStyle='rgba(255,255,255,0.08)';
+  ctx.fillRect(cx-ts*.14,cy-ts*.06,ts*.28,ts*.1);
+  // Arms
   ctx.fillStyle=skin;
-  ctx.beginPath();ctx.ellipse(cx,cy-ts*.15,ts*.16,ts*.16,0,0,Math.PI*2);ctx.fill();
+  if(dir==='left'){ctx.fillRect(cx-ts*.3,cy-ts*.02,ts*.12,ts*.16);}
+  else if(dir==='right'){ctx.fillRect(cx+ts*.18,cy-ts*.02,ts*.12,ts*.16);}
+  else{ctx.fillRect(cx-ts*.28,cy-ts*.02,ts*.1,ts*.14);ctx.fillRect(cx+ts*.18,cy-ts*.02,ts*.1,ts*.14);}
+  // Head with gradient
+  var hg=ctx.createRadialGradient(cx-ts*.04,cy-ts*.22,0,cx,cy-ts*.14,ts*.2);
+  hg.addColorStop(0,skin);hg.addColorStop(1,skinD);
+  ctx.fillStyle=hg;
+  ctx.beginPath();ctx.ellipse(cx,cy-ts*.14,ts*.15,ts*.17,0,0,Math.PI*2);ctx.fill();
+  // Hair
+  ctx.fillStyle='#2A1A08';
+  ctx.beginPath();ctx.ellipse(cx,cy-ts*.26,ts*.15,ts*.08,0,0,Math.PI);ctx.fill();
   // Eyes
-  ctx.fillStyle='#1a0a00';
-  if(dir==='down'){ctx.fillRect(cx-4,cy-ts*.18,2,2);ctx.fillRect(cx+2,cy-ts*.18,2,2);}
-  if(dir==='up'){ctx.fillRect(cx-3,cy-ts*.22,2,1);ctx.fillRect(cx+1,cy-ts*.22,2,1);}
+  ctx.fillStyle='#fff';
+  if(dir==='down'){
+    ctx.fillRect(cx-ts*.07,cy-ts*.18,ts*.05,ts*.05);ctx.fillRect(cx+ts*.02,cy-ts*.18,ts*.05,ts*.05);
+    ctx.fillStyle='#1a0a00';ctx.fillRect(cx-ts*.06,cy-ts*.17,ts*.03,ts*.03);ctx.fillRect(cx+ts*.03,cy-ts*.17,ts*.03,ts*.03);
+  } else if(dir==='up'){
+    ctx.fillStyle='#2A1A08';ctx.fillRect(cx-ts*.06,cy-ts*.22,ts*.12,ts*.04);
+  } else {
+    var ex=dir==='right'?cx+ts*.02:cx-ts*.08;
+    ctx.fillRect(ex,cy-ts*.18,ts*.05,ts*.05);ctx.fillStyle='#1a0a00';ctx.fillRect(ex+ts*.01,cy-ts*.17,ts*.03,ts*.03);
+  }
+  // Mouth
+  if(dir==='down'){ctx.fillStyle=skinD;ctx.fillRect(cx-ts*.04,cy-ts*.1,ts*.08,ts*.02);}
   // Player glow ring
   if(isPlayer){
+    ctx.save();ctx.shadowColor='#FFD700';ctx.shadowBlur=10;
     ctx.strokeStyle='#FFD700';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.ellipse(cx,cy-ts*.15,ts*.19,ts*.19,0,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(cx,cy-ts*.14,ts*.18,ts*.2,0,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
   }
   // Name tag
   if(tag){
-    ctx.save();
-    ctx.font='bold 9px monospace';
+    ctx.save();ctx.font='bold 9px monospace';
     var tw=ctx.measureText(tag).width+8;
-    ctx.fillStyle='rgba(0,0,0,0.75)';
-    ctx.fillRect(cx-tw/2,cy-ts*.42,tw,11);
-    ctx.fillStyle=isPlayer?'#FFD700':'#fff';
-    ctx.textAlign='center';
-    ctx.fillText(tag,cx,cy-ts*.33);
-    ctx.restore();
+    ctx.fillStyle='rgba(0,0,0,0.8)';
+    ctx.beginPath();ctx.roundRect(cx-tw/2,cy-ts*.52,tw,12,4);ctx.fill();
+    ctx.fillStyle=isPlayer?'#FFD700':'#fff';ctx.textAlign='center';
+    ctx.fillText(tag,cx,cy-ts*.43);ctx.restore();
   }
 }
 
-// ── NPC renderer ──────────────────────────
-function cw_drawNPC(ctx, npc, ts, camX, camY, vw, vh) {
-  var wx=npc.x*ts-camX, wy=npc.y*ts-camY;
+// ── NPC RENDERER ──────────────────────────────────────
+function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
+  var wx=npc.x*ts-camX,wy=npc.y*ts-camY;
   if(wx<-ts||wy<-ts||wx>vw+ts||wy>vh+ts) return;
-  var cx=wx+ts/2, cy=wy+ts/2;
+  var cx=wx+ts/2,cy=wy+ts/2;
   // Shadow
   ctx.fillStyle='rgba(0,0,0,0.2)';
-  ctx.beginPath();ctx.ellipse(cx,cy+ts*.38,ts*.2,ts*.07,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(cx,cy+ts*.42,ts*.2,ts*.07,0,0,Math.PI*2);ctx.fill();
   // Body
-  ctx.fillStyle=npc.color||'#888';
-  ctx.fillRect(cx-ts*.18,cy-ts*.05,ts*.36,ts*.3);
+  var ng=ctx.createLinearGradient(cx-ts*.18,cy-ts*.08,cx+ts*.18,cy+ts*.22);
+  ng.addColorStop(0,npc.color||'#888');ng.addColorStop(1,npc.color?npc.color+'88':'#444');
+  ctx.fillStyle=ng;ctx.fillRect(cx-ts*.18,cy-ts*.08,ts*.36,ts*.3);
+  // Legs
+  ctx.fillStyle=npc.color?npc.color+'CC':'#666';
+  ctx.fillRect(cx-ts*.16,cy+ts*.18,ts*.12,ts*.2);ctx.fillRect(cx+ts*.04,cy+ts*.18,ts*.12,ts*.2);
   // Head
-  ctx.fillStyle='#FDDBB4';
-  ctx.beginPath();ctx.ellipse(cx,cy-ts*.14,ts*.15,ts*.15,0,0,Math.PI*2);ctx.fill();
-  // Emoji
-  ctx.font=(ts*.55)+'px serif';
-  ctx.textAlign='center';
-  ctx.fillText(npc.emoji||'👤',cx,cy-ts*.45);
-  // Name
-  ctx.save();
-  ctx.font='bold 8px monospace';
-  var tw=ctx.measureText(npc.name).width+6;
-  ctx.fillStyle='rgba(0,0,0,0.8)';
-  ctx.fillRect(cx-tw/2,cy-ts*.78,tw,10);
-  ctx.fillStyle='#fff';
-  ctx.textAlign='center';
-  ctx.fillText(npc.name,cx,cy-ts*.7);
-  ctx.restore();
-  // Talk bubble if nearby
+  var hg=ctx.createRadialGradient(cx-ts*.04,cy-ts*.2,0,cx,cy-ts*.14,ts*.18);
+  hg.addColorStop(0,'#FDDBB4');hg.addColorStop(1,'#C68642');
+  ctx.fillStyle=hg;ctx.beginPath();ctx.ellipse(cx,cy-ts*.14,ts*.14,ts*.16,0,0,Math.PI*2);ctx.fill();
+  // Hair
+  ctx.fillStyle='#2A1A08';ctx.beginPath();ctx.ellipse(cx,cy-ts*.26,ts*.14,ts*.07,0,0,Math.PI);ctx.fill();
+  // Emoji above head
+  ctx.save();ctx.font=(ts*.5)+'px serif';ctx.textAlign='center';
+  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=3;
+  ctx.fillText(npc.emoji||'👤',cx,cy-ts*.6);ctx.restore();
+  // Name tag
+  ctx.save();ctx.font='bold 8px monospace';
+  var tw=ctx.measureText(npc.name).width+8;
+  ctx.fillStyle='rgba(0,0,0,0.85)';
+  ctx.beginPath();ctx.roundRect(cx-tw/2,cy-ts*.88,tw,11,3);ctx.fill();
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,cy-ts*.8);ctx.restore();
+  // Talk indicator
   if(CWS.nearNpc===npc.id){
-    ctx.font='11px serif';
-    ctx.textAlign='center';
-    ctx.fillText('💬',cx+ts*.3,cy-ts*.48);
+    ctx.save();ctx.font='12px serif';ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.beginPath();ctx.roundRect(cx+ts*.2,cy-ts*.72,18,16,4);ctx.fill();
+    ctx.fillText('💬',cx+ts*.29,cy-ts*.6);ctx.restore();
   }
 }
 
-// ── HUD ──────────────────────────────────
-function cw_drawHUD(ctx, vw, vh) {
-  var hint=null, hcol='#FFD700';
-  if(CWS.nearNpc && !CWS.dialog && !CWS.activity){
+// ── NPC WANDER AI ──────────────────────────────────────
+function cw_updateNPCs(){
+  var now=Date.now();
+  for(var i=0;i<CW_NPCS.length;i++){
+    var n=CW_NPCS[i];
+    if(!n.wx1) continue; // static NPC
+    if(!CWS.npcTimers[n.id]) CWS.npcTimers[n.id]={next:now+cw_rand(1000,3000),dx:0,dy:0,steps:0};
+    var t=CWS.npcTimers[n.id];
+    if(now>=t.next){
+      if(t.steps>0){
+        // Continue current direction
+        var nx=n.x+t.dx,ny=n.y+t.dy;
+        if(cw_walkable(nx,ny)&&nx>=n.wx1&&nx<=n.wx2&&ny>=n.wy1&&ny<=n.wy2){
+          // Don't walk into player
+          if(Math.abs(nx-CWS.px)>1||Math.abs(ny-CWS.py)>1){n.x=nx;n.y=ny;}
+        }
+        t.steps--;
+        t.next=now+(n.speed||80);
+      } else {
+        // Pick new direction
+        var dirs=[[0,-1],[0,1],[-1,0],[1,0],[0,0],[0,0]]; // bias toward staying
+        var d=dirs[Math.floor(Math.random()*dirs.length)];
+        t.dx=d[0];t.dy=d[1];
+        t.steps=cw_rand(2,6);
+        t.next=now+cw_rand(500,2000);
+      }
+    }
+  }
+}
+
+function cw_rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+
+// ── HUD ────────────────────────────────────────────────
+function cw_drawHUD(ctx,vw,vh){
+  // XP counter top-right
+  ctx.save();ctx.font='bold 10px monospace';ctx.textAlign='right';
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-80,4,76,18);
+  ctx.fillStyle='#FFD700';ctx.fillText('✨ '+G.pd.xp+' XP',vw-6,17);ctx.restore();
+  if(CWS.dialog||CWS.activity) return;
+  var hint=null,hcol='#FFD700',hbg='rgba(0,0,0,0.88)';
+  if(CWS.nearNpc){
     var n=CW_NPCS.find(function(x){return x.id===CWS.nearNpc;});
-    if(n) hint='💬 Talk to '+n.name+' — tap A';
-  } else if(CWS.nearZone && !CWS.dialog && !CWS.activity){
+    if(n){hint='💬 Talk to '+n.name+' — tap A';hcol='#7EB8F7';}
+  } else if(CWS.nearZone){
     var z=CW_ZONES.find(function(x){return x.id===CWS.nearZone;});
-    if(z){hint=z.icon+' '+z.label+' — tap A'; hcol='#4ade80';}
+    if(z){hint=z.icon+' '+z.label+' — tap A';hcol='#4ade80';}
   }
   if(hint){
-    ctx.save();
-    ctx.font='bold 12px Georgia';
-    var tw=ctx.measureText(hint).width+24;
-    ctx.fillStyle='rgba(0,0,0,0.85)';
-    ctx.beginPath();ctx.roundRect((vw-tw)/2,vh-68,tw,32,8);ctx.fill();
-    ctx.fillStyle=hcol;
-    ctx.textAlign='center';
-    ctx.fillText(hint,vw/2,vh-47);
+    ctx.save();ctx.font='bold 12px Georgia';
+    var tw=ctx.measureText(hint).width+24,bw=Math.min(tw,vw-20),bh=34;
+    var bx=(vw-bw)/2,by=vh-72;
+    ctx.fillStyle=hbg;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();
+    ctx.strokeStyle=hcol+'66';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle=hcol;ctx.textAlign='center';ctx.fillText(hint,vw/2,by+22);
     ctx.restore();
   }
 }
 
-// ── Dialog box ────────────────────────────
-function cw_drawDialog(ctx, vw, vh) {
-  var d=CWS.dialog; if(!d) return;
-  var bw=vw-28,bh=170,bx=14,by=vh-bh-16;
-  ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(0,0,vw,vh);
-  ctx.fillStyle='#0d0d0d';ctx.strokeStyle='#C4A35A';ctx.lineWidth=2;
-  ctx.beginPath();ctx.roundRect(bx,by,bw,bh,12);ctx.fill();ctx.stroke();
+// ── DIALOG BOX (canvas) ────────────────────────────────
+function cw_drawDialog(ctx,vw,vh){
+  var d=CWS.dialog;if(!d) return;
+  var bw=vw-24,bh=185,bx=12,by=vh-bh-12;
+  // Backdrop blur effect
+  ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(0,0,vw,vh);
+  // Box gradient
+  var dg=ctx.createLinearGradient(bx,by,bx,by+bh);
+  dg.addColorStop(0,'#111008');dg.addColorStop(1,'#0a0806');
+  ctx.fillStyle=dg;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,14);ctx.fill();
+  ctx.strokeStyle='#C4A35A88';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(bx,by,bw,bh,14);ctx.stroke();
+  // Gold accent top
+  var ag=ctx.createLinearGradient(bx,by,bx+bw,by);
+  ag.addColorStop(0,'rgba(196,163,90,0)');ag.addColorStop(0.2,'#C4A35A');ag.addColorStop(0.8,'#C4A35A');ag.addColorStop(1,'rgba(196,163,90,0)');
+  ctx.fillStyle=ag;ctx.fillRect(bx+14,by,bw-28,2);
+  // Speaker
   ctx.fillStyle='#C4A35A';ctx.font='bold 13px Georgia';ctx.textAlign='left';
-  ctx.fillText((d.emoji||'')+' '+(d.speaker||''),bx+14,by+22);
-  ctx.fillStyle='#ddd';ctx.font='12px Georgia';
+  ctx.fillText((d.emoji||'')+' '+(d.speaker||''),bx+16,by+24);
+  // Text wrap
+  ctx.fillStyle='#E8E0D0';ctx.font='13px Georgia';
   var words=d.text.split(' '),line='',ty=by+46;
   for(var i=0;i<words.length;i++){
     var test=line+words[i]+' ';
-    if(ctx.measureText(test).width>bw-30&&line){ctx.fillText(line,bx+14,ty);ty+=18;line=words[i]+' ';}
+    if(ctx.measureText(test).width>bw-36&&line){ctx.fillText(line,bx+16,ty);ty+=19;line=words[i]+' ';}
     else line=test;
   }
-  ctx.fillText(line,bx+14,ty);
-  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';ctx.fillText('+'+d.xp+' XP',bx+14,by+bh-34);}
-  ctx.fillStyle='#C4A35A';ctx.font='11px monospace';ctx.textAlign='right';
-  ctx.fillText('Tap A →',bx+bw-12,by+bh-12);
+  ctx.fillText(line,bx+16,ty);
+  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';ctx.fillText('+'+d.xp+' XP',bx+16,by+bh-32);}
+  ctx.fillStyle='#C4A35A66';ctx.font='10px monospace';ctx.textAlign='right';
+  ctx.fillText('Tap A →',bx+bw-12,by+bh-14);
 }
 
-// ── Activity overlay ──────────────────────
-function cw_drawActivity(ctx, vw, vh) {
-  var a=CWS.activity; if(!a) return;
-  ctx.fillStyle='rgba(0,0,0,0.88)';ctx.fillRect(0,0,vw,vh);
-  if(a.type==='pew')      cw_drawPew(ctx,vw,vh,a);
-  if(a.type==='prayer')   cw_drawPrayer(ctx,vw,vh,a);
-  if(a.type==='worship')  cw_drawWorship(ctx,vw,vh,a);
-  if(a.type==='offering') cw_drawOffering(ctx,vw,vh,a);
-  if(a.type==='versequiz')cw_drawVerseQuiz(ctx,vw,vh,a);
+// ── ACTIVITY OVERLAY — rendered as HTML for mobile ────
+// All activities use a full-screen HTML div injected into the DOM
+// This ensures native touch events work properly on all mobile devices
+
+function cw_showActivityOverlay(html){
+  var el=document.getElementById('cwActivity');
+  if(el){el.innerHTML=html;el.style.display='flex';}
+}
+function cw_hideActivityOverlay(){
+  var el=document.getElementById('cwActivity');
+  if(el){el.style.display='none';el.innerHTML='';}
 }
 
-function cw_wrapText(ctx,text,x,y,maxW,lineH){
-  var words=text.split(' '),line='';
-  for(var i=0;i<words.length;i++){
-    var t=line+words[i]+' ';
-    if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line,x,y);y+=lineH;line=words[i]+' ';}
-    else line=t;
-  }
-  ctx.fillText(line,x,y);return y+lineH;
-}
-
-function cw_drawPew(ctx,vw,vh,a){
-  var elapsed=Date.now()-a.t0, prog=Math.min(1,elapsed/10000);
-  ctx.fillStyle='#FFD700';ctx.font='bold 17px Georgia';ctx.textAlign='center';
-  ctx.fillText('🪑  Sitting in Reflection',vw/2,55);
-  var v=a.verse;
-  ctx.fillStyle='#C4A35A';ctx.font='italic 13px Georgia';
-  cw_wrapText(ctx,'"'+v.text+'"',vw/2,95,vw-50,20);
-  ctx.fillStyle='#777';ctx.font='bold 11px Georgia';ctx.textAlign='center';ctx.fillText('— '+v.ref,vw/2,175);
-  ctx.fillStyle='#1a1a1a';ctx.fillRect(vw/2-110,vh-130,220,12);
-  ctx.fillStyle='#4ade80';ctx.fillRect(vw/2-110,vh-130,220*prog,12);
-  ctx.fillStyle='#fff';ctx.font='10px monospace';ctx.textAlign='center';
-  if(prog<1) ctx.fillText('Meditating... '+Math.ceil((10000-elapsed)/1000)+'s',vw/2,vh-108);
-  else {ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.fillText('✅ Tap A — +'+a.xp+' Meditation XP!',vw/2,vh-108);}
-}
-
-function cw_drawPrayer(ctx,vw,vh,a){
-  var elapsed=Date.now()-a.t0, prog=Math.min(1,elapsed/15000);
-  ctx.fillStyle='#E8A0BF';ctx.font='bold 17px Georgia';ctx.textAlign='center';
-  ctx.fillText('🙏  Kneeling in Prayer',vw/2,55);
-  ctx.fillStyle='#aaa';ctx.font='12px Georgia';ctx.fillText("Today's prayer prompt:",vw/2,85);
-  ctx.fillStyle='#fff';ctx.font='italic 13px Georgia';
-  cw_wrapText(ctx,a.prompt,vw/2,110,vw-50,20);
-  ctx.fillStyle='#1a1a1a';ctx.fillRect(vw/2-120,vh-130,240,12);
-  ctx.fillStyle='#CC00FF';ctx.fillRect(vw/2-120,vh-130,240*prog,12);
-  ctx.fillStyle='#fff';ctx.font='10px monospace';ctx.textAlign='center';
-  if(prog<1) ctx.fillText('Praying... '+Math.ceil((15000-elapsed)/1000)+'s',vw/2,vh-108);
-  else {ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.fillText('🙏 Amen! Tap A — +'+a.xp+' Faith XP!',vw/2,vh-108);}
-}
-
-function cw_drawWorship(ctx,vw,vh,a){
-  ctx.fillStyle='#FF6B35';ctx.font='bold 17px Georgia';ctx.textAlign='center';
-  ctx.fillText('🎵  Worship Band',vw/2,50);
-  if(a.phase==='intro'){
-    ctx.fillStyle='#aaa';ctx.font='12px Georgia';ctx.fillText('Match the rhythm — tap the arrows!',vw/2,85);
-    ctx.fillStyle='#FFD700';ctx.font='bold 24px monospace';ctx.fillText(a.pattern.join('  '),vw/2,135);
-    ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.fillText('Tap A to start!',vw/2,180);
-  } else if(a.phase==='play'){
-    var spacing=(vw-60)/a.pattern.length;
-    for(var i=0;i<a.pattern.length;i++){
-      var done=i<a.idx, cur=i===a.idx;
-      ctx.fillStyle=done?'#4ade80':cur?'#FFD700':'#333';
-      ctx.font=(cur?'28':'20')+'px monospace';ctx.textAlign='center';
-      ctx.fillText(a.pattern[i],32+i*spacing+spacing/2,115);
-    }
-    ctx.fillStyle='#fff';ctx.font='12px Georgia';ctx.textAlign='center';
-    ctx.fillText('Score: '+a.score+' / '+a.pattern.length,vw/2,155);
-    if(a.combo>2){ctx.fillStyle='#FF6B35';ctx.font='bold 14px monospace';ctx.fillText('🔥 x'+a.combo+' Combo!',vw/2,180);}
-    ctx.fillStyle='#555';ctx.font='10px monospace';ctx.fillText('Use arrow keys / WASD',vw/2,vh-40);
-  } else {
-    var pct=a.score/a.pattern.length;
-    var grade=pct>=.9?'S':pct>=.75?'A':pct>=.5?'B':'C';
-    var gc={S:'#FFD700',A:'#4ade80',B:'#7EB8F7',C:'#888'}[grade];
-    ctx.fillStyle=gc;ctx.font='bold 72px monospace';ctx.textAlign='center';ctx.fillText(grade,vw/2,150);
-    ctx.fillStyle='#fff';ctx.font='13px Georgia';ctx.fillText(a.score+'/'+a.pattern.length+' notes',vw/2,175);
-    ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.fillText('+'+a.xp+' Worship XP!',vw/2,200);
-    ctx.fillStyle='#C4A35A';ctx.font='11px monospace';ctx.fillText('Tap A to exit',vw/2,vh-40);
-  }
-}
-
-function cw_drawOffering(ctx,vw,vh,a){
-  ctx.fillStyle='#FFD700';ctx.font='bold 40px serif';ctx.textAlign='center';ctx.fillText('💝',vw/2,90);
-  ctx.font='bold 16px Georgia';ctx.fillText('Give an Offering',vw/2,120);
-  ctx.fillStyle='#aaa';ctx.font='italic 12px Georgia';
-  ctx.fillText('"Each of you should give what you have',vw/2,155);
-  ctx.fillText('decided in your heart." — 2 Cor 9:7',vw/2,173);
-  ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.fillText('✨ +'+a.xp+' XP · Generosity blessing!',vw/2,210);
-  ctx.fillStyle='#C4A35A';ctx.font='11px monospace';ctx.fillText('Tap A to continue',vw/2,vh-40);
-}
-
-function cw_selectAnswer(idx){SFX&&SFX.resume&&SFX.resume();
+function cw_renderActivity(){
   var a=CWS.activity;
-  if(!a||a.type!=='versequiz'||a.answered) return;
-  a.selected=idx;
-  a.correct=(a.choices[idx]===a.vq.blank);
-  a.answered=true;
-  if(SFX){if(a.correct)SFX.correct();else SFX.wrong();}
-  if(a.correct){
-    // Correct — grant full XP
-    G.pd.xp=(G.pd.xp||0)+a.xp;
-    persistPlayer();
-  } else {
-    // Wrong — still grant partial XP for trying
-    G.pd.xp=(G.pd.xp||0)+Math.floor(a.xp/4);
-    persistPlayer();
-  }
+  if(!a){cw_hideActivityOverlay();return;}
+  var html='';
+  if(a.type==='pew')      html=cw_htmlPew(a);
+  if(a.type==='prayer')   html=cw_htmlPrayer(a);
+  if(a.type==='worship')  html=cw_htmlWorship(a);
+  if(a.type==='offering') html=cw_htmlOffering(a);
+  if(a.type==='versequiz')html=cw_htmlVerseQuiz(a);
+  if(html) cw_showActivityOverlay(html);
 }
 
-function cw_drawVerseQuiz(ctx,vw,vh,a){
+// ── PEW ACTIVITY HTML ─────────────────────────────────
+function cw_htmlPew(a){
+  var elapsed=Date.now()-a.t0,prog=Math.min(1,elapsed/10000);
+  var done=prog>=1;
+  return`<div style="background:linear-gradient(135deg,#0d0d0d,#1a1000);border:1px solid #C4A35A55;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
+    <div style="font-size:36px;margin-bottom:10px">🪑</div>
+    <div style="font-size:16px;font-weight:bold;color:#C4A35A;margin-bottom:16px">Sitting in Reflection</div>
+    <div style="background:#1a1000;border-left:3px solid #C4A35A;border-radius:8px;padding:14px 16px;margin-bottom:18px;text-align:left">
+      <div style="font-style:italic;color:#E8DCC0;font-size:14px;line-height:1.6">"${a.verse.text}"</div>
+      <div style="color:#C4A35A;font-size:11px;margin-top:8px;font-weight:bold">— ${a.verse.ref}</div>
+    </div>
+    <div style="height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-bottom:10px">
+      <div style="width:${prog*100}%;height:100%;background:linear-gradient(90deg,#C4A35A,#FFD700);transition:width 0.5s;border-radius:4px"></div>
+    </div>
+    <div style="color:#888;font-size:11px;margin-bottom:18px">${done?'✅ Meditation complete!':'Meditating… '+Math.ceil((10000-elapsed)/1000)+'s remaining'}</div>
+    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">✨ Receive +${a.xp} XP</button>`:
+    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:13px">Skip</button>`}
+  </div>`;
+}
+
+// ── PRAYER ACTIVITY HTML ──────────────────────────────
+function cw_htmlPrayer(a){
+  var elapsed=Date.now()-a.t0,prog=Math.min(1,elapsed/15000);
+  var done=prog>=1;
+  return`<div style="background:linear-gradient(135deg,#0d000d,#1a001a);border:1px solid #CC00FF55;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
+    <div style="font-size:36px;margin-bottom:10px">🙏</div>
+    <div style="font-size:16px;font-weight:bold;color:#E8A0BF;margin-bottom:8px">Kneeling in Prayer</div>
+    <div style="font-size:10px;color:#888;margin-bottom:16px">Today's prayer prompt:</div>
+    <div style="background:#1a001a;border-left:3px solid #CC00FF;border-radius:8px;padding:14px 16px;margin-bottom:18px;text-align:left">
+      <div style="color:#F0D0F0;font-size:14px;line-height:1.6;font-style:italic">${a.prompt}</div>
+    </div>
+    <div style="height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-bottom:10px">
+      <div style="width:${prog*100}%;height:100%;background:linear-gradient(90deg,#CC00FF,#FF66FF);transition:width 0.5s;border-radius:4px"></div>
+    </div>
+    <div style="color:#888;font-size:11px;margin-bottom:18px">${done?'🙏 Amen!':'Praying… '+Math.ceil((15000-elapsed)/1000)+'s remaining'}</div>
+    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#CC00FF,#8800AA);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">✨ Receive +${a.xp} XP · Faith +3</button>`:
+    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:13px">Skip</button>`}
+  </div>`;
+}
+
+// ── WORSHIP ACTIVITY HTML ─────────────────────────────
+function cw_htmlWorship(a){
+  if(a.phase==='intro') return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
+    <div style="font-size:36px;margin-bottom:10px">🎵</div>
+    <div style="font-size:16px;font-weight:bold;color:#FF6B35;margin-bottom:8px">Worship Band</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:18px">Match the rhythm pattern using the arrow buttons below or your keyboard!</div>
+    <div style="font-size:26px;letter-spacing:6px;color:#FFD700;background:#111;padding:14px;border-radius:10px;margin-bottom:20px">${a.pattern.join('  ')}</div>
+    <button onclick="CWS.activity.phase='play';cw_renderActivity()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">🥁 Start Playing!</button>
+  </div>`;
+
+  if(a.phase==='play'){
+    var arrows=a.pattern.map(function(ar,i){
+      var done=i<a.idx,cur=i===a.idx;
+      return`<span style="font-size:${cur?28:20}px;color:${done?'#4ade80':cur?'#FFD700':'#333'};transition:all 0.1s">${ar}</span>`;
+    }).join('<span style="color:#222"> </span>');
+    return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:24px 18px;max-width:340px;width:100%;margin:auto;text-align:center">
+      <div style="font-size:13px;font-weight:bold;color:#FF6B35;margin-bottom:12px">🎵 Match the Pattern!</div>
+      <div style="background:#111;padding:12px;border-radius:10px;margin-bottom:12px;letter-spacing:4px">${arrows}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:14px">Score: ${a.score}/${a.pattern.length} · Note ${a.idx+1}/${a.pattern.length}${a.combo>2?' 🔥 x'+a.combo+' Combo!':''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div></div>
+        <button onclick="cw_handleKey('ArrowUp')" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px;border-radius:8px;font-size:20px;touch-action:manipulation">⬆</button>
+        <div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <button onclick="cw_handleKey('ArrowLeft')" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px;border-radius:8px;font-size:20px;touch-action:manipulation">⬅</button>
+        <button onclick="cw_handleKey('ArrowDown')" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px;border-radius:8px;font-size:20px;touch-action:manipulation">⬇</button>
+        <button onclick="cw_handleKey('ArrowRight')" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px;border-radius:8px;font-size:20px;touch-action:manipulation">➡</button>
+      </div>
+    </div>`;
+  }
+
+  // Result
+  var pct=a.score/a.pattern.length;
+  var grade=pct>=.9?'S':pct>=.75?'A':pct>=.5?'B':'C';
+  var gc={S:'#FFD700',A:'#4ade80',B:'#7EB8F7',C:'#888'}[grade];
+  var bonus=grade==='S'||grade==='A';
+  return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
+    <div style="font-size:72px;font-weight:bold;color:${gc};font-family:monospace;line-height:1;margin-bottom:8px">${grade}</div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:6px">${a.score}/${a.pattern.length} notes hit</div>
+    <div style="font-size:14px;font-weight:bold;color:#4ade80;margin-bottom:${bonus?6:16}px">+${a.xp} Worship XP!</div>
+    ${bonus?`<div style="font-size:12px;color:#FFD700;margin-bottom:16px">🎵 Bonus: Worship power-up earned!</div>`:''}
+    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Continue</button>
+  </div>`;
+}
+
+// ── OFFERING ACTIVITY HTML ────────────────────────────
+function cw_htmlOffering(a){
+  return`<div style="background:linear-gradient(135deg,#1a1000,#0d0a00);border:1px solid #FFD70055;border-radius:16px;padding:32px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
+    <div style="font-size:52px;margin-bottom:12px">💝</div>
+    <div style="font-size:17px;font-weight:bold;color:#FFD700;margin-bottom:14px">Give an Offering</div>
+    <div style="background:#1a1000;border-radius:10px;padding:14px;margin-bottom:20px">
+      <div style="font-style:italic;color:#E8DCA0;font-size:13px;line-height:1.6">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."</div>
+      <div style="color:#C4A35A;font-size:11px;margin-top:8px;font-weight:bold">— 2 Corinthians 9:7 (ESV)</div>
+    </div>
+    <div style="color:#4ade80;font-size:13px;font-weight:bold;margin-bottom:18px">✨ +${a.xp} XP · Generosity blessing!</div>
+    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Give with a Cheerful Heart 🙏</button>
+  </div>`;
+}
+
+// ── VERSE QUIZ ACTIVITY HTML ──────────────────────────
+function cw_htmlVerseQuiz(a){
   var vq=a.vq;
-  // Header
-  ctx.fillStyle='#7EB8F7';ctx.font='bold 15px Georgia';ctx.textAlign='center';
-  ctx.fillText('📖  Fill in the Blank  (ESV)',vw/2,42);
-  ctx.fillStyle='#888';ctx.font='10px monospace';ctx.textAlign='center';
-  ctx.fillText(vq.ref,vw/2,58);
-
-  // Verse with blank — word-wrap the before text, show blank, then after text
-  ctx.font='13px Georgia';
-  var maxW=vw-32;
-  var full=vq.before+' _______ '+vq.after;
-  var words=full.split(' '),line='',ty=84,lines=[];
-  for(var i=0;i<words.length;i++){
-    var test=line+words[i]+' ';
-    if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=words[i]+' ';}
-    else line=test;
-  }
-  if(line) lines.push(line);
-
-  // Draw each line, highlighting _______ in gold
-  for(var li=0;li<lines.length;li++){
-    var l=lines[li];
-    if(l.indexOf('_______')>=0){
-      var parts=l.split('_______');
-      var x=vw/2-ctx.measureText(l.replace('_______','_______'))/2;
-      // Center the whole line
-      var totalW=ctx.measureText(l.replace('_______','       ')).width;
-      var startX=vw/2-totalW/2;
-      ctx.fillStyle='#ddd';ctx.textAlign='left';
-      ctx.fillText(parts[0],startX,ty);
-      var w0=ctx.measureText(parts[0]).width;
-      var blankW=ctx.measureText('_______').width;
-      ctx.fillStyle=a.answered?(a.correct?'#4ade80':'#ef4444'):'#FFD700';
-      ctx.font='bold 14px Georgia';
-      var blankTxt=a.answered?vq.blank:'_______';
-      ctx.fillText(blankTxt,startX+w0,ty);
-      ctx.fillStyle='#ddd';ctx.font='13px Georgia';
-      ctx.fillText(parts[1]||'',startX+w0+ctx.measureText(blankTxt).width,ty);
-      ctx.textAlign='center';
-    } else {
-      ctx.fillStyle='#ddd';ctx.textAlign='center';
-      ctx.fillText(l,vw/2,ty);
-    }
-    ty+=19;
-  }
-
   if(!a.answered){
-    // Choice buttons — drawn as canvas rects with text (tapped via HTML overlay)
-    var btnW=Math.floor((vw-40)/2)-6, btnH=38;
-    var row1y=vh-140, row2y=vh-94;
-    var positions=[
-      {x:20,          y:row1y, w:btnW, h:btnH},
-      {x:20+btnW+12,  y:row1y, w:btnW, h:btnH},
-      {x:20,          y:row2y, w:btnW, h:btnH},
-      {x:20+btnW+12,  y:row2y, w:btnW, h:btnH},
-    ];
-    for(var ci=0;ci<a.choices.length&&ci<4;ci++){
-      var p=positions[ci];
-      ctx.fillStyle='#1a1a2a';ctx.strokeStyle='#7EB8F7';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,p.h,8);ctx.fill();ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font='bold 13px Georgia';ctx.textAlign='center';
-      ctx.fillText(a.choices[ci],p.x+p.w/2,p.y+p.h/2+5);
-    }
-    ctx.fillStyle='#555';ctx.font='10px monospace';ctx.textAlign='center';
-    ctx.fillText('Tap an answer below',vw/2,vh-152);
+    // Show verse with blank
+    var verseHTML='<span style="color:#E8DCC0">'+vq.before+' </span>'
+      +'<span style="background:#FFD70033;border:1px solid #FFD700;border-radius:4px;padding:2px 10px;color:#FFD700;font-weight:bold;font-style:normal"> _______ </span>'
+      +'<span style="color:#E8DCC0"> '+vq.after+'</span>';
+    var btnGrid=a.choices.map(function(ch,i){
+      return`<button onclick="cw_selectAnswer(${i})" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px 10px;border-radius:10px;font-size:14px;font-weight:bold;touch-action:manipulation;width:100%">${ch}</button>`;
+    }).join('');
+    return`<div style="background:linear-gradient(135deg,#000d1a,#000a12);border:1px solid #7EB8F755;border-radius:16px;padding:24px 20px;max-width:360px;width:100%;margin:auto">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:24px;margin-bottom:4px">📖</div>
+        <div style="font-size:14px;font-weight:bold;color:#7EB8F7">Fill in the Blank</div>
+        <div style="font-size:11px;color:#555;margin-top:3px">${vq.ref} · ESV</div>
+      </div>
+      <div style="background:#0d1a2a;border-left:3px solid #7EB8F7;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:14px;line-height:1.8;font-style:italic">${verseHTML}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${btnGrid}</div>
+    </div>`;
   } else {
-    // Result
+    // Show result
     var correct=a.correct;
-    ctx.fillStyle=correct?'#4ade80':'#ef4444';
-    ctx.font='bold 22px Georgia';ctx.textAlign='center';
-    ctx.fillText(correct?'✅ Correct!':'❌ Not quite...',vw/2,vh-140);
-    if(!correct){
-      ctx.fillStyle='#aaa';ctx.font='12px Georgia';
-      ctx.fillText('The answer was: "'+vq.blank+'"',vw/2,vh-116);
-    }
-    ctx.fillStyle='#FFD700';ctx.font='bold 13px Georgia';
-    ctx.fillText(correct?('+'+a.xp+' XP!'):('+'+Math.floor(a.xp/4)+' XP for trying'),vw/2,vh-88);
-    ctx.fillStyle='#C4A35A';ctx.font='11px monospace';
-    ctx.fillText('Tap A to continue',vw/2,vh-60);
+    var fullVerse='<em>'+vq.before+' <strong style="color:'+( correct?'#4ade80':'#ef4444')+'">'+vq.blank+'</strong> '+vq.after+'</em>';
+    return`<div style="background:linear-gradient(135deg,#000d1a,#000a12);border:1px solid ${correct?'#4ade8055':'#ef444455'};border-radius:16px;padding:28px 22px;max-width:360px;width:100%;margin:auto;text-align:center">
+      <div style="font-size:40px;margin-bottom:8px">${correct?'✅':'❌'}</div>
+      <div style="font-size:18px;font-weight:bold;color:${correct?'#4ade80':'#ef4444'};margin-bottom:8px">${correct?'Correct!':'Not quite…'}</div>
+      <div style="font-size:11px;color:#555;margin-bottom:12px">${vq.ref} · ESV</div>
+      <div style="background:#0d1a2a;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#aaa;line-height:1.7;text-align:left">${fullVerse}</div>
+      <div style="font-size:14px;font-weight:bold;color:#FFD700;margin-bottom:20px">${correct?'+'+a.xp+' XP!':'+'+Math.floor(a.xp/4)+' XP for trying'}</div>
+      <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#1a3a6a,#0d2040);border:1px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Continue →</button>
+    </div>`;
   }
 }
 
-// ── Game loop ─────────────────────────────
+// ── GAME LOOP ──────────────────────────────────────────
 function cw_loop(){
-  var s=CWS, c=s.canvas, ctx=s.ctx;
+  var s=CWS,c=s.canvas,ctx=s.ctx;
   if(!c||!ctx||!s.active){s.rafId=null;return;}
-  var vw=c.width, vh=c.height, ts=s.TILE;
+  var vw=c.width,vh=c.height,ts=s.TILE;
 
-  // Movement
+  // NPC AI wander
+  cw_updateNPCs();
+
+  // Player movement
   if(!s.dialog&&!s.activity){
     s.moveTimer=(s.moveTimer||0)+1;
     if(s.moveTimer>=5){
       s.moveTimer=0;
       var dx=0,dy=0;
-      if(s.keys['ArrowUp']   ||s.keys['w']||s.keys['dpad_up'])   {dy=-1;s.pDir='up';}
-      if(s.keys['ArrowDown'] ||s.keys['s']||s.keys['dpad_down']) {dy= 1;s.pDir='down';}
+      if(s.keys['ArrowUp']  ||s.keys['w']||s.keys['dpad_up'])   {dy=-1;s.pDir='up';}
+      if(s.keys['ArrowDown']||s.keys['s']||s.keys['dpad_down']) {dy= 1;s.pDir='down';}
       if(dy===0){
         if(s.keys['ArrowLeft'] ||s.keys['a']||s.keys['dpad_left']) {dx=-1;s.pDir='left';}
         if(s.keys['ArrowRight']||s.keys['d']||s.keys['dpad_right']){dx= 1;s.pDir='right';}
       }
       if(dx||dy){
-        var nx=s.px+dx, ny=s.py+dy;
+        var nx=s.px+dx,ny=s.py+dy;
         if(cw_walkable(nx,ny)){s.px=nx;s.py=ny;s.pAnim=(s.pAnim+1)%4;}
       }
     }
   }
 
-  // Camera (smooth follow)
-  var tcx=s.px*ts+ts/2-vw/2, tcy=s.py*ts+ts/2-vh/2;
-  s.camX+=(tcx-s.camX)*.12;
-  s.camY+=(tcy-s.camY)*.12;
+  // Camera
+  var tcx=s.px*ts+ts/2-vw/2,tcy=s.py*ts+ts/2-vh/2;
+  s.camX+=(tcx-s.camX)*.12;s.camY+=(tcy-s.camY)*.12;
   s.camX=Math.max(0,Math.min(s.camX,CW_W*ts-vw));
   s.camY=Math.max(0,Math.min(s.camY,CW_H*ts-vh));
 
-  // Detect nearby zone
+  // Zone / NPC detection
   s.nearZone=null;
-  for(var i=0;i<CW_ZONES.length;i++){
-    var z=CW_ZONES[i];
-    if(s.px>=z.x&&s.px<z.x+z.w&&s.py>=z.y&&s.py<z.y+z.h){s.nearZone=z.id;break;}
-  }
-  // Detect nearby NPC
+  for(var i=0;i<CW_ZONES.length;i++){var z=CW_ZONES[i];if(s.px>=z.x&&s.px<z.x+z.w&&s.py>=z.y&&s.py<z.y+z.h){s.nearZone=z.id;break;}}
   s.nearNpc=null;
-  for(var j=0;j<CW_NPCS.length;j++){
-    var n=CW_NPCS[j];
-    if(Math.abs(s.px-n.x)<=1&&Math.abs(s.py-n.y)<=1){s.nearNpc=n.id;break;}
-  }
+  for(var j=0;j<CW_NPCS.length;j++){var n=CW_NPCS[j];if(Math.abs(s.px-n.x)<=1&&Math.abs(s.py-n.y)<=1){s.nearNpc=n.id;break;}}
 
   // Render tiles
   ctx.clearRect(0,0,vw,vh);
-  var sx=Math.max(0,Math.floor(s.camX/ts)), sy=Math.max(0,Math.floor(s.camY/ts));
-  var ex=Math.min(CW_W,sx+Math.ceil(vw/ts)+2), ey=Math.min(CW_H,sy+Math.ceil(vh/ts)+2);
-  for(var ty=sy;ty<ey;ty++){
-    for(var tx2=sx;tx2<ex;tx2++){
-      var tt=(CW_MAP[ty]||[])[tx2]||0;
-      cw_drawTile(ctx,tt,tx2*ts-Math.floor(s.camX),ty*ts-Math.floor(s.camY),ts);
+  var sx=Math.max(0,Math.floor(s.camX/ts)),sy=Math.max(0,Math.floor(s.camY/ts));
+  var ex=Math.min(CW_W,sx+Math.ceil(vw/ts)+2),ey=Math.min(CW_H,sy+Math.ceil(vh/ts)+2);
+  for(var ty=sy;ty<ey;ty++)for(var tx2=sx;tx2<ex;tx2++){
+    var tt=(CW_MAP[ty]||[])[tx2]||0;
+    cw_drawTile(ctx,tt,tx2*ts-Math.floor(s.camX),ty*ts-Math.floor(s.camY),ts);
+  }
+  // Zone highlights
+  for(var zi=0;zi<CW_ZONES.length;zi++){
+    var z=CW_ZONES[zi];
+    var zx=z.x*ts-Math.floor(s.camX),zy=z.y*ts-Math.floor(s.camY);
+    var pulse=0.08+0.05*Math.sin(Date.now()/400);
+    ctx.fillStyle='rgba(100,200,255,'+pulse+')';
+    ctx.fillRect(zx,zy,z.w*ts,z.h*ts);
+    if(s.nearZone===z.id){
+      ctx.strokeStyle='rgba(100,220,255,0.5)';ctx.lineWidth=1.5;
+      ctx.strokeRect(zx,zy,z.w*ts,z.h*ts);
     }
   }
+  // NPCs
+  for(var ni=0;ni<CW_NPCS.length;ni++) cw_drawNPC(ctx,CW_NPCS[ni],ts,Math.floor(s.camX),Math.floor(s.camY),vw,vh);
+  // Player
+  cw_drawChar(ctx,s.px*ts-Math.floor(s.camX),s.py*ts-Math.floor(s.camY),ts,G.cos.sk,G.cos.ot,s.pDir,s.pAnim,'@'+(G.username||'you'),true);
+  cwm_drawPeers(ctx,ts,Math.floor(s.camX),Math.floor(s.camY),vw,vh);
+  cwm_syncPos();
 
-  // Render NPCs
-  for(var ni=0;ni<CW_NPCS.length;ni++){
-    cw_drawNPC(ctx,CW_NPCS[ni],ts,Math.floor(s.camX),Math.floor(s.camY),vw,vh);
-  }
-
-  // Render player
-  var pwx=s.px*ts-Math.floor(s.camX), pwy=s.py*ts-Math.floor(s.camY);
-  cw_drawChar(ctx,pwx,pwy,ts,G.cos.sk,G.cos.ot,s.pDir,s.pAnim,'@'+(G.username||'you'),true);
-
-  // Show/hide verse quiz answer buttons
-  var cwAns=document.getElementById('cwAnswers');
-  var cwGrid=document.getElementById('cwAnswerGrid');
-  if(cwAns&&cwGrid){
-    var qa=s.activity&&s.activity.type==='versequiz'&&!s.activity.answered;
-    if(qa){
-      cwAns.style.display='block';
-      if(cwGrid.childElementCount!==s.activity.choices.length){
-        cwGrid.innerHTML=s.activity.choices.map(function(ch,i){
-          return '<button onclick="cw_selectAnswer('+i+')" style="background:#1a1a2a;border:1.5px solid #7EB8F7;color:#fff;padding:11px 8px;border-radius:8px;font-size:13px;font-weight:bold;font-family:Georgia,serif;width:100%">'+ch+'</button>';
-        }).join('');
-      }
-    } else {
-      cwAns.style.display='none';
-      cwGrid.innerHTML='';
-    }
-  }
-
-  // HUD / dialog / activity
+  // HUD and dialog
   cw_drawHUD(ctx,vw,vh);
   cw_drawDialog(ctx,vw,vh);
-  cw_drawActivity(ctx,vw,vh);
+  // Update peer count badge
+  var _pcEl=document.getElementById('cwPeerCount');
+  if(_pcEl){var _pc=cwm_peerCount();_pcEl.textContent=_pc>0?' · '+_pc+' online':'';}
+  var _cpEl=document.getElementById('cwChatPeers');
+  if(_cpEl&&MP.isConnected()){var _pc2=cwm_peerCount();_cpEl.textContent=_pc2>0?_pc2+' congregation member'+(  _pc2>1?'s':'')+' nearby':'Just you — be the first in church today';}
+  else if(_cpEl){_cpEl.textContent=MP.isConnected()?'Connected':'Offline mode';}
+
+  // Update HTML activity overlay every 500ms (for timers) or on state change
+  if(!s._lastActivityRender||(s.activity&&Date.now()-s._lastActivityRender>500)){
+    s._lastActivityRender=Date.now();
+    cw_renderActivity();
+  }
 
   s.rafId=requestAnimationFrame(cw_loop);
 }
 
-// ── Interact handler ──────────────────────
+// ── INTERACT ───────────────────────────────────────────
 function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
   var s=CWS;
-
-  // Close dialog
   if(s.dialog){
     if(s.dialog.xp){G.pd.xp=(G.pd.xp||0)+s.dialog.xp;persistPlayer();}
     s.dialog=null;return;
   }
-
-  // Activity in progress
   if(s.activity){
     var a=s.activity;
     if(a.type==='worship'){
-      if(a.phase==='intro'){a.phase='play';return;}
+      if(a.phase==='intro'){a.phase='play';cw_renderActivity();return;}
       if(a.phase==='result'){cw_completeActivity();return;}
       return;
     }
     if(a.type==='versequiz'){
-      if(a.answered){
-        // Mark this specific verse done so we don't repeat it
-        s.done['vq_'+a.vq.ref]=true;
-        cw_completeActivity();
-      }
+      if(a.answered){s.done['vq_'+a.vq.ref]=true;cw_completeActivity();}
       return;
     }
     var elapsed=Date.now()-a.t0;
     if(elapsed>=a.dur||a.skip){cw_completeActivity();}
-    else a.skip=true;
+    else{a.skip=true;cw_renderActivity();}
     return;
   }
-
-  // NPC talk
   if(s.nearNpc){
     var npc=CW_NPCS.find(function(x){return x.id===s.nearNpc;});
     if(npc&&npc.talk){
       var idx=(s.talkIdx[npc.id]||0)%npc.talk.length;
-      var t=npc.talk[idx];
-      s.talkIdx[npc.id]=(idx+1);
+      var t=npc.talk[idx];s.talkIdx[npc.id]=(idx+1);
       s.dialog={speaker:npc.name,emoji:npc.emoji,text:t.text,xp:t.xp||0};
     }
     return;
   }
-
-  // Zone activity
   if(s.nearZone){
     var zone=CW_ZONES.find(function(x){return x.id===s.nearZone;});
     if(!zone) return;
     if(zone.type==='exit'){if(s.onExit)s.onExit();return;}
-    if(s.done[zone.id]){
-      s.dialog={speaker:"",emoji:"💭",text:"You've already done this today. Come back next Sunday!",xp:0};
-      return;
+    if(s.done[zone.id]&&zone.type!=='worship'){
+      s.dialog={speaker:"",emoji:"💭",text:"You've already done this today. Come back next Sunday!",xp:0};return;
     }
     if(zone.type==='pew'){
       s.activity={type:'pew',verse:CW_VERSES[Math.floor(Math.random()*CW_VERSES.length)],t0:Date.now(),dur:10000,xp:25,skip:false,zoneId:zone.id};
@@ -1574,23 +1674,21 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
     } else if(zone.type==='offering'){
       s.activity={type:'offering',t0:Date.now(),dur:0,xp:30,skip:true,zoneId:zone.id};
     } else if(zone.type==='versequiz'){
-      // Pick a random verse not done this session
-      var pool=CW_VERSE_QUIZ.filter(function(v){return !s.done['vq_'+v.ref];});
-      if(!pool.length){pool=CW_VERSE_QUIZ;} // reset when all done
+      var pool=CW_VERSE_QUIZ.filter(function(v){return!s.done['vq_'+v.ref];});
+      if(!pool.length){pool=CW_VERSE_QUIZ;}
       var vq=pool[Math.floor(Math.random()*pool.length)];
-      // Shuffle choices
       var ch=vq.choices.slice().sort(function(){return Math.random()-.5;});
       s.activity={type:'versequiz',vq:vq,choices:ch,selected:null,answered:false,correct:false,xp:vq.xp,zoneId:zone.id};
     }
+    cw_renderActivity();
   }
 }
 
 function cw_handleKey(key){var _wb=CWS.activity&&CWS.activity.score;
-  var a=CWS.activity;
-  if(!a||a.type!=='worship'||a.phase!=='play') return;
+  var a=CWS.activity;if(!a||a.type!=='worship'||a.phase!=='play') return;
   var arrow=CW_ARROWS[key];if(!arrow) return;
   if(arrow===a.pattern[a.idx]){a.score++;a.combo++;}else{a.combo=0;}
-  if(SFX){if(CWS.activity&&CWS.activity.score>_wb)SFX.worshipHit();else SFX.worshipMiss();}
+  if(SFX){if(a.score>(_wb||0))SFX.worshipHit();else SFX.worshipMiss();}
   a.idx++;
   if(a.idx>=a.pattern.length){
     var pct=a.score/a.pattern.length;
@@ -1598,77 +1696,111 @@ function cw_handleKey(key){var _wb=CWS.activity&&CWS.activity.score;
     if(pct>=.75&&G.pd.powerups.length<6) G.pd.powerups.push({id:'worship',name:'Worship Boost',emoji:'🎵',effect:'heal'});
     a.phase='result';
   }
+  cw_renderActivity();
 }
 
-function cw_completeActivity(){var _ca=CWS.activity;if(_ca&&SFX){if(_ca.type==="offering")SFX.offer();if(_ca.type==="prayer")SFX.pray();if(_ca.type==="pew")SFX.correct();}
-  var a=CWS.activity;if(!a)return;
-  CWS.done[a.zoneId]=true;
-  if(a.xp){G.pd.xp=(G.pd.xp||0)+a.xp;if(a.type==='prayer')G.pd._prayerBuff=3;persistPlayer();}
-  CWS.activity=null;
+function cw_selectAnswer(idx){SFX&&SFX.resume&&SFX.resume();
+  var a=CWS.activity;if(!a||a.type!=='versequiz'||a.answered) return;
+  a.selected=idx;a.correct=(a.choices[idx]===a.vq.blank);a.answered=true;
+  if(a.correct){G.pd.xp=(G.pd.xp||0)+a.xp;}else{G.pd.xp=(G.pd.xp||0)+Math.floor(a.xp/4);}
+  persistPlayer();
+  if(SFX){if(a.correct)SFX.correct();else SFX.wrong();}
+  cw_renderActivity();
 }
 
-// ── Public init / destroy ─────────────────
-function cw_init(canvas, onExit){
-  CWS.canvas=canvas; CWS.ctx=canvas.getContext('2d');
-  CWS.onExit=onExit; CWS.active=true;
-  CWS.px=14; CWS.py=20;   // center aisle, back section — fully walkable
-  CWS.pDir='down'; CWS.pAnim=0;
-  CWS.dialog=null; CWS.activity=null; CWS.keys={};
-  CWS.moveTimer=0; CWS.nearZone=null; CWS.nearNpc=null;
+function cw_completeActivity(){var _ca=CWS.activity;
+  if(_ca&&SFX){if(_ca.type==='offering')SFX.offer();if(_ca.type==='prayer')SFX.pray();if(_ca.type==='pew')SFX.correct();}
+  if(_ca){CWS.done[_ca.zoneId]=true;if(_ca.xp&&_ca.type!=='versequiz'){G.pd.xp=(G.pd.xp||0)+_ca.xp;if(_ca.type==='prayer')G.pd._prayerBuff=3;persistPlayer();}}
+  CWS.activity=null;cw_hideActivityOverlay();CWS._lastActivityRender=0;
+}
 
+// ── INIT / DESTROY ─────────────────────────────────────
+function cw_init(canvas,onExit){
+  CWS.canvas=canvas;CWS.ctx=canvas.getContext('2d');CWS.onExit=onExit;CWS.active=true;
+  CWS.px=14;CWS.py=20;CWS.pDir='down';CWS.pAnim=0;
+  CWS.dialog=null;CWS.activity=null;CWS.keys={};CWS.moveTimer=0;
+  CWS.nearZone=null;CWS.nearNpc=null;CWS.npcTimers={};CWS._lastActivityRender=0;
   CWS._kd=function(e){
     CWS.keys[e.key]=true;
-    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-    if(e.key==='a'||e.key==='A'||e.key==='Enter'||e.key===' ') cw_interact();
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+    if(e.key==='a'||e.key==='A'||e.key==='Enter'||e.key===' ')cw_interact();
     if(e.key==='Escape'){if(onExit)onExit();}
     cw_handleKey(e.key);
   };
   CWS._ku=function(e){delete CWS.keys[e.key];};
   document.addEventListener('keydown',CWS._kd);
   document.addEventListener('keyup',CWS._ku);
-  if(CWS.rafId) cancelAnimationFrame(CWS.rafId);
+  if(CWS.rafId)cancelAnimationFrame(CWS.rafId);
   CWS.rafId=requestAnimationFrame(cw_loop);
 }
 
 function cw_destroy(){
   CWS.active=false;
   if(CWS.rafId){cancelAnimationFrame(CWS.rafId);CWS.rafId=null;}
-  if(CWS._kd) document.removeEventListener('keydown',CWS._kd);
-  if(CWS._ku) document.removeEventListener('keyup',CWS._ku);
-  CWS.canvas=null; CWS.ctx=null;
+  if(CWS._kd)document.removeEventListener('keydown',CWS._kd);
+  if(CWS._ku)document.removeEventListener('keyup',CWS._ku);
+  cw_hideActivityOverlay();
+  CWS.canvas=null;CWS.ctx=null;
 }
 
-// ── Church screen renderer ────────────────
+// ── CHURCH WORLD SCREEN ────────────────────────────────
 function rChurchWorld(){
   return`<div style="position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:100;overflow:hidden">
   <div style="background:#0a0500;border-bottom:1px solid #C4A35A33;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">⛪</span>
-      <div><div style="font-size:11px;font-weight:bold;color:#C4A35A">${CFG.churchName}</div><div style="font-size:8px;color:#555">Exploring the church</div></div>
+      <div><div style="font-size:11px;font-weight:bold;color:#C4A35A">${CFG.churchName}</div><div style="font-size:8px;color:#555">Exploring — tap A to interact<span id="cwPeerCount"></span></div></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:9px;color:#888">Lv.${glv()} · ${G.pd.xp} XP</span>
       <button onclick="leaveChurch()" style="background:#1a0a00;border:1px solid #C4A35A55;color:#C4A35A;padding:5px 12px;border-radius:8px;font-size:10px;font-weight:bold">✕ Leave</button>
+      <button onclick="cwm_toggleChat()" style="position:relative;background:#001a00;border:1px solid #4ade8044;color:#4ade80;padding:5px 11px;border-radius:8px;font-size:10px;font-weight:bold">
+        💬 Chat
+        <span id="cwChatBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:8px;align-items:center;justify-content:center;font-family:monospace">0</span>
+      </button>
     </div>
   </div>
-  <canvas id="cwCanvas" style="flex:1;display:block;touch-action:none"></canvas>
-  <div id="cwAnswers" style="display:none;position:absolute;left:0;right:0;bottom:130px;padding:0 20px;z-index:10">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="cwAnswerGrid"></div>
+
+  <!-- Canvas fills remaining space -->
+  <canvas id="cwCanvas" style="flex:1;display:block;touch-action:none;min-height:0"></canvas>
+
+  <!-- Chat overlay -->
+  <div id="cwChat" style="display:none;position:absolute;bottom:130px;right:0;width:min(340px,100vw);height:420px;background:#0a0a12;border:1px solid #333;border-radius:16px 0 0 16px;flex-direction:column;z-index:25;overflow:hidden;box-shadow:-4px 0 24px rgba(0,0,0,0.8)">
+    <div style="background:#0d0d18;border-bottom:1px solid #1a1a2a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:12px;font-weight:bold;color:#7EB8F7">💬 Congregation Chat</div>
+        <div id="cwChatPeers" style="font-size:9px;color:#555">Loading presence…</div>
+      </div>
+      <button onclick="cwm_toggleChat()" style="background:none;border:none;color:#555;font-size:16px;padding:0 4px">✕</button>
+    </div>
+    <div id="cwChatLog" style="flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;scroll-behavior:smooth"></div>
+    <div style="border-top:1px solid #1a1a2a;padding:8px 10px;display:flex;gap:6px;flex-shrink:0;background:#0d0d18">
+      <input id="cwChatInput" type="text" maxlength="120" placeholder="Type a message…"
+        style="flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-family:Georgia,serif;outline:none"
+        onkeydown="if(event.key==='Enter'){cwm_sendChat();event.preventDefault();}"
+      >
+      <button onclick="cwm_sendChat()" style="background:linear-gradient(135deg,#7EB8F7,#4488CC);border:none;color:#000;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:bold;touch-action:manipulation">↑</button>
+    </div>
   </div>
+
+  <!-- Activity overlay — full-screen HTML for mobile -->
+  <div id="cwActivity" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.88);z-index:20;align-items:center;justify-content:center;padding:16px;overflow-y:auto"></div>
+
+  <!-- D-pad controls -->
   <div style="background:#0a0a0a;border-top:1px solid #1a1a1a;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px">
-    <div style="display:grid;grid-template-columns:38px 38px 38px;grid-template-rows:38px 38px 38px;gap:2px">
+    <div style="display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:3px">
       <div></div>
-      <button onpointerdown="CWS.keys['dpad_up']=true" onpointerup="delete CWS.keys['dpad_up']" onpointerleave="delete CWS.keys['dpad_up']" style="background:#1a1a1a;border:1px solid #333;border-radius:7px;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none">⬆</button>
+      <button onpointerdown="CWS.keys['dpad_up']=true" onpointerup="delete CWS.keys['dpad_up']" onpointerleave="delete CWS.keys['dpad_up']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬆</button>
       <div></div>
-      <button onpointerdown="CWS.keys['dpad_left']=true" onpointerup="delete CWS.keys['dpad_left']" onpointerleave="delete CWS.keys['dpad_left']" style="background:#1a1a1a;border:1px solid #333;border-radius:7px;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none">⬅</button>
-      <div style="background:#111;border:1px solid #222;border-radius:7px"></div>
-      <button onpointerdown="CWS.keys['dpad_right']=true" onpointerup="delete CWS.keys['dpad_right']" onpointerleave="delete CWS.keys['dpad_right']" style="background:#1a1a1a;border:1px solid #333;border-radius:7px;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none">➡</button>
+      <button onpointerdown="CWS.keys['dpad_left']=true" onpointerup="delete CWS.keys['dpad_left']" onpointerleave="delete CWS.keys['dpad_left']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬅</button>
+      <div style="background:#111;border:1px solid #222;border-radius:8px"></div>
+      <button onpointerdown="CWS.keys['dpad_right']=true" onpointerup="delete CWS.keys['dpad_right']" onpointerleave="delete CWS.keys['dpad_right']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">➡</button>
       <div></div>
-      <button onpointerdown="CWS.keys['dpad_down']=true" onpointerup="delete CWS.keys['dpad_down']" onpointerleave="delete CWS.keys['dpad_down']" style="background:#1a1a1a;border:1px solid #333;border-radius:7px;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none">⬇</button>
+      <button onpointerdown="CWS.keys['dpad_down']=true" onpointerup="delete CWS.keys['dpad_down']" onpointerleave="delete CWS.keys['dpad_down']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬇</button>
       <div></div>
     </div>
-    <div style="flex:1;text-align:center;font-size:9px;color:#444">Walk to activities &amp; congregation members<br>then tap A to interact</div>
-    <button onclick="cw_interact()" style="width:62px;height:62px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:20px;font-weight:bold;box-shadow:0 3px 10px rgba(196,163,90,.4);touch-action:none;flex-shrink:0">A</button>
+    <div style="flex:1;text-align:center;font-size:9px;color:#444;line-height:1.5">Walk to glowing zones<br>&amp; congregation members<br>then tap <strong style="color:#C4A35A">A</strong></div>
+    <button ontouchstart="cw_interact();event.preventDefault()" onclick="cw_interact()" style="width:64px;height:64px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:22px;font-weight:bold;box-shadow:0 4px 14px rgba(196,163,90,.5);touch-action:manipulation;flex-shrink:0;user-select:none">A</button>
   </div>
 </div>`;}
 
@@ -1678,21 +1810,21 @@ function initChurchWorld(){
   if(!canvas) return;
   function resize(){
     var r=canvas.getBoundingClientRect();
-    canvas.width=Math.floor(r.width)||360;
-    canvas.height=Math.floor(r.height)||400;
+    canvas.width=Math.max(Math.floor(r.width),1);
+    canvas.height=Math.max(Math.floor(r.height),1);
   }
   resize();
   window.addEventListener('resize',resize);
-  cw_init(canvas, leaveChurch);
+  cw_init(canvas,leaveChurch);
+  cwm_connect();
 }
 
 function leaveChurch(){
-  cw_destroy();
-  persistPlayer();
-  G.screen="game";
-  render();
+  cwm_disconnect();cw_destroy();persistPlayer();
+  G.screen="game";render();
   toast("⛪ See you next Sunday!","ok");
 }
+
 
 // ── BOOT ─────────────────────────────────
 
@@ -1799,6 +1931,1295 @@ document.addEventListener('touchstart',function(){SFX.resume();},{once:true});
 
 function toggleSFX(){SFX.resume();var on=SFX.toggleSfx();var b=document.getElementById('sfxBtn');if(b)b.textContent=on?'🔊':'🔇';if(on)SFX.click();}
 function toggleMusic(){SFX.resume();var on=SFX.toggleMusic();var b=document.getElementById('musBtn');if(b)b.textContent=on?'🎵':'🔕';if(on)SFX.playTitle();}
+
+
+
+// ═══════════════════════════════════════════════════════
+// TOWER DEFENSE ENGINE — Kingdom Chronicles
+// Replaces turn-based combat for all mission stages
+// Arena and PvP remain turn-based unchanged
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+// TOWER DEFENSE v2 — Bloons/Rush Royale style
+// - Enemies follow a fixed path (not lane-locked)
+// - Units placed anywhere on the field (drag or tap)
+// - Clean, freeze-proof update loop
+// ═══════════════════════════════════════════════════════
+
+// ── Unit definitions ──────────────────────────────────
+var TD_UNITS=[
+  {id:'shepherd',name:'Shepherd', emoji:'🐑',cost:60, hp:80, atk:12,range:70, rate:1.2,color:'#C4A35A',desc:'Cheap melee — great for blocking',   unlockId:'shepherd'},
+  {id:'ruth',    name:'Ruth',     emoji:'🌾',cost:75, hp:55, atk:8, range:120,rate:1.0,color:'#90EE90',desc:'Ranged + heals nearby allies every 2s', unlockId:'ruth',     heal:12},
+  {id:'david',   name:'David',   emoji:'🪨',cost:90, hp:60, atk:22,range:180,rate:0.8,color:'#C4A35A',desc:'Long-range sling, 30% crit chance',    unlockId:'david',    critChance:0.3},
+  {id:'deborah', name:'Deborah', emoji:'⚡',cost:100,hp:70, atk:18,range:140,rate:0.7,color:'#7EB8F7',desc:'Lightning hits ALL enemies in range',   unlockId:'deborah',  aoe:true},
+  {id:'joshua',  name:'Joshua',  emoji:'🛡️',cost:110,hp:220,atk:14,range:50, rate:1.0,color:'#FF8C42',desc:'Heavy tank — absorbs damage for nearby', unlockId:'joshua'},
+  {id:'samson',  name:'Samson',  emoji:'💪',cost:120,hp:260,atk:28,range:60, rate:0.6,color:'#FF6B35',desc:'Massive hits, knocks enemies back',      unlockId:'samson',   knockback:true},
+  {id:'elijah',  name:'Elijah',  emoji:'🔥',cost:130,hp:75, atk:20,range:160,rate:0.9,color:'#FF4500',desc:'Burns enemies — ongoing fire damage',    unlockId:'elijah',   burn:true},
+  {id:'daniel',  name:'Daniel',  emoji:'😇',cost:140,hp:90, atk:14,range:130,rate:1.1,color:'#AAFFAA',desc:'Angel shield blocks one hit for allies',  unlockId:'daniel',   shield:true},
+  {id:'moses',   name:'Moses',   emoji:'✨',cost:220,hp:100,atk:60,range:999,rate:0.25,color:'#FFD700',desc:'Staff of God — nukes entire screen!',    unlockId:'moses',    nuke:true},
+  {id:'solomon', name:'Solomon', emoji:'👑',cost:160,hp:110,atk:24,range:150,rate:1.0,color:'#CC00FF',desc:'Wisdom aura gives +25% ATK to all nearby', unlockId:'solomon',  aura:true},
+,
+  {id:'jesus',   name:'Jesus',   emoji:'✝️', cost:300,hp:300,atk:100,range:999,rate:0.7,color:'#FFD700',desc:'Word of God — heals all allies AND smites all enemies!', unlockId:'jesus', divine:true, aura:true},
+];
+
+// ── Path waypoints (proportional 0-1 coords) ─────────
+// Enemies follow this winding path across the field
+var TD_PATH_PTS=[
+  [0.98,0.20],[0.75,0.20],[0.75,0.42],[0.52,0.42],
+  [0.52,0.65],[0.30,0.65],[0.30,0.42],[0.10,0.42],
+  [0.10,0.75],[0.52,0.75],[0.52,0.88],[0.02,0.88],
+];
+
+// ── Stage wave data ────────────────────────────────────
+var TD_STAGE_WAVES={
+  moses_m_0:{title:'Egyptian Guards',accent:'#CC8800',bg:'#1a0a00',sky:'#2a1500',
+    waves:[[{t:'guard',hp:55,atk:10,spd:65,count:5}],
+           [{t:'guard',hp:65,atk:12,spd:70,count:6}],
+           [{t:'guard',hp:80,atk:14,spd:75,count:7}]]},
+  moses_m_1:{title:'Royal Sorcerer',accent:'#9900AA',bg:'#1a0010',sky:'#0d0008',
+    special:'⚠️ Plague empowers enemies!',
+    waves:[[{t:'sorcerer',hp:70,atk:14,spd:55,count:4}],
+           [{t:'sorcerer',hp:80,atk:16,spd:60,count:5},{t:'guard',hp:55,atk:10,spd:70,count:3}],
+           [{t:'sorcerer',hp:100,atk:20,spd:65,count:6,plagueBonus:12}]]},
+  moses_m_2:{title:'Cross the Red Sea',accent:'#4488CC',bg:'#000d1a',sky:'#001122',
+    special:'🌊 Survive 5 waves — the sea will part!',
+    waves:[[{t:'captain',hp:75,atk:14,spd:70,count:5}],
+           [{t:'captain',hp:90,atk:16,spd:75,count:5}],
+           [{t:'captain',hp:100,atk:18,spd:80,count:6}],
+           [{t:'captain',hp:115,atk:20,spd:85,count:6}],
+           [{t:'captain',hp:130,atk:22,spd:90,count:8}]]},
+  moses_m_3:{title:'Pharaoh Boss',accent:'#FFD700',bg:'#1a0d00',sky:'#0d0800',boss:true,
+    waves:[[{t:'guard',hp:70,atk:12,spd:70,count:8}],
+           [{t:'captain',hp:90,atk:16,spd:65,count:5}],
+           [{t:'pharaoh',hp:500,atk:35,spd:40,count:1,boss:true,rage:0.5,rageMult:1.8}]]},
+  david_m_0:{title:'Philistine Scouts',accent:'#AA6600',bg:'#0f0d00',sky:'#111000',
+    waves:[[{t:'scout',hp:40,atk:10,spd:90,count:6}],
+           [{t:'scout',hp:50,atk:12,spd:95,count:7}],
+           [{t:'scout',hp:60,atk:14,spd:100,count:8}]]},
+  david_m_1:{title:'Armor Bearer',accent:'#888',bg:'#0f0d00',sky:'#111000',
+    waves:[[{t:'bearer',hp:70,atk:16,spd:55,count:4}],
+           [{t:'bearer',hp:85,atk:18,spd:60,count:5}],
+           [{t:'bearer',hp:100,atk:20,spd:65,count:5},{t:'scout',hp:50,atk:10,spd:90,count:4}]]},
+  david_m_2:{title:'GOLIATH BOSS',accent:'#AAA',bg:'#0f0d00',sky:'#0d0c00',boss:true,
+    waves:[[{t:'scout',hp:55,atk:10,spd:90,count:10}],
+           [{t:'bearer',hp:80,atk:16,spd:60,count:5}],
+           [{t:'goliath',hp:600,atk:45,spd:28,count:1,boss:true,rage:0.5,rageMult:2.0}]]},
+  elijah_m_0:{title:'Prophets of Baal',accent:'#CC00CC',bg:'#1a0500',sky:'#0d0300',
+    special:'🐍 Prophets swarm from all directions!',
+    waves:[[{t:'baal',hp:50,atk:12,spd:75,count:8}],
+           [{t:'baal',hp:60,atk:14,spd:80,count:9}],
+           [{t:'baal',hp:75,atk:16,spd:85,count:10}]]},
+  elijah_m_1:{title:'High Priest',accent:'#9900AA',bg:'#1a0500',sky:'#0d0300',
+    waves:[[{t:'priest',hp:80,atk:18,spd:50,count:4}],
+           [{t:'priest',hp:95,atk:20,spd:55,count:5}],
+           [{t:'baal',hp:60,atk:12,spd:80,count:5},{t:'priest',hp:95,atk:20,spd:55,count:3}]]},
+  elijah_m_2:{title:'Jezebel Boss',accent:'#FF4500',bg:'#1a0500',sky:'#0d0300',boss:true,
+    waves:[[{t:'baal',hp:65,atk:14,spd:80,count:10}],
+           [{t:'priest',hp:90,atk:18,spd:55,count:5}],
+           [{t:'jezebel',hp:450,atk:38,spd:35,count:1,boss:true,shieldHp:100,rage:0.4,rageMult:1.7}]]},
+  daniel_m_0:{title:'The Conspirators',accent:'#CC8800',bg:'#0a0d00',sky:'#050800',
+    waves:[[{t:'conspir',hp:55,atk:12,spd:70,count:5}],
+           [{t:'conspir',hp:65,atk:14,spd:75,count:6}],
+           [{t:'conspir',hp:80,atk:16,spd:80,count:7}]]},
+  daniel_m_1:{title:'The Lions',accent:'#CC6600',bg:'#0a0d00',sky:'#050800',boss:true,
+    special:'😇 Angels block every 3rd hit on lions!',
+    waves:[[{t:'lion',hp:110,atk:22,spd:55,count:3,angelBlock:3}],
+           [{t:'lion',hp:140,atk:25,spd:60,count:3,angelBlock:3}],
+           [{t:'lion',hp:350,atk:32,spd:40,count:1,boss:true,angelBlock:3}]]},
+  jonah_m_0:{title:'The Storm',accent:'#4488CC',bg:'#000d1a',sky:'#001122',
+    special:'🌊 Underwater — enemies faster, units slower!',slow:true,
+    waves:[[{t:'storm',hp:60,atk:14,spd:85,count:5}],
+           [{t:'storm',hp:75,atk:16,spd:90,count:6}],
+           [{t:'storm',hp:90,atk:18,spd:95,count:7}]]},
+  jonah_m_1:{title:'Great Fish Boss',accent:'#2244AA',bg:'#000d1a',sky:'#00091a',boss:true,slow:true,
+    waves:[[{t:'storm',hp:70,atk:14,spd:85,count:7}],
+           [{t:'fish_fin',hp:100,atk:20,spd:70,count:4}],
+           [{t:'fish',hp:550,atk:28,spd:25,count:1,boss:true,rage:0.35,rageMult:1.9}]]},
+};
+
+// ── Enemy visual lookup ────────────────────────────────
+var TD_ESTYLES={
+  guard:   {color:'#CC8800',r:15,shape:'r',emoji:'⚔️', t:'egyptian_guard'},
+  sorcerer:{color:'#9900AA',r:15,shape:'d',emoji:'🔮', t:'royal_sorcerer'},
+  captain: {color:'#CC6600',r:15,shape:'r',emoji:'🏛️', t:'philistine'},
+  pharaoh: {color:'#FFD700',r:22,shape:'r',emoji:'👑', boss:true, t:'pharaoh'},
+  scout:   {color:'#AA6600',r:13,shape:'t',emoji:'🗡️', t:'philistine'},
+  bearer:  {color:'#888888',r:15,shape:'r',emoji:'🛡️', t:'philistine'},
+  goliath: {color:'#AAAAAA',r:24,shape:'r',emoji:'👹', boss:true, t:'goliath'},
+  baal:    {color:'#CC00CC',r:14,shape:'d',emoji:'🐍', t:'false_prophet'},
+  priest:  {color:'#880088',r:15,shape:'r',emoji:'🔮', t:'false_prophet'},
+  jezebel: {color:'#FF4500',r:22,shape:'d',emoji:'👿', boss:true, t:'king_saul'},
+  conspir: {color:'#CC8800',r:14,shape:'t',emoji:'🗡️', t:'philistine'},
+  lion:    {color:'#CC6600',r:16,shape:'r',emoji:'🦁', t:'legion'},
+  storm:   {color:'#4488CC',r:14,shape:'d',emoji:'🌊', t:'legion'},
+  fish_fin:{color:'#2244AA',r:15,shape:'t',emoji:'🐟', t:'philistine'},
+  fish:    {color:'#1133AA',r:26,shape:'r',emoji:'🐋', boss:true, t:'goliath'},
+};
+
+// ── State ──────────────────────────────────────────────
+var TDS={
+  active:false,canvas:null,ctx:null,rafId:null,
+  stage:null,stageKey:'',missionRef:null,stageIdx:0,
+  baseHp:20,maxBaseHp:20,
+  mana:100,maxMana:250,manaRegen:22,
+  units:[],enemies:[],projectiles:[],particles:[],
+  waveIdx:0,spawnQueue:[],spawnTimer:0,waveActive:false,
+  allWavesDone:false,won:false,lost:false,
+  selectedUnit:null,
+  onWin:null,onLose:null,
+  showResult:false,resultTimer:0,
+  lastTime:0,
+  path:[],   // computed pixel path from TD_PATH_PTS
+  W:0,H:0,  // canvas dimensions cached
+  TOPBAR:44,
+  FIELD_H:0,
+  _uid:0,
+  _nextWaveCountdown:0,
+  _schedTimer:null,
+  _resizeHandler:null,
+};
+
+function td_uid(){return ++TDS._uid;}
+function td_irand(a,b){return Math.floor(a+Math.random()*(b-a+1));}
+
+// ── Build pixel path from proportional points ─────────
+function td_buildPath(){
+  var fw=TDS.W, fh=TDS.FIELD_H, fy=TDS.TOPBAR;
+  TDS.path=TD_PATH_PTS.map(function(p){return{x:p[0]*fw,y:fy+p[1]*fh};});
+}
+
+// ── Path position helper ───────────────────────────────
+// Returns {x,y} at distance d along path, and segment index
+function td_pathAt(d){
+  var pts=TDS.path;
+  for(var i=0;i<pts.length-1;i++){
+    var dx=pts[i+1].x-pts[i].x, dy=pts[i+1].y-pts[i].y;
+    var segLen=Math.sqrt(dx*dx+dy*dy);
+    if(d<=segLen){
+      var t=d/segLen;
+      return{x:pts[i].x+dx*t,y:pts[i].y+dy*t,seg:i,done:false};
+    }
+    d-=segLen;
+  }
+  return{x:pts[pts.length-1].x,y:pts[pts.length-1].y,seg:pts.length-1,done:true};
+}
+
+// ── Total path length ──────────────────────────────────
+function td_pathLen(){
+  var pts=TDS.path,len=0;
+  for(var i=0;i<pts.length-1;i++){
+    var dx=pts[i+1].x-pts[i].x,dy=pts[i+1].y-pts[i].y;
+    len+=Math.sqrt(dx*dx+dy*dy);
+  }
+  return len;
+}
+
+// ── Spawn an enemy ─────────────────────────────────────
+function td_spawnEnemy(def){
+  var st=TD_ESTYLES[def.t]||{color:'#FF0000',r:14,shape:'r',emoji:'⚔️'};var stSpr=st.t||def.t;
+  var slowMult=TDS.stage&&TDS.stage.slow?0.65:1.0;
+  var spd=def.spd*slowMult;
+  TDS.enemies.push({
+    id:td_uid(), t:def.t, sprId:stSpr,
+    hp:def.hp, maxHp:def.hp,
+    atk:def.atk,
+    spd:spd, baseSpd:spd,
+    dist:0,         // distance along path
+    x:TDS.path[0].x, y:TDS.path[0].y,
+    r:st.r, color:st.color, shape:st.shape, emoji:st.emoji,
+    boss:def.boss||false,
+    rage:def.rage||0, rageMult:def.rageMult||1.5, raging:false,
+    shieldHp:def.shieldHp||0,
+    angelBlock:def.angelBlock||0, angelHits:0,
+    plagueBonus:def.plagueBonus||0,
+    burnTimer:0, burning:false,
+    hitFlash:0,
+    slowTimer:0,    // ice/slow effect
+    atkTimer:0,
+  });
+}
+
+// ── Spawn wave ─────────────────────────────────────────
+function td_startWave(){
+  if(!TDS.active||TDS.won||TDS.lost) return;
+  var stage=TDS.stage;
+  if(!stage||TDS.waveIdx>=stage.waves.length){TDS.allWavesDone=true;return;}
+  var groups=stage.waves[TDS.waveIdx];
+  TDS.spawnQueue=[];
+  var delay=0;
+  groups.forEach(function(g){
+    for(var i=0;i<g.count;i++){
+      TDS.spawnQueue.push(Object.assign({},g,{delay:delay}));
+      delay+=stage.slow?1.1:0.7;
+    }
+  });
+  TDS.waveIdx++;
+  TDS.waveActive=true;
+  TDS.spawnTimer=0;
+  TDS._nextWaveCountdown=0;
+}
+
+// ── Place a unit ───────────────────────────────────────
+function td_placeUnit(defId,wx,wy){
+  var def=TD_UNITS.find(function(u){return u.id===defId;});
+  if(!def||TDS.mana<def.cost) return false;
+  // Don't place on path
+  for(var i=0;i<TDS.path.length-1;i++){
+    var px=TDS.path[i].x,py=TDS.path[i].y;
+    var nx=TDS.path[i+1].x,ny=TDS.path[i+1].y;
+    // distance from point to segment
+    var dx=nx-px,dy=ny-py,len2=dx*dx+dy*dy;
+    if(len2===0) continue;
+    var t=Math.max(0,Math.min(1,((wx-px)*dx+(wy-py)*dy)/len2));
+    var cx2=px+t*dx,cy2=py+t*dy;
+    if(Math.sqrt((wx-cx2)**2+(wy-cy2)**2)<30) return false;
+  }
+  // Don't stack on existing unit
+  for(var j=0;j<TDS.units.length;j++){
+    if(Math.sqrt((TDS.units[j].x-wx)**2+(TDS.units[j].y-wy)**2)<30) return false;
+  }
+  TDS.mana-=def.cost;
+  var slowMult=TDS.stage&&TDS.stage.slow?0.75:1.0;
+  TDS.units.push({
+    id:td_uid(), defId:defId,
+    x:wx, y:wy,
+    hp:def.hp, maxHp:def.hp,
+    atk:def.atk, range:def.range,
+    rate:def.rate*slowMult,
+    aoe:def.aoe||false, burn:def.burn||false,
+    knockback:def.knockback||false,
+    nuke:def.nuke||false, heal:def.heal||0,
+    shield:def.shield||false, aura:def.aura||false,
+    critChance:def.critChance||0,
+    color:def.color, emoji:def.emoji,
+    atkCd:0, healCd:0,
+    shieldActive:def.shield||false,
+    hitFlash:0, animTick:0,
+  });
+  td_particles(wx,wy,def.color,10,80);
+  SFX&&SFX.click&&SFX.click();
+  return true;
+}
+
+// ── Particles ──────────────────────────────────────────
+function td_particles(x,y,color,n,spd){
+  for(var i=0;i<n;i++){
+    var a=Math.random()*Math.PI*2;
+    var s=(0.4+Math.random()*0.6)*spd;
+    TDS.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+      life:0.5+Math.random()*0.3,maxLife:0.8,color,size:2+Math.random()*3});
+  }
+}
+
+// ── Hit an enemy ───────────────────────────────────────
+function td_hit(e,dmg,burn,knockback){
+  if(!e||e.hp<=0) return;
+  // Angel block
+  if(e.angelBlock>0){
+    e.angelHits++;
+    if(e.angelHits%e.angelBlock===0){
+      td_particles(e.x,e.y,'#FFD700',8,70);
+      return;
+    }
+  }
+  // Boss shield
+  if(e.shieldHp>0){
+    e.shieldHp=Math.max(0,e.shieldHp-dmg);
+    td_particles(e.x,e.y,'#CC00FF',5,50);
+    e.hitFlash=0.1;
+    return;
+  }
+  e.hp-=dmg;
+  e.hitFlash=0.12;
+  if(burn&&!e.burning){e.burning=true;e.burnTimer=0;}
+  if(knockback){
+    // Push back along path (increase dist backwards — decrease dist)
+    e.dist=Math.max(0,e.dist-40);
+    var pos=td_pathAt(e.dist);
+    e.x=pos.x;e.y=pos.y;
+    td_particles(e.x,e.y,'#FF6B35',6,70);
+  }
+}
+
+// ── Main update ────────────────────────────────────────
+function td_update(dt){
+  if(!TDS.active||TDS.won||TDS.lost||!TDS.stage) return;
+
+  TDS.mana=Math.min(TDS.maxMana,TDS.mana+TDS.manaRegen*dt);
+
+  // Spawn queue
+  if(TDS.waveActive){
+    TDS.spawnTimer+=dt;
+    while(TDS.spawnQueue.length>0&&TDS.spawnTimer>=TDS.spawnQueue[0].delay){
+      td_spawnEnemy(TDS.spawnQueue.shift());
+    }
+    if(TDS.spawnQueue.length===0) TDS.waveActive=false;
+  }
+
+  // Between-wave countdown
+  if(!TDS.waveActive&&TDS.enemies.length===0&&!TDS.allWavesDone){
+    if(TDS.waveIdx<TDS.stage.waves.length){
+      if(TDS._nextWaveCountdown<=0){
+        TDS._nextWaveCountdown=2.0;
+      }
+      TDS._nextWaveCountdown-=dt;
+      if(TDS._nextWaveCountdown<=0) td_startWave();
+    } else {
+      TDS.allWavesDone=true;
+    }
+  }
+
+  // Win
+  if(TDS.allWavesDone&&TDS.enemies.length===0&&!TDS.won){
+    TDS.won=true;TDS.showResult=true;TDS.resultTimer=2.8;
+    SFX&&SFX.victory&&SFX.victory();
+    return;
+  }
+
+  // Particles
+  for(var pi=TDS.particles.length-1;pi>=0;pi--){
+    var p=TDS.particles[pi];
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=100*dt;p.life-=dt;
+    if(p.life<=0) TDS.particles.splice(pi,1);
+  }
+
+  // Projectiles — move toward current enemy position (homing)
+  for(var ri=TDS.projectiles.length-1;ri>=0;ri--){
+    var proj=TDS.projectiles[ri];
+    var en=TDS.enemies.find(function(e){return e.id===proj.eid;});
+    if(!en||en.hp<=0){
+      TDS.projectiles.splice(ri,1);
+      continue;
+    }
+    // Update target position (homing)
+    proj.tx=en.x;proj.ty=en.y;
+    var dx=proj.tx-proj.x,dy=proj.ty-proj.y;
+    var d=Math.sqrt(dx*dx+dy*dy);
+    var spd=260*dt;
+    if(d<=spd+en.r){
+      // Hit
+      td_hit(en,proj.dmg,proj.burn||false,proj.knockback||false);
+      td_particles(en.x,en.y,proj.color,4,40);
+      TDS.projectiles.splice(ri,1);
+    } else {
+      proj.x+=dx/d*spd;proj.y+=dy/d*spd;
+    }
+  }
+
+  // Enemies — move along path
+  var pathTotal=td_pathLen();
+  for(var ei=TDS.enemies.length-1;ei>=0;ei--){
+    var e=TDS.enemies[ei];
+    if(e.hp<=0){
+      td_particles(e.x,e.y,e.color,14,100);
+      TDS.enemies.splice(ei,1);
+      continue;
+    }
+
+    // Flash
+    if(e.hitFlash>0) e.hitFlash=Math.max(0,e.hitFlash-dt);
+
+    // Burn DoT
+    if(e.burning){
+      e.burnTimer+=dt;
+      if(e.burnTimer>=0.8){
+        e.burnTimer=0;
+        e.hp-=10+(e.plagueBonus||0);
+        td_particles(e.x,e.y,'#FF4500',3,40);
+        if(e.hp<=0){td_particles(e.x,e.y,e.color,14,100);TDS.enemies.splice(ei,1);continue;}
+      }
+    }
+
+    // Rage
+    if(e.rage>0&&!e.raging&&e.hp/e.maxHp<e.rage){
+      e.raging=true;
+      e.spd=e.baseSpd*(e.rageMult||1.5);
+      td_particles(e.x,e.y,'#FF0000',20,130);
+      SFX&&SFX.boss&&SFX.bossAppear&&SFX.bossAppear();
+    }
+
+    // Move along path
+    var moveSpd=e.spd*(e.slowTimer>0?0.4:1.0);
+    if(e.slowTimer>0) e.slowTimer=Math.max(0,e.slowTimer-dt);
+    e.dist+=moveSpd*dt;
+    var pos=td_pathAt(e.dist);
+    e.x=pos.x;e.y=pos.y;
+
+    // Reached end
+    if(pos.done||e.dist>=pathTotal){
+      TDS.baseHp=Math.max(0,TDS.baseHp-Math.ceil(e.maxHp*0.12+3));
+      td_particles(TDS.path[TDS.path.length-1].x,TDS.path[TDS.path.length-1].y,'#FF0000',10,80);
+      SFX&&SFX.hit&&SFX.hit();
+      TDS.enemies.splice(ei,1);
+      if(TDS.baseHp<=0){
+        TDS.lost=true;TDS.showResult=true;TDS.resultTimer=2.8;
+        SFX&&SFX.defeat&&SFX.defeat();
+      }
+    }
+  }
+
+  // Units
+  for(var ui=TDS.units.length-1;ui>=0;ui--){
+    var u=TDS.units[ui];
+    if(u.hp<=0){td_particles(u.x,u.y,'#fff',10,80);TDS.units.splice(ui,1);continue;}
+    if(u.hitFlash>0) u.hitFlash=Math.max(0,u.hitFlash-dt);
+    u.animTick+=dt;
+    u.atkCd=Math.max(0,u.atkCd-dt);
+
+    // Heal pulse (Ruth)
+    if(u.heal>0){
+      u.healCd=Math.max(0,(u.healCd||0)-dt);
+      if(u.healCd<=0){
+        u.healCd=2.2;
+        TDS.units.forEach(function(ally){
+          if(ally.id!==u.id&&Math.sqrt((ally.x-u.x)**2+(ally.y-u.y)**2)<u.range+20){
+            ally.hp=Math.min(ally.maxHp,ally.hp+u.heal);
+            td_particles(ally.x,ally.y,'#4ade80',4,35);
+          }
+        });
+      }
+    }
+
+    if(u.atkCd>0) continue;
+
+    // Find closest enemy in range
+    var bestEnemy=null,bestDist=u.range;
+    TDS.enemies.forEach(function(e){
+      var d=Math.sqrt((e.x-u.x)**2+(e.y-u.y)**2);
+      if(d<bestDist){bestDist=d;bestEnemy=e;}
+    });
+    if(!bestEnemy) continue;
+
+    // Aura multiplier
+    var auraMult=1.0;
+    TDS.units.forEach(function(ally){
+      if(ally.id!==u.id&&ally.aura&&Math.sqrt((ally.x-u.x)**2+(ally.y-u.y)**2)<ally.range+20)
+        auraMult=Math.max(auraMult,1.25);
+    });
+
+    var dmg=Math.floor(u.atk*auraMult);
+    var crit=Math.random()<(u.critChance||0);
+    if(crit) dmg=Math.floor(dmg*2.0);
+
+    u.atkCd=1.0/u.rate;
+    u.hitFlash=0.1;
+
+    // Jesus divine ability — heal all + smite all
+    if(u.divine){
+      TDS.units.forEach(function(ally){
+        if(ally.id!==u.id&&ally.hp<ally.maxHp){
+          ally.hp=Math.min(ally.maxHp,ally.hp+30);
+          td_particles(ally.x,ally.y,'#FFD700',5,50);
+        }
+      });
+      TDS.enemies.forEach(function(e){
+        TDS.projectiles.push({id:td_uid(),x:u.x,y:u.y,tx:e.x,ty:e.y,eid:e.id,dmg:dmg,color:'#FFFFFF',burn:false,knockback:false});
+      });
+      td_particles(u.x,u.y,'#FFD700',25,160);
+      td_particles(u.x,u.y,'#FFFFFF',15,120);
+      SFX&&SFX.ability&&SFX.ability();
+    } else if(u.nuke){
+      // Moses: hit ALL enemies on screen
+      TDS.enemies.forEach(function(e){
+        TDS.projectiles.push({id:td_uid(),x:u.x,y:u.y,tx:e.x,ty:e.y,eid:e.id,dmg:dmg,color:'#FFD700',burn:false,knockback:false});
+      });
+      td_particles(u.x,u.y,'#FFD700',20,150);
+      SFX&&SFX.ability&&SFX.ability();
+    } else if(u.aoe){
+      // Deborah: hit all enemies in range
+      var hit=false;
+      TDS.enemies.forEach(function(e){
+        if(Math.sqrt((e.x-u.x)**2+(e.y-u.y)**2)<u.range){
+          TDS.projectiles.push({id:td_uid(),x:u.x,y:u.y,tx:e.x,ty:e.y,eid:e.id,dmg:dmg,color:u.color,burn:u.burn,knockback:u.knockback});
+          hit=true;
+        }
+      });
+      if(hit) td_particles(u.x,u.y,u.color,6,70);
+    } else {
+      // Single target
+      TDS.projectiles.push({id:td_uid(),x:u.x,y:u.y,tx:bestEnemy.x,ty:bestEnemy.y,eid:bestEnemy.id,dmg:dmg,color:crit?'#FFD700':u.color,burn:u.burn,knockback:u.knockback});
+    }
+    if(crit) SFX&&SFX.crit&&SFX.crit();
+  }
+
+  // Result countdown
+  if(TDS.showResult){
+    TDS.resultTimer-=dt;
+    if(TDS.resultTimer<=0){
+      TDS.showResult=false;
+      if(TDS.won&&TDS.onWin) TDS.onWin();
+      else if(TDS.lost&&TDS.onLose) TDS.onLose();
+    }
+  }
+}
+
+// ── Renderer ───────────────────────────────────────────
+function td_render(){
+  var c=TDS.canvas,ctx=TDS.ctx;
+  if(!c||!ctx||!c.width||!c.height) return;
+  var W=c.width,H=c.height,T=TDS.TOPBAR,FH=TDS.FIELD_H;
+  if(!FH||FH<=0) return;
+  var stage=TDS.stage;if(!stage) return;
+
+  // ── Background ──────────────────────────────────────
+  var bg=ctx.createLinearGradient(0,T,0,T+FH);
+  bg.addColorStop(0,stage.sky||'#0a0808');
+  bg.addColorStop(1,stage.bg||'#050505');
+  ctx.fillStyle=bg;ctx.fillRect(0,T,W,FH);
+
+  // ── Path ────────────────────────────────────────────
+  if(TDS.path.length>1){
+    // Shadow
+    ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=28;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(TDS.path[0].x,TDS.path[0].y);
+    TDS.path.forEach(function(p){ctx.lineTo(p.x,p.y);});ctx.stroke();
+    // Path surface gradient
+    var pg=ctx.createLinearGradient(0,T,0,T+FH);
+    pg.addColorStop(0,'#8B6914');pg.addColorStop(1,'#5C3A10');
+    ctx.strokeStyle=pg;ctx.lineWidth=22;
+    ctx.beginPath();ctx.moveTo(TDS.path[0].x,TDS.path[0].y);
+    TDS.path.forEach(function(p){ctx.lineTo(p.x,p.y);});ctx.stroke();
+    // Path edge highlight
+    ctx.strokeStyle='rgba(255,220,120,0.15)';ctx.lineWidth=20;
+    ctx.beginPath();ctx.moveTo(TDS.path[0].x,TDS.path[0].y);
+    TDS.path.forEach(function(p){ctx.lineTo(p.x,p.y);});ctx.stroke();
+    // Path dots
+    TDS.path.forEach(function(p,i){
+      if(i===0||i===TDS.path.length-1){
+        ctx.fillStyle=i===0?'rgba(255,100,100,0.3)':'rgba(100,255,100,0.3)';
+        ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fill();
+      }
+    });
+    // Start/end labels
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='bold 9px monospace';ctx.textAlign='center';
+    ctx.fillText('START',TDS.path[0].x,TDS.path[0].y-16);
+    ctx.fillText('END',TDS.path[TDS.path.length-1].x,TDS.path[TDS.path.length-1].y-16);
+  }
+
+  // ── Grid dots (placement guide) ──────────────────────
+  ctx.fillStyle='rgba(255,255,255,0.04)';
+  var gSpc=38;
+  for(var gx=gSpc;gx<W;gx+=gSpc) for(var gy=T+gSpc;gy<T+FH;gy+=gSpc){
+    ctx.beginPath();ctx.arc(gx,gy,2,0,Math.PI*2);ctx.fill();
+  }
+
+  // ── Units ────────────────────────────────────────────
+  TDS.units.forEach(function(u){
+    var flash=u.hitFlash>0;
+    var r=22;
+    var pulse=1+0.06*Math.sin(u.animTick*4);
+    ctx.save();ctx.translate(u.x,u.y);
+    // Range ring (faint)
+    ctx.strokeStyle=u.color+'22';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(0,0,u.range,0,Math.PI*2);ctx.stroke();
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.beginPath();ctx.ellipse(0,r*0.55,r*0.7,r*0.2,0,0,Math.PI*2);ctx.fill();
+    // Body circle background
+    var ug=ctx.createRadialGradient(-r*0.2,-r*0.3,0,0,0,r*pulse);
+    ug.addColorStop(0,flash?'#ffffff':u.color+'44');
+    ug.addColorStop(1,u.color+'11');
+    ctx.fillStyle=ug;
+    ctx.beginPath();ctx.arc(0,0,r*pulse,0,Math.PI*2);ctx.fill();
+    // Border ring
+    ctx.strokeStyle=flash?'#fff':u.color;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(0,0,r*pulse,0,Math.PI*2);ctx.stroke();
+    // Draw sprite via offscreen canvas clipped to circle
+    var sprId=u.defId||'shepherd';
+    var sprFn=DRAW_FN[sprId];
+    if(sprFn){
+      var offKey='_oc_'+sprId;
+      if(!TDS[offKey]){
+        var oc=document.createElement('canvas');oc.width=32;oc.height=32;
+        sprFn(oc.getContext('2d'),0,1,0);
+        TDS[offKey]=oc;
+      }
+      ctx.save();
+      ctx.beginPath();ctx.arc(0,0,r*0.92,0,Math.PI*2);ctx.clip();
+      var sc=r*1.84/32;
+      ctx.drawImage(TDS[offKey],-16*sc,-13*sc,32*sc,32*sc);
+      ctx.restore();
+    } else {
+      ctx.font=(r*1.0)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(u.emoji,0,1);
+    }
+    // Shield glow
+    if(u.shieldActive){
+      ctx.strokeStyle='#FFD700';ctx.lineWidth=2;ctx.globalAlpha=0.5+0.4*Math.sin(Date.now()/180);
+      ctx.beginPath();ctx.arc(0,0,r+6,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+    }
+    ctx.restore();
+    // HP bar
+    var hpPct=u.hp/u.maxHp;
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(u.x-r,u.y+r+3,r*2,5);
+    ctx.fillStyle=hpPct>0.5?'#4ade80':hpPct>0.25?'#FFD700':'#ef4444';
+    ctx.fillRect(u.x-r,u.y+r+3,r*2*hpPct,5);
+  });
+
+  // ── Enemies ──────────────────────────────────────────
+  TDS.enemies.forEach(function(e){
+    var flash=e.hitFlash>0;
+    var r=e.r;
+    ctx.save();ctx.translate(e.x,e.y);
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.beginPath();ctx.ellipse(0,r*0.6,r*0.65,r*0.18,0,0,Math.PI*2);ctx.fill();
+    // Body gradient
+    var eg=ctx.createRadialGradient(-r*0.25,-r*0.25,0,0,0,r);
+    eg.addColorStop(0,flash?'#ffffff':e.color+'FF');
+    eg.addColorStop(1,flash?e.color:e.color+'66');
+    ctx.fillStyle=eg;
+    if(e.shape==='d'){
+      ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,0);ctx.lineTo(0,r);ctx.lineTo(-r,0);ctx.closePath();ctx.fill();
+    } else if(e.shape==='t'){
+      ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,r*0.8);ctx.lineTo(-r,r*0.8);ctx.closePath();ctx.fill();
+    } else {
+      ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+    }
+    // Border
+    ctx.strokeStyle=e.boss?(e.raging?'#FF0000':e.color):(e.raging?'#FF4400':e.color);
+    ctx.lineWidth=e.boss?3:1.5;
+    if(e.shape==='d'){ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,0);ctx.lineTo(0,r);ctx.lineTo(-r,0);ctx.closePath();ctx.stroke();}
+    else if(e.shape==='t'){ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,r*0.8);ctx.lineTo(-r,r*0.8);ctx.closePath();ctx.stroke();}
+    else{ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();}
+    // Draw enemy character face/sprite
+    ctx.save();
+    ctx.beginPath();
+    if(e.shape==='d'){ctx.moveTo(0,-r*0.9);ctx.lineTo(r*0.9,0);ctx.lineTo(0,r*0.9);ctx.lineTo(-r*0.9,0);ctx.closePath();}
+    else if(e.shape==='t'){ctx.moveTo(0,-r*0.9);ctx.lineTo(r*0.85,r*0.75);ctx.lineTo(-r*0.85,r*0.75);ctx.closePath();}
+    else{ctx.arc(0,0,r*0.9,0,Math.PI*2);}
+    ctx.clip();
+    var eKey=e.sprId||e.t;
+    var eFn=DRAW_FN[eKey]||null;
+    if(eFn){
+      var offKeyE='_oc_'+eKey;
+      if(!TDS[offKeyE]){
+        var oe=document.createElement('canvas');oe.width=32;oe.height=32;
+        eFn(oe.getContext('2d'),0,1,0);
+        TDS[offKeyE]=oe;
+      }
+      var esc=r*1.9/32;
+      ctx.drawImage(TDS[offKeyE],-16*esc,-13*esc,32*esc,32*esc);
+    } else {
+      ctx.font=(r*1.0)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(e.emoji,0,1);
+    }
+    ctx.restore();
+    // Effects
+    if(e.burning){ctx.font='10px serif';ctx.textBaseline='alphabetic';ctx.fillText('🔥',r*0.7,-r*0.5);}
+    if(e.raging){
+      ctx.strokeStyle='#FF0000';ctx.lineWidth=2;ctx.globalAlpha=0.6+0.4*Math.sin(Date.now()/100);
+      ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+    }
+    // Shield bar
+    if(e.shieldHp>0&&e.maxShield){
+      ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(-r,-r-10,r*2,5);
+      ctx.fillStyle='#CC00FF';ctx.fillRect(-r,-r-10,r*2*(e.shieldHp/e.maxShield),5);
+    }
+    ctx.restore();
+    // HP bar
+    var hpPct=Math.max(0,e.hp/e.maxHp);
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(e.x-r,e.y-r-10,r*2,5);
+    ctx.fillStyle=hpPct>0.5?'#4ade80':hpPct>0.25?'#FFD700':'#ef4444';
+    ctx.fillRect(e.x-r,e.y-r-10,r*2*hpPct,5);
+    if(e.boss){
+      ctx.fillStyle='#FFD700';ctx.font='bold 8px monospace';ctx.textAlign='center';
+      ctx.fillText('👑 '+e.t.toUpperCase(),e.x,e.y-r-14);
+    }
+  });
+
+  // ── Projectiles ───────────────────────────────────────
+  TDS.projectiles.forEach(function(proj){
+    ctx.save();
+    ctx.shadowColor=proj.color;ctx.shadowBlur=8;
+    ctx.fillStyle=proj.color;
+    ctx.beginPath();ctx.arc(proj.x,proj.y,3.5,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.restore();
+  });
+
+  // ── Particles ─────────────────────────────────────────
+  TDS.particles.forEach(function(p){
+    var a=p.life/p.maxLife;
+    ctx.globalAlpha=a*0.9;ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size*a,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // ── Top HUD ───────────────────────────────────────────
+  ctx.fillStyle='rgba(0,0,0,0.88)';ctx.fillRect(0,0,W,T);
+  // Left: base HP
+  var bhpPct=TDS.baseHp/TDS.maxBaseHp;
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(4,8,90,14);
+  ctx.fillStyle=bhpPct>0.5?'#4ade80':bhpPct>0.25?'#FFD700':'#ef4444';
+  ctx.fillRect(4,8,90*bhpPct,14);
+  ctx.fillStyle='#fff';ctx.font='bold 10px monospace';ctx.textAlign='left';
+  ctx.fillText('⛪ '+TDS.baseHp+'/'+TDS.maxBaseHp,8,19);
+  // Center: mana
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(W/2-50,8,100,14);
+  ctx.fillStyle='#3388FF';ctx.fillRect(W/2-50,8,100*(TDS.mana/TDS.maxMana),14);
+  ctx.fillStyle='#fff';ctx.font='bold 10px monospace';ctx.textAlign='center';
+  ctx.fillText('✨ '+Math.floor(TDS.mana),W/2,19);
+  // Right: wave
+  var wt=TDS.stage.waves.length;var wc=Math.min(TDS.waveIdx,wt);
+  ctx.fillStyle='#aaa';ctx.font='bold 10px monospace';ctx.textAlign='right';
+  ctx.fillText('Wave '+wc+'/'+wt,W-6,19);
+  // Stage name
+  ctx.fillStyle=stage.accent||'#C4A35A';ctx.font='bold 10px monospace';ctx.textAlign='center';
+  ctx.fillText(stage.title||'',W/2,T-6);
+
+  // ── Between-wave countdown ────────────────────────────
+  if(!TDS.waveActive&&TDS.enemies.length===0&&!TDS.allWavesDone&&TDS._nextWaveCountdown>0){
+    var t=Math.ceil(TDS._nextWaveCountdown);
+    ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(W/2-80,FH/2+T-22,160,40);
+    ctx.strokeStyle='#4ade80';ctx.lineWidth=1.5;ctx.strokeRect(W/2-80,FH/2+T-22,160,40);
+    ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.textAlign='center';
+    ctx.fillText('⚔️ Wave Cleared!',W/2,FH/2+T-2);
+    ctx.fillStyle='#aaa';ctx.font='10px monospace';
+    ctx.fillText('Next wave in '+t+'s',W/2,FH/2+T+14);
+  }
+
+  // ── Special message ───────────────────────────────────
+  if(stage.special&&TDS.waveIdx===0&&!TDS.waveActive&&TDS.enemies.length===0){
+    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(10,FH/2+T-18,W-20,32);
+    ctx.strokeStyle=stage.accent||'#FFD700';ctx.lineWidth=1;ctx.strokeRect(10,FH/2+T-18,W-20,32);
+    ctx.fillStyle=stage.accent||'#FFD700';ctx.font='bold 11px Georgia';ctx.textAlign='center';
+    ctx.fillText(stage.special,W/2,FH/2+T+4);
+  }
+
+  // ── Selected unit indicator ───────────────────────────
+  if(TDS.selectedUnit){
+    var udef=TD_UNITS.find(function(u){return u.id===TDS.selectedUnit;});
+    if(udef){
+      ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fillRect(W/2-90,FH+T-30,180,24);
+      ctx.fillStyle=udef.color;ctx.font='bold 11px Georgia';ctx.textAlign='center';
+      ctx.fillText(udef.emoji+' Tap field to place '+udef.name,W/2,FH+T-14);
+    }
+  }
+
+  // ── Win / Lose overlay ────────────────────────────────
+  if(TDS.showResult){
+    ctx.fillStyle='rgba(0,0,0,0.82)';ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center';
+    if(TDS.won){
+      ctx.fillStyle='#4ade80';ctx.font='bold 32px Georgia';ctx.fillText('⚔️ Stage Clear!',W/2,H/2-16);
+      ctx.fillStyle='#FFD700';ctx.font='bold 16px monospace';
+      ctx.fillText('+'+(TDS.missionRef?TDS.missionRef.stages[TDS.stageIdx].xp:100)+' XP',W/2,H/2+18);
+    } else {
+      ctx.fillStyle='#ef4444';ctx.font='bold 32px Georgia';ctx.fillText('💀 Defeated',W/2,H/2-16);
+      ctx.fillStyle='#888';ctx.font='14px Georgia';ctx.fillText('Tap to return',W/2,H/2+18);
+    }
+  }
+}
+
+// ── Game loop ──────────────────────────────────────────
+function td_loop(ts){
+  if(!TDS.active){TDS.rafId=null;return;}
+  var dt=Math.min((ts-(TDS.lastTime||ts))/1000,0.05);
+  TDS.lastTime=ts;
+  td_update(dt);
+  td_render();
+  TDS._trayTick=(TDS._trayTick||0)+1;
+  if(TDS._trayTick%8===0) td_refreshTray();
+  TDS.rafId=requestAnimationFrame(td_loop);
+}
+
+// ── Layout ────────────────────────────────────────────
+function td_calcLayout(){
+  var c=TDS.canvas;
+  if(!c||!c.width||!c.height) return;
+  TDS.W=c.width;TDS.H=c.height;
+  TDS.TOPBAR=44;
+  TDS.FIELD_H=Math.max(c.height-TDS.TOPBAR-108,80);
+  td_buildPath();
+}
+
+// ── Init ──────────────────────────────────────────────
+function td_init(canvas,missionRef,stageIdx,onWin,onLose){
+  TDS.canvas=canvas;TDS.ctx=canvas.getContext('2d');TDS.active=true;
+  TDS.missionRef=missionRef;TDS.stageIdx=stageIdx;
+  TDS.stageKey=missionRef.id+'_'+stageIdx;
+  TDS.stage=TD_STAGE_WAVES[TDS.stageKey];
+  if(!TDS.stage){onWin&&onWin();return;}
+  // Store maxShield on enemies that have it (for display)
+  TDS.stage.waves.forEach(function(wv){wv.forEach(function(g){if(g.shieldHp)g.maxShield=g.shieldHp;});});
+  TDS.baseHp=20;TDS.maxBaseHp=20;
+  TDS.mana=120;TDS.maxMana=250;TDS.manaRegen=22;
+  TDS.units=[];TDS.enemies=[];TDS.projectiles=[];TDS.particles=[];
+  TDS.waveIdx=0;TDS.spawnQueue=[];TDS.spawnTimer=0;
+  TDS.waveActive=false;TDS.allWavesDone=false;
+  TDS.won=false;TDS.lost=false;TDS.showResult=false;TDS.resultTimer=0;
+  TDS.selectedUnit=null;TDS._uid=0;TDS._trayTick=0;
+  TDS._nextWaveCountdown=0;
+  TDS.onWin=onWin;TDS.onLose=onLose;
+  TDS.lastTime=performance.now();
+  td_calcLayout();
+  // First wave starts after 3s
+  TDS._nextWaveCountdown=3.0;
+  if(TDS.rafId) cancelAnimationFrame(TDS.rafId);
+  TDS.rafId=requestAnimationFrame(td_loop);
+}
+
+// ── Destroy ───────────────────────────────────────────
+function td_destroy(){
+  TDS.active=false;
+  if(TDS.rafId){cancelAnimationFrame(TDS.rafId);TDS.rafId=null;}
+  if(TDS._resizeHandler){window.removeEventListener('resize',TDS._resizeHandler);TDS._resizeHandler=null;}
+  TDS.canvas=null;TDS.ctx=null;
+  TDS.units=[];TDS.enemies=[];TDS.projectiles=[];TDS.particles=[];
+  var el=document.getElementById('tdScreen');if(el)el.remove();
+}
+
+// ── Unit tray HTML ────────────────────────────────────
+function td_getAvailableUnits(){
+  return TD_UNITS.filter(function(u){return G.unlocked.includes(u.unlockId);});
+}
+
+function td_refreshTray(){
+  td_getAvailableUnits().forEach(function(u){
+    var btn=document.getElementById('tdu_'+u.id);
+    if(!btn) return;
+    var canAfford=TDS.mana>=u.cost;
+    var sel=TDS.selectedUnit===u.id;
+    btn.style.opacity=canAfford?1:0.35;
+    btn.style.borderColor=sel?u.color:(canAfford?'#333':'#1a1a1a');
+    btn.style.background=sel?u.color+'44':(canAfford?'#111':'#0a0a0a');
+    btn.style.transform=sel?'scale(1.08)':'scale(1)';
+  });
+  var ml=document.getElementById('tdManaLbl');
+  if(ml) ml.textContent='✨ '+Math.floor(TDS.mana)+'/'+TDS.maxMana;
+  var wl=document.getElementById('tdWaveLbl');
+  if(wl&&TDS.stage) wl.textContent='Wave '+Math.min(TDS.waveIdx,TDS.stage.waves.length)+'/'+TDS.stage.waves.length;
+}
+
+function rTowerDefense(){
+  var avail=td_getAvailableUnits();
+  return`<div id="tdScreen" style="position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:100;overflow:hidden">
+  <canvas id="tdCanvas" style="flex:1;display:block;touch-action:none;min-height:0;cursor:crosshair"></canvas>
+  <div style="background:#0a0a0a;border-top:2px solid #1a1a1a;padding:5px 8px 6px;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span id="tdManaLbl" style="font-size:10px;color:#3388FF;font-weight:bold;font-family:monospace">✨ 120/250</span>
+      <span style="font-size:9px;color:#555">Select unit → tap field to place</span>
+      <span id="tdWaveLbl" style="font-size:10px;color:#888;font-family:monospace">Wave 0/3</span>
+    </div>
+    <div style="display:flex;gap:5px;overflow-x:auto;padding-bottom:2px">
+      ${avail.map(function(u){
+        return`<button id="tdu_${u.id}" onclick="td_selectUnit('${u.id}')"
+          title="${u.name}: ${u.desc} · Cost: ✨${u.cost}"
+          style="background:#111;border:2px solid #333;border-radius:10px;padding:6px 8px;
+          display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;
+          flex-shrink:0;touch-action:manipulation;transition:all 0.12s">
+          <span style="font-size:20px;line-height:1">${u.emoji}</span>
+          <span style="font-size:8px;color:${u.color};font-weight:bold;white-space:nowrap">${u.name}</span>
+          <span style="font-size:9px;color:#3388FF;font-family:monospace">✨${u.cost}</span>
+        </button>`;
+      }).join('')}
+      <button onclick="td_retreat()"
+        style="background:#1a0000;border:1px solid #ef444444;color:#ef4444;border-radius:10px;
+        padding:6px 10px;font-size:11px;min-width:50px;flex-shrink:0;touch-action:manipulation">
+        🏃<br><span style="font-size:8px">Retreat</span>
+      </button>
+    </div>
+  </div>
+</div>`;
+}
+
+function td_selectUnit(id){
+  TDS.selectedUnit=TDS.selectedUnit===id?null:id;
+  td_refreshTray();
+}
+
+function td_handleCanvasTap(e){
+  e.preventDefault();
+  if(TDS.won||TDS.lost){
+    if(TDS.lost){td_destroy();go('game');}
+    return;
+  }
+  if(!TDS.selectedUnit) return;
+  var c=document.getElementById('tdCanvas');if(!c) return;
+  var rect=c.getBoundingClientRect();
+  var touch=e.touches?e.touches[0]:e;
+  var wx=(touch.clientX-rect.left)*(c.width/rect.width);
+  var wy=(touch.clientY-rect.top)*(c.height/rect.height);
+  if(wy<TDS.TOPBAR){return;}
+  if(td_placeUnit(TDS.selectedUnit,wx,wy)){
+    TDS.selectedUnit=null;
+    td_refreshTray();
+  } else {
+    // Flash feedback — can't place here
+    td_particles(wx,wy,'#ef4444',5,40);
+  }
+}
+
+function td_retreat(){
+  if(!confirm('Retreat from this stage?')) return;
+  td_destroy();G.pd.losses++;persistPlayer();
+  go('game');toast('Retreated from mission','ok');
+}
+
+
+// ── Entry point — replaces startMissionStage ──────────
+function beginMissionTD(mission, stageIdx){
+  G.activeMission=mission;G.missionStage=stageIdx;G.battleType='mission';
+  // Show briefing overlay first, then launch TD
+  var stage=mission.stages[stageIdx];
+  var stageData=TD_STAGE_WAVES[mission.id+'_'+stageIdx];
+  var accent=mission.accent||'#C4A35A';
+  var isBoss=stageData&&stageData.bossStage;
+  document.getElementById('app').innerHTML=`<div style="min-height:100vh;background:radial-gradient(ellipse at center,${mission.bgCol||'#0a0a0a'},#000);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:Georgia,serif;text-align:center">
+    <div style="font-size:${isBoss?52:40}px;margin-bottom:10px">${mission.heroEmoji}</div>
+    <div style="font-size:11px;color:${accent};letter-spacing:2px;margin-bottom:4px;font-family:monospace">${mission.title.toUpperCase()}</div>
+    <div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:12px">${stage.title}</div>
+    ${isBoss?'<div style="font-size:11px;color:#ef4444;font-weight:bold;letter-spacing:1px;margin-bottom:10px">👑 BOSS STAGE</div>':''}
+    <div style="background:rgba(255,255,255,0.05);border:1px solid ${accent}44;border-radius:12px;padding:16px 20px;max-width:300px;margin-bottom:16px">
+      <div style="font-style:italic;color:#ccc;font-size:13px;line-height:1.6">"${stage.story}"</div>
+    </div>
+    ${stageData&&stageData.specialMsg?`<div style="font-size:11px;color:${accent};background:rgba(0,0,0,0.4);border:1px solid ${accent}44;border-radius:8px;padding:8px 14px;margin-bottom:14px">${stageData.specialMsg}</div>`:''}
+    <div style="font-size:11px;color:#555;margin-bottom:20px">⚔️ Tower Defense — defend your base across ${stageData?stageData.waves.length:3} waves</div>
+    <div style="display:flex;gap:10px;max-width:300px;width:100%">
+      <button onclick="go('game')" style="flex:1;background:transparent;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:12px">← Back</button>
+      <button onclick="td_launch()" style="flex:2;background:linear-gradient(135deg,${accent},${accent}88);border:none;color:#000;padding:12px;border-radius:10px;font-size:14px;font-weight:bold">⚔️ Begin!</button>
+    </div>
+  </div>`;
+  // Store launch params for td_launch()
+  window._tdLaunchParams={mission,stageIdx};
+}
+function td_launch(){
+  var p=window._tdLaunchParams;if(!p)return;
+  var mission=p.mission,stageIdx=p.stageIdx;
+  G.screen='td';
+  document.getElementById('app').innerHTML=rTowerDefense();
+  var canvas=document.getElementById('tdCanvas');
+  if(!canvas){go('game');return;}
+
+  function resize(){
+    if(!canvas||!canvas.isConnected){
+      window.removeEventListener('resize',resize);
+      return;
+    }
+    var r=canvas.getBoundingClientRect();
+    var w=Math.max(Math.floor(r.width),320);
+    var h=Math.max(Math.floor(r.height),200);
+    if(canvas.width!==w||canvas.height!==h){
+      canvas.width=w;
+      canvas.height=h;
+    }
+    if(TDS.canvas===canvas) td_calcLayout();
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  // Store cleanup ref so td_destroy can remove the listener
+  TDS._resizeHandler=resize;
+
+  canvas.addEventListener('touchstart',td_handleCanvasTap,{passive:false});
+  canvas.addEventListener('click',td_handleCanvasTap);
+
+  td_init(canvas,mission,stageIdx,
+    function(){ // WIN
+      td_destroy();
+      var xp=mission.stages[stageIdx].xp||100;
+      G.pd.xp+=xp;G.pd.wins++;persistPlayer();checkUnlocks();
+      var nextIdx=stageIdx+1;
+      if(nextIdx>=mission.stages.length){
+        G.completedMissions.push(mission.id);
+        G.pd.xp+=mission.xpReward;
+        G.pd.powerups.push({...mission.reward});
+        if(mission.unlockCharId&&!G.unlocked.includes(mission.unlockCharId)) G.unlocked.push(mission.unlockCharId);
+        checkUnlocks();persistPlayer();
+        go('mission_complete');
+      } else {
+        beginMissionTD(mission,nextIdx);
+      }
+    },
+    function(){ // LOSE
+      td_destroy();G.pd.losses++;persistPlayer();
+      go('game');toast('⚔️ Defeated! Try again.','ok');
+    }
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════
+// MULTIPLAYER SYSTEM — Firebase RTDB
+// Presence: /kc/church/presence/{uid}
+// Chat:     /kc/church/chat (last 60 messages)
+// 
+// The admin pastes their Firebase config in Admin Panel.
+// Until configured, the church works in offline mode.
+// ═══════════════════════════════════════════════════════
+
+var MP = (function(){
+  var db = null;          // Firebase database instance
+  var myRef = null;       // my presence ref
+  var presenceRef = null; // /kc/church/presence
+  var chatRef = null;     // /kc/church/chat
+  var connected = false;
+  var enabled = false;
+  var listeners = [];     // firebase listener unsubscribe fns
+  var onPresenceUpdate = null; // callback(peers)
+  var onChatMessage = null;    // callback(msg)
+  var myUid = null;
+  var heartbeatTimer = null;
+  var PRESENCE_TTL = 15000; // 15s stale cutoff
+
+  // ── Load Firebase SDK dynamically ─────────────────────
+  function loadSDK(cb){
+    if(window.firebase&&window.firebase.database){cb();return;}
+    var s=document.createElement('script');
+    s.src='https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js';
+    s.onload=function(){
+      var s2=document.createElement('script');
+      s2.src='https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js';
+      s2.onload=cb;
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  }
+
+  // ── Connect with config ────────────────────────────────
+  function connect(cfg, uid, username, charId, cos, presenceCb, chatCb){
+    if(!cfg||!cfg.databaseURL||!cfg.apiKey){return;}
+    myUid=uid;
+    onPresenceUpdate=presenceCb;
+    onChatMessage=chatCb;
+    loadSDK(function(){
+      try{
+        // Init or reuse app
+        var app;
+        try{ app=firebase.app('kc'); }
+        catch(e){ app=firebase.initializeApp(cfg,'kc'); }
+        db=firebase.database(app);
+        presenceRef=db.ref('kc/church/presence');
+        chatRef=db.ref('kc/church/chat');
+        myRef=db.ref('kc/church/presence/'+uid);
+
+        // Set presence with onDisconnect cleanup
+        var presenceData={
+          uid,username,charId,cos,
+          x:14,y:20,
+          t:Date.now(),
+          online:true
+        };
+        myRef.onDisconnect().remove();
+        myRef.set(presenceData);
+
+        // Listen for presence changes
+        var pListener=presenceRef.on('value',function(snap){
+          var now=Date.now();
+          var peers=[];
+          snap.forEach(function(child){
+            var d=child.val();
+            if(d&&d.uid!==uid&&(now-d.t)<PRESENCE_TTL){
+              peers.push(d);
+            }
+          });
+          if(onPresenceUpdate) onPresenceUpdate(peers);
+        });
+        listeners.push(function(){presenceRef.off('value',pListener);});
+
+        // Listen for new chat messages (last 60)
+        var cQuery=chatRef.limitToLast(60);
+        var cListener=cQuery.on('child_added',function(snap){
+          var msg=snap.val();
+          if(msg&&onChatMessage) onChatMessage(msg);
+        });
+        listeners.push(function(){cQuery.off('child_added',cListener);});
+
+        // Heartbeat — update timestamp every 10s to stay alive
+        heartbeatTimer=setInterval(function(){
+          if(myRef) myRef.update({t:Date.now()});
+        },10000);
+
+        connected=true;enabled=true;
+        console.log('[KC] Multiplayer connected');
+      }catch(e){
+        console.warn('[KC] Multiplayer connect failed:',e);
+      }
+    });
+  }
+
+  // ── Update my position ─────────────────────────────────
+  function updatePos(x,y,dir){
+    if(!myRef||!connected) return;
+    myRef.update({x,y,dir,t:Date.now()});
+  }
+
+  // ── Send chat message ──────────────────────────────────
+  function sendChat(username,text,charId,cos){
+    if(!chatRef||!connected||!text.trim()) return;
+    chatRef.push({
+      uid:myUid,
+      username,text:text.trim().slice(0,120),
+      charId,cos,
+      t:Date.now()
+    });
+    // Keep only last 80 messages by cleaning old ones
+    chatRef.once('value',function(snap){
+      var msgs=[];snap.forEach(function(c){msgs.push({key:c.key,t:c.val().t});});
+      if(msgs.length>80){
+        msgs.sort(function(a,b){return a.t-b.t;});
+        msgs.slice(0,msgs.length-60).forEach(function(m){
+          chatRef.child(m.key).remove();
+        });
+      }
+    });
+  }
+
+  // ── Disconnect ─────────────────────────────────────────
+  function disconnect(){
+    if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+    listeners.forEach(function(fn){try{fn();}catch(e){}});
+    listeners=[];
+    if(myRef){myRef.remove().catch(function(){});}
+    myRef=null;presenceRef=null;chatRef=null;db=null;
+    connected=false;
+  }
+
+  return{
+    connect,disconnect,updatePos,sendChat,
+    isConnected:function(){return connected;},
+    isEnabled:function(){return enabled;},
+  };
+})();
+
+// ── Church World Multiplayer Integration ───────────────
+var CWM = {
+  peers: [],        // [{uid, username, charId, cos, x, y, dir}]
+  chatLog: [],      // [{uid, username, text, t}]
+  chatOpen: false,
+  chatInput: '',
+  unread: 0,
+};
+
+function cwm_connect(){
+  var cfg=CFG.firebaseCfg;
+  if(!cfg||!cfg.apiKey) return; // offline mode
+  var uid=G.pd.playerId||(G.pd.playerId=Math.random().toString(36).slice(2,10));
+  persistPlayer();
+  MP.connect(
+    cfg, uid, G.username, G.charId, G.cos,
+    function(peers){ // presence update
+      CWM.peers=peers;
+    },
+    function(msg){ // chat message
+      // Avoid duplicates
+      if(CWM.chatLog.find(function(m){return m.t===msg.t&&m.uid===msg.uid;})) return;
+      CWM.chatLog.push(msg);
+      if(CWM.chatLog.length>60) CWM.chatLog.shift();
+      if(!CWM.chatOpen&&msg.uid!==G.pd.playerId) CWM.unread++;
+      // Show brief toast for chat messages from others
+      if(msg.uid!==G.pd.playerId){
+        var preview=msg.username+': '+msg.text.slice(0,35)+(msg.text.length>35?'…':'');
+        // Draw as canvas overlay toast — handled in cw_loop via CWM.lastMsg
+        CWM.lastMsg={text:preview,timer:3.5};
+      }
+    }
+  );
+}
+
+function cwm_disconnect(){
+  MP.disconnect();
+  CWM.peers=[];
+  CWM.chatLog=[];
+  CWM.chatOpen=false;
+  CWM.unread=0;
+}
+
+// Called every frame from cw_loop to sync position
+function cwm_syncPos(){
+  if(!MP.isConnected()) return;
+  MP.updatePos(CWS.px,CWS.py,CWS.pDir);
+}
+
+// ── Chat UI (HTML overlay) ─────────────────────────────
+function cwm_toggleChat(){
+  CWM.chatOpen=!CWM.chatOpen;
+  CWM.unread=0;
+  var el=document.getElementById('cwChat');
+  if(el) el.style.display=CWM.chatOpen?'flex':'none';
+  if(CWM.chatOpen){
+    var inp=document.getElementById('cwChatInput');
+    if(inp) inp.focus();
+    cwm_renderChatLog();
+    // scroll to bottom
+    var log=document.getElementById('cwChatLog');
+    if(log) log.scrollTop=log.scrollHeight;
+  }
+  // Update badge
+  var badge=document.getElementById('cwChatBadge');
+  if(badge) badge.style.display=CWM.unread>0?'flex':'none';
+  if(badge) badge.textContent=CWM.unread;
+}
+
+function cwm_renderChatLog(){
+  var log=document.getElementById('cwChatLog');
+  if(!log) return;
+  log.innerHTML=CWM.chatLog.map(function(msg){
+    var isMine=msg.uid===G.pd.playerId;
+    var ch=ALL_CHARS.find(function(c){return c.id===msg.charId;})||ALL_CHARS[0];
+    var r=RARITY[ch.rarity]||RARITY.common;
+    return`<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:8px;${isMine?'flex-direction:row-reverse':''}">
+      <div style="width:28px;height:28px;border-radius:50%;background:${r.bg};border:1px solid ${r.color};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px">${ch.name.slice(0,1)}</div>
+      <div style="max-width:70%;${isMine?'align-items:flex-end':''}display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:9px;color:${isMine?'#C4A35A':'#888'}">${isMine?'You':('@'+msg.username)}</span>
+        <div style="background:${isMine?'#1a1000':'#1a1a2a'};border:1px solid ${isMine?'#C4A35A33':'#333'};border-radius:${isMine?'10px 2px 10px 10px':'2px 10px 10px 10px'};padding:7px 10px;font-size:12px;color:#E8E0D0;line-height:1.4">${escHtml(msg.text)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  log.scrollTop=log.scrollHeight;
+}
+
+function cwm_sendChat(){
+  var inp=document.getElementById('cwChatInput');
+  if(!inp||!inp.value.trim()) return;
+  var text=inp.value.trim();
+  inp.value='';
+  MP.sendChat(G.username,text,G.charId,G.cos);
+  // Optimistic local add
+  CWM.chatLog.push({uid:G.pd.playerId,username:G.username,text,charId:G.charId,cos:G.cos,t:Date.now()});
+  if(CWM.chatLog.length>60) CWM.chatLog.shift();
+  cwm_renderChatLog();
+}
+
+function escHtml(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Draw remote players in church world ───────────────
+function cwm_drawPeers(ctx,ts,camX,camY,vw,vh){
+  if(!MP.isConnected()) return;
+  CWM.peers.forEach(function(peer){
+    var wx=peer.x*ts-camX, wy=peer.y*ts-camY;
+    if(wx<-ts||wy<-ts||wx>vw+ts||wy>vh+ts) return;
+    var ch=ALL_CHARS.find(function(c){return c.id===peer.charId;})||ALL_CHARS[0];
+    var r=RARITY[ch.rarity]||RARITY.common;
+    var cos=peer.cos||{sk:0,hr:1,ot:0};
+    cw_drawChar(ctx,wx,wy,ts,cos.sk,cos.ot,peer.dir||'down',0,'@'+peer.username,false);
+    // Online indicator dot
+    ctx.fillStyle='#4ade80';
+    ctx.beginPath();ctx.arc(wx+ts-4,wy+4,3,0,Math.PI*2);ctx.fill();
+  });
+  // Draw recent chat bubble
+  if(CWM.lastMsg&&CWM.lastMsg.timer>0){
+    CWM.lastMsg.timer-=0.016;
+    var a=Math.min(1,CWM.lastMsg.timer/0.5);
+    ctx.save();ctx.globalAlpha=a;
+    ctx.fillStyle='rgba(0,0,0,0.85)';
+    ctx.font='bold 11px Georgia';
+    var tw=ctx.measureText(CWM.lastMsg.text).width+20;
+    ctx.beginPath();ctx.roundRect((vw-tw)/2,vw>400?70:56,tw,24,6);ctx.fill();
+    ctx.strokeStyle='#C4A35A';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='#E8DCC0';ctx.textAlign='center';
+    ctx.fillText(CWM.lastMsg.text,vw/2,vw>400?86:72);
+    ctx.restore();
+  }
+}
+
+// ── Peer count badge ──────────────────────────────────
+function cwm_peerCount(){
+  return CWM.peers.length;
+}
 
 
 // ── BOOT ─────────────────────────────────
