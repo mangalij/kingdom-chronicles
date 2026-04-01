@@ -22,12 +22,12 @@ input,select{font-family:Georgia,serif}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes pulseGlow{0%,100%{box-shadow:0 0 10px #4ade8033}50%{box-shadow:0 0 24px #4ade8077}}
 @keyframes errShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-.inp{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;font-family:Georgia,serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.inp{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px;color:#fff;font-size:18px;font-family:Georgia,serif;outline:none;transition:border-color .2s;-webkit-appearance:none}
 .inp:focus{border-color:#C4A35A;box-shadow:0 0 0 3px #C4A35A22}
 .inp::placeholder{color:#3a3a3a}
 .inp-err{border-color:#ef4444!important;animation:errShake .4s ease}
-.btn-gold{background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:13px;border-radius:10px;font-size:13px;font-weight:bold;width:100%;letter-spacing:.5px}
-.btn-ghost{background:transparent;border:1px solid #2a2a2a;color:#666;padding:11px;border-radius:10px;font-size:12px;width:100%}
+.btn-gold{background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:13px;border-radius:10px;font-size:16px;font-weight:bold;width:100%;letter-spacing:.5px}
+.btn-ghost{background:transparent;border:1px solid #2a2a2a;color:#666;padding:11px;border-radius:10px;font-size:17px;width:100%}
 .toggle{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
 .tog-sl{position:absolute;inset:0;background:#2a2a2a;border-radius:28px;cursor:pointer;transition:.3s}
@@ -254,7 +254,7 @@ const G={
 const glv=()=>Math.floor(G.pd.xp/XP_LVL)+1;
 const gch=()=>ALL_CHARS.find(c=>c.id===G.charId)||ALL_CHARS[0];
 const gmhp=()=>{const c=gch(),l=glv();return(c.hp||100)+c.str*2+l*8;};
-const rb=r=>{const rr=RARITY[r];if(!rr)return"";const maxS=r==="divine"?6:5;return`<span style="color:${rr.color};font-size:9px;${r==="divine"?"text-shadow:0 0 6px #FFD700":""}">${"★".repeat(rr.stars)}${"☆".repeat(Math.max(0,maxS-rr.stars))} ${rr.label}</span>`;};
+const rb=r=>{const rr=RARITY[r];if(!rr)return"";const maxS=r==="divine"?6:5;return`<span style="color:${rr.color};font-size:17px;${r==="divine"?"text-shadow:0 0 6px #FFD700":""}">${"★".repeat(rr.stars)}${"☆".repeat(Math.max(0,maxS-rr.stars))} ${rr.label}</span>`;};
 const displayName=(n)=>n?`@${n}`:"";
 
 // ── Persist / restore player data ────────────
@@ -305,11 +305,11 @@ function render(){
 function toast(msg,tp="ok"){SFX&&SFX.click&&SFX.click();
   const nl=document.getElementById("notifLayer");
   const d=document.createElement("div");
-  d.style.cssText=`background:${tp==="ok"?"#14532d":"#450a0a"};border:1px solid ${tp==="ok"?"#4ade80":"#ef4444"};color:#fff;padding:9px 18px;border-radius:50px;font-size:12px;margin-bottom:6px;animation:slideUp .3s ease;white-space:nowrap;pointer-events:none`;
+  d.style.cssText=`background:${tp==="ok"?"#14532d":"#450a0a"};border:1px solid ${tp==="ok"?"#4ade80":"#ef4444"};color:#fff;padding:9px 18px;border-radius:50px;font-size:17px;margin-bottom:6px;animation:slideUp .3s ease;white-space:nowrap;pointer-events:none`;
   d.textContent=msg;nl.appendChild(d);setTimeout(()=>d.remove(),3200);
 }
 function doFlash(col,ms=350){const fl=document.getElementById("flashLayer");fl.style.background=col;fl.style.display="block";fl.style.animation=`flashIn ${ms}ms ease forwards`;setTimeout(()=>{fl.style.display="none";fl.style.animation="";},ms);}
-function doBanner(txt,col){const bl=document.getElementById("bannerLayer");bl.innerHTML=`<div style="font-size:16px;font-weight:bold;font-family:monospace;color:${col};text-shadow:0 0 12px ${col};letter-spacing:2px;border:2px solid ${col}88;padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.88)">✨ ${txt.toUpperCase()} ✨</div>`;bl.style.display="block";bl.style.animation="bannerIn 1.1s ease forwards";setTimeout(()=>{bl.style.display="none";bl.style.animation="";},1100);}
+function doBanner(txt,col){const bl=document.getElementById("bannerLayer");bl.innerHTML=`<div style="font-size:19px;font-weight:bold;font-family:monospace;color:${col};text-shadow:0 0 12px ${col};letter-spacing:2px;border:2px solid ${col}88;padding:8px 16px;border-radius:8px;background:rgba(0,0,0,.88)">✨ ${txt.toUpperCase()} ✨</div>`;bl.style.display="block";bl.style.animation="bannerIn 1.1s ease forwards";setTimeout(()=>{bl.style.display="none";bl.style.animation="";},1100);}
 function addLog(m){G.log=[m,...G.log].slice(0,7);}
 
 // ── BOOT — check localStorage for returning user ──
@@ -325,22 +325,22 @@ function rSignup(){return`
 <div style="min-height:100vh;background:radial-gradient(ellipse at top,#1a0a00,#050505);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px">
   <div style="font-size:52px;filter:drop-shadow(0 0 20px gold);margin-bottom:12px">✝️</div>
   <div style="font-size:28px;font-weight:bold;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px">KINGDOM</div>
-  <div style="font-size:15px;color:#C4A35A;letter-spacing:6px;margin:2px 0 28px">CHRONICLES</div>
+  <div style="font-size:17px;color:#C4A35A;letter-spacing:6px;margin:2px 0 28px">CHRONICLES</div>
 
   <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:18px;padding:28px 24px;max-width:340px;width:100%;animation:cardReveal .5s ease">
-    <div style="font-size:16px;font-weight:bold;color:#C4A35A;margin-bottom:4px;text-align:center">Create Your Profile</div>
-    <div style="font-size:11px;color:#555;text-align:center;margin-bottom:22px">Choose a unique username for your hero card</div>
+    <div style="font-size:18px;font-weight:bold;color:#C4A35A;margin-bottom:4px;text-align:center">Create Your Profile</div>
+    <div style="font-size:17px;color:#555;text-align:center;margin-bottom:22px">Choose a unique username for your hero card</div>
 
     <div style="margin-bottom:14px">
-      <div style="font-size:10px;color:#666;margin-bottom:6px;letter-spacing:1px">USERNAME</div>
+      <div style="font-size:16px;color:#666;margin-bottom:6px;letter-spacing:1px">USERNAME</div>
       <input id="unInput" class="inp" placeholder="e.g. WarriorOfFaith" maxlength="20"
         oninput="validateUsername(this)"
         onkeydown="if(event.key==='Enter')submitSignup()">
-      <div id="unMsg" style="font-size:10px;margin-top:5px;min-height:14px;color:#555"></div>
+      <div id="unMsg" style="font-size:16px;margin-top:5px;min-height:14px;color:#555"></div>
     </div>
 
     <div style="margin-bottom:20px">
-      <div style="font-size:10px;color:#666;margin-bottom:6px;letter-spacing:1px">DISPLAY NAME <span style="color:#333">(optional)</span></div>
+      <div style="font-size:16px;color:#666;margin-bottom:6px;letter-spacing:1px">DISPLAY NAME <span style="color:#333">(optional)</span></div>
       <input id="dnInput" class="inp" placeholder="e.g. Marcus Johnson" maxlength="30"
         onkeydown="if(event.key==='Enter')submitSignup()">
     </div>
@@ -348,7 +348,7 @@ function rSignup(){return`
     <button class="btn-gold" onclick="submitSignup()">BEGIN YOUR JOURNEY →</button>
 
     <div style="margin-top:14px;text-align:center">
-      <div style="font-size:10px;color:#333">Username rules: letters, numbers, underscores only. 3–20 chars.</div>
+      <div style="font-size:16px;color:#333">Username rules: letters, numbers, underscores only. 3–20 chars.</div>
     </div>
   </div>
 </div>`;}
@@ -382,14 +382,14 @@ function rTitle(){return`
 <div style="min-height:100vh;background:radial-gradient(ellipse at top,#1a0a00,#050505);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">
   <div style="font-size:52px;filter:drop-shadow(0 0 20px gold);margin-bottom:10px">✝️</div>
   <div style="font-size:28px;font-weight:bold;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px">KINGDOM</div>
-  <div style="font-size:15px;color:#C4A35A;letter-spacing:6px;margin:2px 0 6px">CHRONICLES</div>
-  <div style="font-size:10px;color:#C4A35A;background:#1a0d00;padding:4px 14px;border-radius:20px;border:1px solid #C4A35A44;margin-bottom:6px">Welcome, ${displayName(G.username)}!</div>
-  <div style="font-size:9px;color:#555;margin-bottom:18px">ChristLife Church · Westminster, CA</div>
+  <div style="font-size:17px;color:#C4A35A;letter-spacing:6px;margin:2px 0 6px">CHRONICLES</div>
+  <div style="font-size:16px;color:#C4A35A;background:#1a0d00;padding:4px 14px;border-radius:20px;border:1px solid #C4A35A44;margin-bottom:6px">Welcome, ${displayName(G.username)}!</div>
+  <div style="font-size:17px;color:#555;margin-bottom:18px">ChristLife Church · Westminster, CA</div>
   <div style="display:flex;gap:7px;margin-bottom:22px;align-items:flex-end">
-    ${["shepherd","ruth","david","samson","moses","solomon","jesus"].map((id,i)=>{const c=ALL_CHARS.find(x=>x.id===id);const r=RARITY[c.rarity];return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div data-sp="${id}" data-sc="2" data-gw="${r.glow}" data-an="spBob ${.6+i*.07}s ease-in-out infinite" style="opacity:${i===3?1:.65}"></div><div style="font-size:7px;color:${r.color}">${c.name}</div></div>`;}).join("")}
+    ${["shepherd","ruth","david","samson","moses","solomon","jesus"].map((id,i)=>{const c=ALL_CHARS.find(x=>x.id===id);const r=RARITY[c.rarity];return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div data-sp="${id}" data-sc="2" data-gw="${r.glow}" data-an="spBob ${.6+i*.07}s ease-in-out infinite" style="opacity:${i===3?1:.65}"></div><div style="font-size:16px;color:${r.color}">${c.name}</div></div>`;}).join("")}
   </div>
   <button class="btn-gold" style="max-width:280px;margin-bottom:10px" onclick="go('game')">ENTER THE KINGDOM</button>
-  <div style="font-size:9px;color:#333;cursor:pointer" onclick="go('admin_login')">⚙️ Admin Panel</div>
+  <div style="font-size:17px;color:#333;cursor:pointer" onclick="go('admin_login')">⚙️ Admin Panel</div>
 </div>`;}
 
 // ── ADMIN LOGIN ───────────────────────────────
@@ -399,14 +399,14 @@ function rAdminLogin(){
   <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:16px;padding:28px 24px;max-width:320px;width:100%">
     <div style="text-align:center;margin-bottom:20px">
       <div style="font-size:28px;margin-bottom:6px">⚙️</div>
-      <div style="font-size:15px;font-weight:bold;color:#C4A35A">Admin Panel</div>
-      <div style="font-size:10px;color:#555;margin-top:3px">ChristLife Church — Authorized Staff Only</div>
+      <div style="font-size:18px;font-weight:bold;color:#C4A35A">Admin Panel</div>
+      <div style="font-size:16px;color:#555;margin-top:3px">ChristLife Church — Authorized Staff Only</div>
     </div>
     <div style="margin-bottom:14px">
-      <div style="font-size:10px;color:#666;margin-bottom:6px;letter-spacing:1px">PASSWORD</div>
+      <div style="font-size:16px;color:#666;margin-bottom:6px;letter-spacing:1px">PASSWORD</div>
       <input id="apwInput" class="inp" type="password" placeholder="Enter admin password"
         onkeydown="if(event.key==='Enter')submitAdminLogin()">
-      <div id="apwMsg" style="font-size:10px;color:#ef4444;margin-top:5px;min-height:14px"></div>
+      <div id="apwMsg" style="font-size:16px;color:#ef4444;margin-top:5px;min-height:14px"></div>
     </div>
     <button class="btn-gold" onclick="submitAdminLogin()">SIGN IN</button>
     <button class="btn-ghost" style="margin-top:8px" onclick="go('title')">← Back</button>
@@ -425,10 +425,10 @@ function rAdmin(){
   return`
 <div style="min-height:100vh;background:#050505;font-family:Georgia,serif">
   <div style="background:#0a0a0a;border-bottom:1px solid #222;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10">
-    <button onclick="go('title')" class="btn-ghost" style="width:auto;padding:6px 12px;font-size:10px">← Exit</button>
+    <button onclick="go('title')" class="btn-ghost" style="width:auto;padding:6px 12px;font-size:16px">← Exit</button>
     <div>
-      <div style="font-weight:bold;color:#C4A35A;font-size:14px">⚙️ Admin Panel</div>
-      <div style="font-size:9px;color:#555">ChristLife Church · Settings persist across all devices</div>
+      <div style="font-weight:bold;color:#C4A35A;font-size:17px">⚙️ Admin Panel</div>
+      <div style="font-size:17px;color:#555">ChristLife Church · Settings persist across all devices</div>
     </div>
   </div>
 
@@ -438,77 +438,77 @@ function rAdmin(){
     <div class="section-card" style="border-color:#C4A35A33">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div>
-          <div style="font-size:13px;font-weight:bold;color:#C4A35A">📍 Check-In Mode</div>
-          <div style="font-size:10px;color:#555;margin-top:2px">Toggle GPS requirement on or off</div>
+          <div style="font-size:18px;font-weight:bold;color:#C4A35A">📍 Check-In Mode</div>
+          <div style="font-size:16px;color:#555;margin-top:2px">Toggle GPS requirement on or off</div>
         </div>
         <label class="toggle">
           <input type="checkbox" id="locToggle" ${CFG.locationRequired?"checked":""} onchange="toggleLocation(this)">
           <span class="tog-sl"></span>
         </label>
       </div>
-      <div id="locModeLabel" style="font-size:11px;padding:8px 12px;border-radius:8px;background:${CFG.locationRequired?"#001a00":"#1a0d00"};border:1px solid ${CFG.locationRequired?"#4ade8044":"#FFD70044"};color:${CFG.locationRequired?"#4ade80":"#FFD700"}">
+      <div id="locModeLabel" style="font-size:17px;padding:8px 12px;border-radius:8px;background:${CFG.locationRequired?"#001a00":"#1a0d00"};border:1px solid ${CFG.locationRequired?"#4ade8044":"#FFD70044"};color:${CFG.locationRequired?"#4ade80":"#FFD700"}">
         ${CFG.locationRequired?"🔒 GPS Required — players must be at church to check in":"🌐 Open Mode — anyone can check in from anywhere (useful for online members or testing)"}
       </div>
     </div>
 
     <!-- Church Name & Address -->
     <div class="section-card">
-      <div style="font-size:13px;font-weight:bold;color:#C4A35A;margin-bottom:14px">🏛️ Church Info</div>
+      <div style="font-size:18px;font-weight:bold;color:#C4A35A;margin-bottom:14px">🏛️ Church Info</div>
       <div style="margin-bottom:10px">
-        <div style="font-size:10px;color:#666;margin-bottom:5px;letter-spacing:1px">CHURCH NAME</div>
+        <div style="font-size:16px;color:#666;margin-bottom:5px;letter-spacing:1px">CHURCH NAME</div>
         <input class="inp" id="cfgName" value="${CFG.churchName}" placeholder="Church name">
       </div>
       <div>
-        <div style="font-size:10px;color:#666;margin-bottom:5px;letter-spacing:1px">ADDRESS (displayed to players)</div>
+        <div style="font-size:16px;color:#666;margin-bottom:5px;letter-spacing:1px">ADDRESS (displayed to players)</div>
         <input class="inp" id="cfgAddr" value="${CFG.churchAddress}" placeholder="Full address">
       </div>
     </div>
 
     <!-- GPS Coordinates -->
     <div class="section-card">
-      <div style="font-size:13px;font-weight:bold;color:#C4A35A;margin-bottom:4px">🗺️ GPS Coordinates</div>
-      <div style="font-size:10px;color:#555;margin-bottom:14px">Used when Location Required is ON. Find your coordinates at <span style="color:#7EB8F7">maps.google.com</span> (right-click → "What's here?")</div>
+      <div style="font-size:18px;font-weight:bold;color:#C4A35A;margin-bottom:4px">🗺️ GPS Coordinates</div>
+      <div style="font-size:16px;color:#555;margin-bottom:14px">Used when Location Required is ON. Find your coordinates at <span style="color:#7EB8F7">maps.google.com</span> (right-click → "What's here?")</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div>
-          <div style="font-size:10px;color:#666;margin-bottom:5px;letter-spacing:1px">LATITUDE</div>
+          <div style="font-size:16px;color:#666;margin-bottom:5px;letter-spacing:1px">LATITUDE</div>
           <input class="inp" id="cfgLat" type="number" step="0.0001" value="${CFG.lat}" placeholder="33.7542">
         </div>
         <div>
-          <div style="font-size:10px;color:#666;margin-bottom:5px;letter-spacing:1px">LONGITUDE</div>
+          <div style="font-size:16px;color:#666;margin-bottom:5px;letter-spacing:1px">LONGITUDE</div>
           <input class="inp" id="cfgLng" type="number" step="0.0001" value="${CFG.lng}" placeholder="-117.9943">
         </div>
       </div>
       <div>
-        <div style="font-size:10px;color:#666;margin-bottom:5px;letter-spacing:1px">CHECK-IN RADIUS (meters)</div>
+        <div style="font-size:16px;color:#666;margin-bottom:5px;letter-spacing:1px">CHECK-IN RADIUS (meters)</div>
         <input class="inp" id="cfgRadius" type="number" min="50" max="2000" value="${CFG.radiusMeters}" placeholder="200">
-        <div style="font-size:9px;color:#555;margin-top:4px">Recommended: 100–300m for a single building. Increase for a campus.</div>
+        <div style="font-size:17px;color:#555;margin-top:4px">Recommended: 100–300m for a single building. Increase for a campus.</div>
       </div>
       <div style="margin-top:10px">
-        <button onclick="detectLocation()" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:9px 14px;border-radius:8px;font-size:10px;width:100%">📡 Auto-Detect My Current Location</button>
-        <div id="detectMsg" style="font-size:10px;color:#4ade80;margin-top:5px;min-height:14px;text-align:center"></div>
+        <button onclick="detectLocation()" style="background:#0d0d0d;border:1px solid #333;color:#888;padding:9px 14px;border-radius:8px;font-size:16px;width:100%">📡 Auto-Detect My Current Location</button>
+        <div id="detectMsg" style="font-size:16px;color:#4ade80;margin-top:5px;min-height:14px;text-align:center"></div>
       </div>
     </div>
 
     <!-- Multiplayer / Firebase -->
     <div class="section-card" style="border-color:#7EB8F733">
-      <div style="font-size:13px;font-weight:bold;color:#7EB8F7;margin-bottom:4px">🌐 Multiplayer — Live Church Presence</div>
-      <div style="font-size:10px;color:#555;margin-bottom:12px;line-height:1.6">
+      <div style="font-size:16px;font-weight:bold;color:#7EB8F7;margin-bottom:4px">🌐 Multiplayer — Live Church Presence</div>
+      <div style="font-size:16px;color:#555;margin-bottom:12px;line-height:1.6">
         Lets congregation members see each other in the church world and chat in real time.
         Uses <strong style="color:#FFA500">Firebase Realtime Database</strong> (free tier — 100 concurrent connections, 1GB storage).<br>
         <br>
         Setup: <span style="color:#7EB8F7">console.firebase.google.com</span> → New Project → Realtime Database → Create → Start in test mode → copy config below.
       </div>
       <div style="margin-bottom:8px">
-        <div style="font-size:9px;color:#666;margin-bottom:4px;letter-spacing:1px">FIREBASE CONFIG JSON (paste entire object)</div>
-        <textarea id="cfgFirebase" rows="5" style="width:100%;background:#0d0d0d;border:1px solid #333;color:#aaa;border-radius:8px;padding:10px;font-size:9px;font-family:monospace;box-sizing:border-box;resize:vertical" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'>${CFG.firebaseCfg?JSON.stringify(CFG.firebaseCfg,null,2):''}</textarea>
+        <div style="font-size:17px;color:#666;margin-bottom:4px;letter-spacing:1px">FIREBASE CONFIG JSON (paste entire object)</div>
+        <textarea id="cfgFirebase" rows="5" style="width:100%;background:#0d0d0d;border:1px solid #333;color:#aaa;border-radius:8px;padding:10px;font-size:17px;font-family:monospace;box-sizing:border-box;resize:vertical" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'>${CFG.firebaseCfg?JSON.stringify(CFG.firebaseCfg,null,2):''}</textarea>
       </div>
       <div style="display:flex;gap:8px">
-        <button onclick="testFirebase()" style="flex:1;background:#000d1a;border:1px solid #7EB8F7;color:#7EB8F7;padding:9px;border-radius:8px;font-size:10px">🔌 Test Connection</button>
-        <button onclick="clearFirebase()" style="background:#1a0000;border:1px solid #ef444422;color:#ef444488;padding:9px 14px;border-radius:8px;font-size:10px">✕ Disable</button>
+        <button onclick="testFirebase()" style="flex:1;background:#000d1a;border:1px solid #7EB8F7;color:#7EB8F7;padding:9px;border-radius:8px;font-size:16px">🔌 Test Connection</button>
+        <button onclick="clearFirebase()" style="background:#1a0000;border:1px solid #ef444422;color:#ef444488;padding:9px 14px;border-radius:8px;font-size:16px">✕ Disable</button>
       </div>
-      <div id="fbTestMsg" style="font-size:10px;margin-top:6px;min-height:14px;text-align:center"></div>
+      <div id="fbTestMsg" style="font-size:16px;margin-top:6px;min-height:14px;text-align:center"></div>
       <div style="margin-top:8px;padding:8px;background:#001a00;border-radius:6px;border:1px solid #4ade8022">
-        <div style="font-size:9px;color:#4ade80">Status: ${CFG.firebaseCfg?'✅ Configured — multiplayer active when in church':'⚫ Not configured — church works in offline mode'}</div>
+        <div style="font-size:17px;color:#4ade80">Status: ${CFG.firebaseCfg?'✅ Configured — multiplayer active when in church':'⚫ Not configured — church works in offline mode'}</div>
       </div>
     </div>
 
@@ -516,12 +516,12 @@ function rAdmin(){
     <button class="btn-gold" onclick="saveAdminSettings()">💾 SAVE ALL SETTINGS</button>
 
     <div style="margin-top:24px;padding:16px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px">
-      <div style="font-size:11px;font-weight:bold;color:#555;margin-bottom:10px;letter-spacing:1px">DANGER ZONE</div>
-      <button onclick="resetAllData()" style="background:#1a0000;border:1px solid #ef444444;color:#ef4444;padding:10px 14px;border-radius:8px;font-size:11px;width:100%">🗑️ Reset All Player Data (cannot be undone)</button>
+      <div style="font-size:17px;font-weight:bold;color:#555;margin-bottom:10px;letter-spacing:1px">DANGER ZONE</div>
+      <button onclick="resetAllData()" style="background:#1a0000;border:1px solid #ef444444;color:#ef4444;padding:12px 16px;border-radius:8px;font-size:17px;width:100%">🗑️ Reset All Player Data (cannot be undone)</button>
     </div>
 
     <div style="margin-top:14px;text-align:center">
-      <div style="font-size:9px;color:#333">Admin password: change <code style="color:#555">ADMIN_PASS</code> in the source before deploying.</div>
+      <div style="font-size:17px;color:#333">Admin password: change <code style="color:#555">ADMIN_PASS</code> in the source before deploying.</div>
     </div>
   </div>
 </div>`;}
@@ -609,29 +609,29 @@ function rGame(){
     <div style="display:flex;align-items:center;gap:12px">
       <div style="position:relative;cursor:pointer" onclick="go('wardrobe')">
         <div data-sp="${G.charId}" data-sc="3" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${r.glow}" data-an="spBob .7s ease-in-out infinite"></div>
-        <div style="position:absolute;bottom:-2px;right:-2px;background:${r.color};border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:8px;border:2px solid #0a0a0a">✏</div>
+        <div style="position:absolute;bottom:-2px;right:-2px;background:${r.color};border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #0a0a0a">✏</div>
       </div>
       <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:5px"><span style="font-size:15px;font-weight:bold">${c.name}</span>${rb(c.rarity)}</div>
-        <div style="font-size:10px;color:#C4A35A;font-weight:bold">${displayName(G.username)}${G.pd.displayName?` · ${G.pd.displayName}`:""}</div>
-        <div style="display:flex;gap:8px;font-size:9px;color:#888;margin-top:1px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="font-size:18px;font-weight:bold">${c.name}</span>${rb(c.rarity)}</div>
+        <div style="font-size:16px;color:#C4A35A;font-weight:bold">${displayName(G.username)}${G.pd.displayName?` · ${G.pd.displayName}`:""}</div>
+        <div style="display:flex;gap:8px;font-size:17px;color:#888;margin-top:1px">
           <span>Lv.${lv}</span><span>🏆${G.pd.wins}W</span><span style="color:#7EB8F7">⚔️${G.pd.pvpWins}PvP</span><span style="color:#FFD700">🃏${G.unlocked.length}/${ALL_CHARS.length}</span>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px">
-        <button onclick="go('wardrobe')" style="background:${r.color}22;border:1px solid ${r.color}44;color:${r.color};padding:5px 8px;border-radius:7px;font-size:9px">👗</button>
-        <button onclick="go('admin_login')" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#555;padding:5px 8px;border-radius:7px;font-size:9px">⚙️</button>
-        <button id="sfxBtn" onclick="toggleSFX()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:5px 8px;border-radius:7px;font-size:9px" title="Toggle SFX">🔊</button>
-        <button id="musBtn" onclick="toggleMusic()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:5px 8px;border-radius:7px;font-size:9px" title="Toggle Music">🎵</button>
+        <button onclick="go('wardrobe')" style="background:${r.color}22;border:1px solid ${r.color}44;color:${r.color};padding:5px 8px;border-radius:7px;font-size:17px">👗</button>
+        <button onclick="go('admin_login')" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#555;padding:5px 8px;border-radius:7px;font-size:17px">⚙️</button>
+        <button id="sfxBtn" onclick="toggleSFX()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:5px 8px;border-radius:7px;font-size:17px" title="Toggle SFX">🔊</button>
+        <button id="musBtn" onclick="toggleMusic()" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#888;padding:5px 8px;border-radius:7px;font-size:17px" title="Toggle Music">🎵</button>
       </div>
     </div>
     <div style="margin-top:8px">
-      <div style="display:flex;justify-content:space-between;font-size:8px;color:#555;margin-bottom:2px"><span>XP TO LV ${lv+1}</span><span>${xpP}/${XP_LVL}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:17px;color:#555;margin-bottom:2px"><span>XP TO LV ${lv+1}</span><span>${xpP}/${XP_LVL}</span></div>
       <div style="height:5px;background:#111;border-radius:3px;overflow:hidden"><div style="width:${xpP/XP_LVL*100}%;height:100%;background:linear-gradient(90deg,${r.color},${r.color}66);border-radius:3px;transition:width .6s"></div></div>
     </div>
   </div>
   <div style="display:flex;border-bottom:1px solid #111;background:#0a0a0a">
-    ${TABS.map(([id,ic,lb])=>`<button onclick="setTab('${id}')" style="flex:1;padding:7px 0;background:none;border:none;color:${t===id?r.color:"#444"};font-family:Georgia,serif;font-size:7px;border-bottom:${t===id?`2px solid ${r.color}`:"2px solid transparent"};text-transform:uppercase;letter-spacing:.3px"><div style="font-size:12px">${ic}</div><div>${lb}</div></button>`).join("")}
+    ${TABS.map(([id,ic,lb])=>`<button onclick="setTab('${id}')" style="flex:1;padding:7px 0;background:none;border:none;color:${t===id?r.color:"#444"};font-family:Georgia,serif;font-size:16px;border-bottom:${t===id?`2px solid ${r.color}`:"2px solid transparent"};text-transform:uppercase;letter-spacing:.3px"><div style="font-size:17px">${ic}</div><div>${lb}</div></button>`).join("")}
   </div>
   <div style="padding:12px">
     ${t==="home"?rHomeTab(c,r):""}${t==="missions"?rMissionsTab():""}${t==="pvp"?rPvpTab():""}${t==="heroes"?rHeroesTab():""}${t==="items"?rItemsTab():""}
@@ -641,22 +641,22 @@ function rGame(){
 // ── CHECK-IN card (uses live CFG) ─────────────
 function rCheckInCard(){
   const cs=G.checkInState;
-  const btnStyle=`width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:10px;border-radius:8px;font-size:11px;font-weight:bold`;
-  const retryStyle=`width:100%;background:linear-gradient(135deg,#333,#1a1a1a);border:1px solid #444;color:#aaa;padding:10px;border-radius:8px;font-size:11px;font-weight:bold`;
+  const btnStyle=`width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:10px;border-radius:8px;font-size:17px;font-weight:bold`;
+  const retryStyle=`width:100%;background:linear-gradient(135deg,#333,#1a1a1a);border:1px solid #444;color:#aaa;padding:10px;border-radius:8px;font-size:17px;font-weight:bold`;
   return`<div class="section-card" style="border-color:${cs==="ok"?"#4ade8044":cs==="far"||cs==="denied"||cs==="error"?"#ef444433":"#1a1a1a"};margin-bottom:10px;animation:slideUp .3s ease">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
       <div style="font-size:22px">${cs==="ok"?"✅":cs==="finding"?"🛰️":cs==="far"?"📡":cs==="denied"?"🚫":cs==="error"?"⚠️":"📍"}</div>
       <div>
-        <div style="font-weight:bold;color:${cs==="ok"?"#4ade80":cs==="finding"?"#FFD700":"#C4A35A"};font-size:12px">${cs==="ok"?"Welcome to Church!":cs==="finding"?"Locating You...":cs==="far"?"Too Far Away":cs==="denied"?"Location Denied":cs==="error"?"GPS Error":"Church Check-In"}</div>
-        <div style="font-size:9px;color:#555">${CFG.locationRequired?`${CFG.churchName} · ${CFG.churchAddress}`:"Open check-in mode — active anywhere"}</div>
+        <div style="font-weight:bold;color:${cs==="ok"?"#4ade80":cs==="finding"?"#FFD700":"#C4A35A"};font-size:17px">${cs==="ok"?"Welcome to Church!":cs==="finding"?"Locating You...":cs==="far"?"Too Far Away":cs==="denied"?"Location Denied":cs==="error"?"GPS Error":"Church Check-In"}</div>
+        <div style="font-size:17px;color:#555">${CFG.locationRequired?`${CFG.churchName} · ${CFG.churchAddress}`:"Open check-in mode — active anywhere"}</div>
       </div>
     </div>
-    ${cs==="idle"?`<p style="color:#666;font-size:10px;margin-bottom:8px">${CFG.locationRequired?"Tap when you're at "+CFG.churchName+"!":"Check-in is open — tap to earn XP!"}</p><button style="${btnStyle}" onclick="doCheckIn()">📍 CHECK IN${CFG.locationRequired?" AT CHURCH":""}</button>`:""}
-    ${cs==="finding"?`<div style="display:flex;align-items:center;gap:8px;padding:8px 0"><div style="width:14px;height:14px;border:2px solid #C4A35A;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><span style="color:#C4A35A;font-size:11px">Acquiring GPS signal...</span></div>`:""}
-    ${cs==="ok"?`<div style="background:#14532d;border:1px solid #4ade80;border-radius:8px;padding:9px;text-align:center;animation:pulseGlow 2s ease infinite"><div style="color:#4ade80;font-weight:bold;font-family:monospace;font-size:11px">🎉 CHECK-IN COMPLETE!</div></div>`:""}
-    ${cs==="far"?`<p style="color:#666;font-size:10px;margin-bottom:8px">You're ${G.distAway}m away. Need to be within ${CFG.radiusMeters}m of ${CFG.churchName}.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
-    ${cs==="denied"?`<p style="color:#666;font-size:10px;margin-bottom:8px">Allow location access in your browser settings, then try again.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
-    ${cs==="error"?`<p style="color:#666;font-size:10px;margin-bottom:8px">Enable location services and try again.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
+    ${cs==="idle"?`<p style="color:#666;font-size:16px;margin-bottom:8px">${CFG.locationRequired?"Tap when you're at "+CFG.churchName+"!":"Check-in is open — tap to earn XP!"}</p><button style="${btnStyle}" onclick="doCheckIn()">📍 CHECK IN${CFG.locationRequired?" AT CHURCH":""}</button>`:""}
+    ${cs==="finding"?`<div style="display:flex;align-items:center;gap:8px;padding:8px 0"><div style="width:14px;height:14px;border:2px solid #C4A35A;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div><span style="color:#C4A35A;font-size:17px">Acquiring GPS signal...</span></div>`:""}
+    ${cs==="ok"?`<div style="background:#14532d;border:1px solid #4ade80;border-radius:8px;padding:9px;text-align:center;animation:pulseGlow 2s ease infinite"><div style="color:#4ade80;font-weight:bold;font-family:monospace;font-size:17px">🎉 CHECK-IN COMPLETE!</div></div>`:""}
+    ${cs==="far"?`<p style="color:#666;font-size:16px;margin-bottom:8px">You're ${G.distAway}m away. Need to be within ${CFG.radiusMeters}m of ${CFG.churchName}.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
+    ${cs==="denied"?`<p style="color:#666;font-size:16px;margin-bottom:8px">Allow location access in your browser settings, then try again.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
+    ${cs==="error"?`<p style="color:#666;font-size:16px;margin-bottom:8px">Enable location services and try again.</p><button style="${retryStyle}" onclick="doCheckIn()">TRY AGAIN</button>`:""}
   </div>`;}
 
 function doCheckIn(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.checkIn&&SFX.checkIn();
@@ -690,67 +690,67 @@ function doCheckIn(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.checkIn&&SFX.checkIn
 
 function rHomeTab(c,r){return rCheckInCard()+`
   <div class="section-card" style="border-color:#FF444422;margin-bottom:10px">
-    <div style="color:#FF6B6B;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ Battle Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Fight biblical enemies for XP and hero unlocks!</p>
-    <button onclick="startArena()" style="width:100%;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:1px solid #FF4444;color:#FF6B6B;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">ENTER THE ARENA</button>
+    <div style="color:#FF6B6B;font-weight:bold;font-size:17px;margin-bottom:3px">⚔️ Battle Arena</div>
+    <p style="color:#555;font-size:16px;margin-bottom:7px">Fight biblical enemies for XP and hero unlocks!</p>
+    <button onclick="startArena()" style="width:100%;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:1px solid #FF4444;color:#FF6B6B;padding:10px;border-radius:8px;font-size:18px;font-weight:bold">ENTER THE ARENA</button>
   </div>
   <div class="section-card" style="border-color:#7EB8F733">
-    <div style="color:#7EB8F7;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ PvP Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Challenge congregation members! Your tag shows on all hero cards.</p>
-    <button onclick="go('pvp_lobby')" style="width:100%;background:transparent;border:1px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">OPEN PvP LOBBY</button>
+    <div style="color:#7EB8F7;font-weight:bold;font-size:17px;margin-bottom:3px">⚔️ PvP Arena</div>
+    <p style="color:#555;font-size:16px;margin-bottom:7px">Challenge congregation members! Your tag shows on all hero cards.</p>
+    <button onclick="go('pvp_lobby')" style="width:100%;background:transparent;border:1px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:18px;font-weight:bold">OPEN PvP LOBBY</button>
   </div>`;}
 
 function rMissionsTab(){
   const avail=new Set(MISSIONS.filter(m=>{if(m.unlocked)return true;if(m.id==="elijah_m")return G.completedMissions.includes("moses_m");if(m.id==="daniel_m")return G.completedMissions.includes("david_m");if(m.id==="jonah_m")return(G.pd.checkIns||0)>=5;return false;}).map(m=>m.id));
-  return`<div style="font-size:10px;color:#888;margin-bottom:10px;letter-spacing:1px">${G.completedMissions.length}/${MISSIONS.length} MISSIONS COMPLETE</div>`+MISSIONS.map(m=>{
+  return`<div style="font-size:16px;color:#888;margin-bottom:10px;letter-spacing:1px">${G.completedMissions.length}/${MISSIONS.length} MISSIONS COMPLETE</div>`+MISSIONS.map(m=>{
     const done=G.completedMissions.includes(m.id);const isAvail=avail.has(m.id);const locked=!isAvail&&!done;
     return`<div style="background:${locked?"#0d0d0d":`linear-gradient(135deg,${m.bgCol},#0a0a0a)`};border:1px solid ${done?"#4ade8044":locked?"#1a1a1a":m.accent+"44"};border-radius:12px;padding:12px;margin-bottom:8px;opacity:${locked?.5:1}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:22px">${m.heroEmoji}</div><div style="flex:1"><div style="font-weight:bold;color:${done?"#4ade80":locked?"#444":m.accent};font-size:12px">${m.title}${done?" ✅":locked?" 🔒":""}</div><div style="font-size:8px;color:#666">⚔️ Tower Defense · ${m.stages.length} stages · +${m.xpReward} XP · ${m.reward.emoji} ${m.badgeName}</div></div><div style="font-size:18px">${m.badge}</div></div>
-      <p style="color:#666;font-size:9px;line-height:1.4;margin-bottom:6px">${m.desc}</p>
-      ${locked?`<div style="font-size:9px;color:#555;font-style:italic;margin-bottom:6px">🔒 ${m.unlockReq}</div>`:""}
-      <div style="display:flex;gap:2px;align-items:center;margin-bottom:7px">${m.stages.map((_,si)=>`<div style="display:flex;align-items:center;gap:2px"><div style="width:15px;height:15px;border-radius:50%;background:${done?"#4ade80":"#1a1a1a"};border:1px solid ${done?"#4ade80":m.accent+"44"};display:flex;align-items:center;justify-content:center;font-size:7px;color:${done?"#000":"#555"};font-weight:bold">${done?"✓":si+1}</div>${si<m.stages.length-1?`<div style="width:8px;height:1px;background:${done?"#4ade80":"#222"}"></div>`:""}</div>`).join("")}${m.stages.some(s=>s.isBoss)?`<span style="font-size:8px;color:#FFD700;margin-left:4px">👑 Boss</span>`:""}</div>
-      ${!done&&isAvail?`<button onclick="beginMission('${m.id}')" style="width:100%;background:linear-gradient(135deg,${m.bgCol},#050505);border:1px solid ${m.accent};color:${m.accent};padding:9px;border-radius:8px;font-size:11px;font-weight:bold">⚔️ BEGIN MISSION</button>`:""}
-      ${done?`<div style="text-align:center;color:#4ade80;font-size:9px;font-weight:bold">🏆 ${m.reward.emoji} ${m.badgeName} earned!</div>`:""}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:22px">${m.heroEmoji}</div><div style="flex:1"><div style="font-weight:bold;color:${done?"#4ade80":locked?"#444":m.accent};font-size:17px">${m.title}${done?" ✅":locked?" 🔒":""}</div><div style="font-size:17px;color:#666">⚔️ Tower Defense · ${m.stages.length} stages · +${m.xpReward} XP · ${m.reward.emoji} ${m.badgeName}</div></div><div style="font-size:18px">${m.badge}</div></div>
+      <p style="color:#666;font-size:17px;line-height:1.4;margin-bottom:6px">${m.desc}</p>
+      ${locked?`<div style="font-size:17px;color:#555;font-style:italic;margin-bottom:6px">🔒 ${m.unlockReq}</div>`:""}
+      <div style="display:flex;gap:2px;align-items:center;margin-bottom:7px">${m.stages.map((_,si)=>`<div style="display:flex;align-items:center;gap:2px"><div style="width:15px;height:15px;border-radius:50%;background:${done?"#4ade80":"#1a1a1a"};border:1px solid ${done?"#4ade80":m.accent+"44"};display:flex;align-items:center;justify-content:center;font-size:16px;color:${done?"#000":"#555"};font-weight:bold">${done?"✓":si+1}</div>${si<m.stages.length-1?`<div style="width:8px;height:1px;background:${done?"#4ade80":"#222"}"></div>`:""}</div>`).join("")}${m.stages.some(s=>s.isBoss)?`<span style="font-size:17px;color:#FFD700;margin-left:4px">👑 Boss</span>`:""}</div>
+      ${!done&&isAvail?`<button onclick="beginMission('${m.id}')" style="width:100%;background:linear-gradient(135deg,${m.bgCol},#050505);border:1px solid ${m.accent};color:${m.accent};padding:9px;border-radius:8px;font-size:18px;font-weight:bold">⚔️ BEGIN MISSION</button>`:""}
+      ${done?`<div style="text-align:center;color:#4ade80;font-size:18px;font-weight:bold">🏆 ${m.reward.emoji} ${m.badgeName} earned!</div>`:""}
     </div>`;}).join("");}
 
 function rPvpTab(){return`
   <div class="section-card" style="border-color:#7EB8F733">
-    <div style="font-size:10px;color:#7EB8F7;font-weight:bold;margin-bottom:7px">⚔️ YOUR PvP RECORD</div>
+    <div style="font-size:16px;color:#7EB8F7;font-weight:bold;margin-bottom:7px">⚔️ YOUR PvP RECORD</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;text-align:center;margin-bottom:9px">
-      <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">🏆</div><div style="font-size:15px;font-weight:bold;color:#4ade80">${G.pd.pvpWins}</div><div style="font-size:8px;color:#555">Wins</div></div>
-      <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">💀</div><div style="font-size:15px;font-weight:bold;color:#ef4444">${G.pd.pvpLosses}</div><div style="font-size:8px;color:#555">Losses</div></div>
+      <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">🏆</div><div style="font-size:17px;font-weight:bold;color:#4ade80">${G.pd.pvpWins}</div><div style="font-size:17px;color:#555">Wins</div></div>
+      <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">💀</div><div style="font-size:17px;font-weight:bold;color:#ef4444">${G.pd.pvpLosses}</div><div style="font-size:17px;color:#555">Losses</div></div>
     </div>
-    <button onclick="go('pvp_lobby')" style="width:100%;background:linear-gradient(135deg,#1a0020,#0d0010);border:2px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">⚔️ OPEN PvP LOBBY</button>
+    <button onclick="go('pvp_lobby')" style="width:100%;background:linear-gradient(135deg,#1a0020,#0d0010);border:2px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:18px;font-weight:bold">⚔️ OPEN PvP LOBBY</button>
   </div>`;}
 
 function rHeroesTab(){return`
-  <div style="text-align:center;margin-bottom:9px"><div style="font-size:12px;font-weight:bold;color:#FFD700">${G.unlocked.length}/${ALL_CHARS.length} Heroes Unlocked</div></div>
-  ${["common","uncommon","rare","epic","legendary","divine"].map(rk=>{const chars=ALL_CHARS.filter(c=>c.rarity===rk);const r=RARITY[rk];return`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><div style="color:${r.color};font-size:9px;font-weight:bold;letter-spacing:1px">${"★".repeat(r.stars)} ${rk.toUpperCase()}</div><div style="flex:1;height:1px;background:${r.color}33"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">${chars.map(c=>{const owned=G.unlocked.includes(c.id);const active=G.charId===c.id;return`<div style="background:${owned?r.bg:"#0d0d0d"};border:2px solid ${active?"#4ade80":owned?r.color+(c.rarity==="divine"?"":"55"):"#1a1a1a"};border-radius:10px;padding:10px;opacity:${owned?1:.45};box-shadow:${owned&&c.rarity==="divine"?"0 0 18px #FFD70088,0 0 36px #FFD70033":owned&&active?"0 0 10px #4ade8044":"none"};background:${owned&&c.rarity==="divine"?"linear-gradient(135deg,#1a1200,#0d0900)":owned?r.bg:"#0d0d0d"}"><div data-sp="${c.sprId||c.id}" data-sc="2" data-gw="${owned?r.glow:""}" data-an="${owned?"spBob .7s ease-in-out infinite":""}" ${!owned?"style='filter:grayscale(1)'":" "} style="display:flex;justify-content:center;margin-bottom:5px"></div><div style="font-size:10px;font-weight:bold;color:${owned?r.color:"#555"};text-align:center">${c.name}</div><div style="text-align:center;margin-top:3px">${rb(c.rarity)}</div>${owned?(active?`<div style="text-align:center;font-size:8px;color:#4ade80;margin-top:4px">✓ Active</div>`:`<button onclick="selectHero('${c.id}')" style="width:100%;margin-top:4px;background:${r.color}22;border:1px solid ${r.color};color:${r.color};padding:4px;border-radius:6px;font-size:8px">USE</button>`):`<div style="font-size:7px;color:#555;text-align:center;margin-top:4px">🔒 ${c.unlockHow}${c.id==="jesus"?" ✝️":""}</div>`}</div>`;}).join("")}</div></div>`;}).join("")}`;}
+  <div style="text-align:center;margin-bottom:9px"><div style="font-size:17px;font-weight:bold;color:#FFD700">${G.unlocked.length}/${ALL_CHARS.length} Heroes Unlocked</div></div>
+  ${["common","uncommon","rare","epic","legendary","divine"].map(rk=>{const chars=ALL_CHARS.filter(c=>c.rarity===rk);const r=RARITY[rk];return`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:6px"><div style="color:${r.color};font-size:17px;font-weight:bold;letter-spacing:1px">${"★".repeat(r.stars)} ${rk.toUpperCase()}</div><div style="flex:1;height:1px;background:${r.color}33"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">${chars.map(c=>{const owned=G.unlocked.includes(c.id);const active=G.charId===c.id;return`<div style="background:${owned?r.bg:"#0d0d0d"};border:2px solid ${active?"#4ade80":owned?r.color+(c.rarity==="divine"?"":"55"):"#1a1a1a"};border-radius:10px;padding:10px;opacity:${owned?1:.45};box-shadow:${owned&&c.rarity==="divine"?"0 0 18px #FFD70088,0 0 36px #FFD70033":owned&&active?"0 0 10px #4ade8044":"none"};background:${owned&&c.rarity==="divine"?"linear-gradient(135deg,#1a1200,#0d0900)":owned?r.bg:"#0d0d0d"}"><div data-sp="${c.sprId||c.id}" data-sc="2" data-gw="${owned?r.glow:""}" data-an="${owned?"spBob .7s ease-in-out infinite":""}" ${!owned?"style='filter:grayscale(1)'":" "} style="display:flex;justify-content:center;margin-bottom:5px"></div><div style="font-size:16px;font-weight:bold;color:${owned?r.color:"#555"};text-align:center">${c.name}</div><div style="text-align:center;margin-top:3px">${rb(c.rarity)}</div>${owned?(active?`<div style="text-align:center;font-size:17px;color:#4ade80;margin-top:4px">✓ Active</div>`:`<button onclick="selectHero('${c.id}')" style="width:100%;margin-top:4px;background:${r.color}22;border:1px solid ${r.color};color:${r.color};padding:4px;border-radius:6px;font-size:17px">USE</button>`):`<div style="font-size:16px;color:#555;text-align:center;margin-top:4px">🔒 ${c.unlockHow}${c.id==="jesus"?" ✝️":""}</div>`}</div>`;}).join("")}</div></div>`;}).join("")}`;}
 
 function selectHero(id){if(G.unlocked.includes(id)){G.charId=id;persistPlayer();toast(`✅ ${ALL_CHARS.find(c=>c.id===id).name} selected!`);render();}}
-function rItemsTab(){return`<div class="section-card"><div style="color:#C4A35A;font-weight:bold;margin-bottom:9px">🎒 Power-Ups</div>${G.pd.powerups.length===0?`<div style="text-align:center;padding:18px;color:#333"><div style="font-size:26px;margin-bottom:5px">📦</div><div style="font-size:10px">Check in or complete missions to earn items!</div></div>`:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${G.pd.powerups.map(pu=>`<div style="background:linear-gradient(135deg,#1a1a00,#111);border:1px solid #C4A35A22;border-radius:8px;padding:9px"><div style="font-size:20px;margin-bottom:3px">${pu.emoji}</div><div style="font-weight:bold;font-size:10px;color:#C4A35A">${pu.name}</div></div>`).join("")}</div>`}</div>`;}
+function rItemsTab(){return`<div class="section-card"><div style="color:#C4A35A;font-weight:bold;margin-bottom:9px">🎒 Power-Ups</div>${G.pd.powerups.length===0?`<div style="text-align:center;padding:18px;color:#333"><div style="font-size:26px;margin-bottom:5px">📦</div><div style="font-size:16px">Check in or complete missions to earn items!</div></div>`:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${G.pd.powerups.map(pu=>`<div style="background:linear-gradient(135deg,#1a1a00,#111);border:1px solid #C4A35A22;border-radius:8px;padding:9px"><div style="font-size:20px;margin-bottom:3px">${pu.emoji}</div><div style="font-weight:bold;font-size:16px;color:#C4A35A">${pu.name}</div></div>`).join("")}</div>`}</div>`;}
 
 // ── PVP LOBBY — shows usernames on cards ──────
 function rPvpLobby(){
   const mc=gch();const mr=RARITY[mc.rarity];
   return`<div style="min-height:100vh;background:#050510;font-family:Georgia,serif">
-  <div style="background:#0a0a0a;border-bottom:1px solid #222;padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10">
-    <button onclick="go('game')" class="btn-ghost" style="width:auto;padding:5px 10px;font-size:10px">← Back</button>
-    <div><div style="font-weight:bold;color:#7EB8F7;font-size:12px">⚔️ PvP Arena</div><div style="font-size:8px;color:#555">${G.pd.pvpWins}W ${G.pd.pvpLosses}L · Playing as ${displayName(G.username)}</div></div>
+  <div style="background:#0a0a0a;border-bottom:1px solid #222;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10">
+    <button onclick="go('game')" class="btn-ghost" style="width:auto;padding:5px 10px;font-size:16px">← Back</button>
+    <div><div style="font-weight:bold;color:#7EB8F7;font-size:17px">⚔️ PvP Arena</div><div style="font-size:17px;color:#555">${G.pd.pvpWins}W ${G.pd.pvpLosses}L · Playing as ${displayName(G.username)}</div></div>
   </div>
   <div style="padding:12px;max-width:480px;margin:0 auto">
     <!-- Your card with username tag -->
     <div style="background:linear-gradient(135deg,${mr.bg},#0a0a0a);border:2px solid ${mr.color}55;border-radius:12px;padding:11px;margin-bottom:13px">
-      <div style="font-size:9px;color:${mr.color};letter-spacing:2px;margin-bottom:6px">YOUR FIGHTER</div>
+      <div style="font-size:17px;color:${mr.color};letter-spacing:2px;margin-bottom:6px">YOUR FIGHTER</div>
       <div style="display:flex;align-items:center;gap:10px">
         <div data-sp="${mc.sprId||mc.id}" data-sc="3" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${mr.glow}" data-an="spBob .7s ease-in-out infinite"></div>
         <div style="flex:1">
-          <div style="font-weight:bold;color:${mc.color};font-size:13px">${mc.name}</div>
-          <div style="font-size:10px;color:#C4A35A;font-weight:bold">${displayName(G.username)}</div>
+          <div style="font-weight:bold;color:${mc.color};font-size:16px">${mc.name}</div>
+          <div style="font-size:16px;color:#C4A35A;font-weight:bold">${displayName(G.username)}</div>
           ${rb(mc.rarity)}
-          <div style="font-size:9px;color:#FFD700;margin-top:3px">⚡ ${mc.abilityName}</div>
+          <div style="font-size:17px;color:#FFD700;margin-top:3px">⚡ ${mc.abilityName}</div>
         </div>
-        <div style="text-align:right"><div style="font-size:17px;font-weight:bold;color:${mc.color}">Lv.${glv()}</div><div style="font-size:9px;color:#4ade80">${G.pd.pvpWins}W</div></div>
+        <div style="text-align:right"><div style="font-size:17px;font-weight:bold;color:${mc.color}">Lv.${glv()}</div><div style="font-size:17px;color:#4ade80">${G.pd.pvpWins}W</div></div>
       </div>
     </div>
     <!-- Opponent cards with simulated usernames -->
@@ -762,15 +762,15 @@ function rPvpLobby(){
       return`<div class="section-card" style="margin-bottom:7px;display:flex;align-items:center;gap:8px">
         <div data-sp="${oc.sprId||oc.id}" data-sc="2" data-gw="${or.glow}"></div>
         <div style="flex:1">
-          <div style="font-weight:bold;font-size:10px">${opp.name}</div>
-          <div style="font-size:9px;color:#C4A35A;font-weight:bold">${fakeTag}</div>
-          <div style="font-size:8px;color:${oc.color}">${oc.name}</div>
+          <div style="font-weight:bold;font-size:16px">${opp.name}</div>
+          <div style="font-size:17px;color:#C4A35A;font-weight:bold">${fakeTag}</div>
+          <div style="font-size:17px;color:${oc.color}">${oc.name}</div>
           ${rb(oc.rarity)}
-          <div style="font-size:8px;color:#555;margin-top:2px">${opp.wins}W ${opp.losses}L · Lv.${opp.lv}</div>
+          <div style="font-size:17px;color:#555;margin-top:2px">${opp.wins}W ${opp.losses}L · Lv.${opp.lv}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:8px;color:${dcol};font-weight:bold;margin-bottom:4px">${dlabel}</div>
-          <button onclick="startPvP('${opp.name}','${opp.charId}',${opp.lv},'${fakeTag}')" style="background:linear-gradient(135deg,#1a0020,#0d0010);border:1px solid #7EB8F7;color:#7EB8F7;padding:6px 10px;border-radius:6px;font-size:9px;font-weight:bold">FIGHT</button>
+          <div style="font-size:17px;color:${dcol};font-weight:bold;margin-bottom:4px">${dlabel}</div>
+          <button onclick="startPvP('${opp.name}','${opp.charId}',${opp.lv},'${fakeTag}')" style="background:linear-gradient(135deg,#1a0020,#0d0010);border:1px solid #7EB8F7;color:#7EB8F7;padding:6px 10px;border-radius:6px;font-size:18px;font-weight:bold">FIGHT</button>
         </div>
       </div>`;}
     ).join("")}
@@ -791,27 +791,27 @@ function rPvpResult(){
   const oc=opp?ALL_CHARS.find(c=>c.id===opp.charId):ALL_CHARS[0];const or=RARITY[oc?.rarity||"common"];
   return`<div style="min-height:100vh;background:radial-gradient(ellipse at center,${won?"#001a00":"#1a0000"},#000);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:Georgia,serif;text-align:center">
   <div style="font-size:52px;animation:victBounce .5s ease infinite">${won?"🏆":"💀"}</div>
-  <div style="font-size:20px;font-weight:bold;color:${won?"#4ade80":"#ef4444"};letter-spacing:2px;margin:10px 0">${won?"PvP VICTORY!":"PvP DEFEAT..."}</div>
+  <div style="font-size:22px;font-weight:bold;color:${won?"#4ade80":"#ef4444"};letter-spacing:2px;margin:10px 0">${won?"PvP VICTORY!":"PvP DEFEAT..."}</div>
   <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;justify-content:center">
-    <span style="font-size:11px;color:#C4A35A;font-weight:bold">${displayName(G.username)}</span>
-    <span style="font-size:11px;color:#555">vs</span>
-    <span style="font-size:11px;color:#C4A35A;font-weight:bold">${opp?.tag||opp?.name}</span>
+    <span style="font-size:17px;color:#C4A35A;font-weight:bold">${displayName(G.username)}</span>
+    <span style="font-size:17px;color:#555">vs</span>
+    <span style="font-size:17px;color:#C4A35A;font-weight:bold">${opp?.tag||opp?.name}</span>
   </div>
-  <div style="font-size:9px;color:#555;margin-bottom:16px">${mc.name} vs ${oc?.name}</div>
+  <div style="font-size:17px;color:#555;margin-bottom:16px">${mc.name} vs ${oc?.name}</div>
   <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
-    <div style="text-align:center"><div data-sp="${mc.sprId||mc.id}" data-sc="3" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${won?mr.glow:"#FF4444"}" style="margin:0 auto 5px"></div><div style="font-size:10px;color:${mc.color}">${mc.name}</div><div style="font-size:9px;color:#C4A35A">${displayName(G.username)}</div><div style="font-size:8px;color:#555">Lv.${glv()}</div></div>
+    <div style="text-align:center"><div data-sp="${mc.sprId||mc.id}" data-sc="3" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${won?mr.glow:"#FF4444"}" style="margin:0 auto 5px"></div><div style="font-size:16px;color:${mc.color}">${mc.name}</div><div style="font-size:17px;color:#C4A35A">${displayName(G.username)}</div><div style="font-size:17px;color:#555">Lv.${glv()}</div></div>
     <div style="font-size:18px;color:#333">VS</div>
-    <div style="text-align:center"><div data-sp="${opp?.charId||"david"}" data-sc="3" data-gw="${!won?or.glow:"#555"}" style="margin:0 auto 5px;${won?"opacity:.25":""}"></div><div style="font-size:10px;color:${oc?.color}">${oc?.name}</div><div style="font-size:9px;color:#C4A35A">${opp?.tag||""}</div><div style="font-size:8px;color:#555">Lv.${opp?.lv}</div></div>
+    <div style="text-align:center"><div data-sp="${opp?.charId||"david"}" data-sc="3" data-gw="${!won?or.glow:"#555"}" style="margin:0 auto 5px;${won?"opacity:.25":""}"></div><div style="font-size:16px;color:${oc?.color}">${oc?.name}</div><div style="font-size:17px;color:#C4A35A">${opp?.tag||""}</div><div style="font-size:17px;color:#555">Lv.${opp?.lv}</div></div>
   </div>
-  ${won?`<div style="color:#FFD700;font-size:12px;font-weight:bold;margin-bottom:4px">+${rand(80,150)} XP!</div>`:""}
-  <div style="color:#555;font-size:9px;margin-bottom:16px">PvP: ${G.pd.pvpWins}W ${G.pd.pvpLosses}L</div>
-  <button onclick="go('pvp_lobby')" style="width:100%;max-width:260px;background:linear-gradient(135deg,#1a0020,#0d0010);border:1px solid #7EB8F7;color:#7EB8F7;padding:11px;border-radius:9px;font-size:11px;font-weight:bold;margin-bottom:6px">⚔️ Challenge Again</button>
-  <button onclick="go('game')" style="width:100%;max-width:260px;background:transparent;border:1px solid #222;color:#555;padding:9px;border-radius:8px;font-size:10px">← Home</button>
+  ${won?`<div style="color:#FFD700;font-size:17px;font-weight:bold;margin-bottom:4px">+${rand(80,150)} XP!</div>`:""}
+  <div style="color:#555;font-size:17px;margin-bottom:16px">PvP: ${G.pd.pvpWins}W ${G.pd.pvpLosses}L</div>
+  <button onclick="go('pvp_lobby')" style="width:100%;max-width:260px;background:linear-gradient(135deg,#1a0020,#0d0010);border:1px solid #7EB8F7;color:#7EB8F7;padding:11px;border-radius:9px;font-size:17px;font-weight:bold;margin-bottom:6px">⚔️ Challenge Again</button>
+  <button onclick="go('game')" style="width:100%;max-width:260px;background:transparent;border:1px solid #222;color:#555;padding:9px;border-radius:8px;font-size:16px">← Home</button>
 </div>`;}
 
-function rMissionComplete(){const m=G.activeMission||MISSIONS[0];return`<div style="min-height:100vh;background:radial-gradient(ellipse at center,${m.bgCol},#000);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:Georgia,serif;text-align:center"><div style="font-size:52px;animation:victBounce .6s ease infinite;margin-bottom:8px">${m.badge}</div><div style="font-size:20px;font-weight:bold;color:${m.accent};letter-spacing:2px;margin-bottom:3px">MISSION COMPLETE!</div><div style="font-size:11px;color:#aaa;margin-bottom:16px">${m.title}</div><div style="background:#ffffff08;border:1px solid ${m.accent}44;border-radius:12px;padding:14px;width:100%;max-width:260px;margin-bottom:16px"><div style="font-size:30px;margin-bottom:5px">${m.reward.emoji}</div><div style="font-weight:bold;color:${m.accent};font-size:12px;margin-bottom:3px">${m.badgeName}</div><div style="font-size:9px;color:#666;margin-bottom:7px">Exclusive power-up unlocked!</div><div style="font-size:17px;color:#FFD700;font-weight:bold">+${m.xpReward} XP</div>${m.unlockCharId?`<div style="margin-top:7px;padding:5px;background:#ffffff08;border-radius:6px;font-size:9px;color:#4ade80">🎉 Hero unlocked: ${ALL_CHARS.find(c=>c.id===m.unlockCharId)?.name||""}</div>`:""}</div><button onclick="go('game')" class="btn-gold" style="max-width:260px;margin-bottom:6px">← Return Home</button><button onclick="setTab('missions');go('game')" class="btn-ghost" style="max-width:260px">📜 View Missions</button></div>`;}
+function rMissionComplete(){const m=G.activeMission||MISSIONS[0];return`<div style="min-height:100vh;background:radial-gradient(ellipse at center,${m.bgCol},#000);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:Georgia,serif;text-align:center"><div style="font-size:52px;animation:victBounce .6s ease infinite;margin-bottom:8px">${m.badge}</div><div style="font-size:22px;font-weight:bold;color:${m.accent};letter-spacing:2px;margin-bottom:3px">MISSION COMPLETE!</div><div style="font-size:17px;color:#aaa;margin-bottom:16px">${m.title}</div><div style="background:#ffffff08;border:1px solid ${m.accent}44;border-radius:12px;padding:14px;width:100%;max-width:260px;margin-bottom:16px"><div style="font-size:30px;margin-bottom:5px">${m.reward.emoji}</div><div style="font-weight:bold;color:${m.accent};font-size:17px;margin-bottom:3px">${m.badgeName}</div><div style="font-size:17px;color:#666;margin-bottom:7px">Exclusive power-up unlocked!</div><div style="font-size:17px;color:#FFD700;font-weight:bold">+${m.xpReward} XP</div>${m.unlockCharId?`<div style="margin-top:7px;padding:5px;background:#ffffff08;border-radius:6px;font-size:17px;color:#4ade80">🎉 Hero unlocked: ${ALL_CHARS.find(c=>c.id===m.unlockCharId)?.name||""}</div>`:""}</div><button onclick="go('game')" class="btn-gold" style="max-width:260px;margin-bottom:6px">← Return Home</button><button onclick="setTab('missions');go('game')" class="btn-ghost" style="max-width:260px">📜 View Missions</button></div>`;}
 
-function rWardrobe(){const c=gch();const r=RARITY[c.rarity];const t=G.wardTab;return`<div style="min-height:100vh;background:${c.bg};font-family:Georgia,serif"><div style="background:#0a0a0a;border-bottom:1px solid #222;padding:11px 14px;display:flex;align-items:center;gap:10px"><button onclick="go('game')" class="btn-ghost" style="width:auto;padding:5px 10px;font-size:10px">← Back</button><div style="font-weight:bold;color:${r.color};font-size:12px">👗 ${c.name}'s Wardrobe</div></div><div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 13px;background:linear-gradient(180deg,${c.bg},#0a0a0a)"><div data-sp="${c.sprId||c.id}" data-sc="5" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${r.glow}" data-an="spBob .7s ease-in-out infinite"></div><div style="margin-top:7px;font-size:10px;color:${r.color};letter-spacing:2px">${c.name.toUpperCase()}</div><div style="font-size:10px;color:#C4A35A;font-weight:bold;margin-top:3px">${displayName(G.username)}</div>${rb(c.rarity)}</div><div style="display:flex;background:#0a0a0a;border-top:1px solid #111;border-bottom:1px solid #111">${["skin","hair","outfit"].map(wt=>`<button onclick="G.wardTab='${wt}';render()" style="flex:1;padding:8px 0;background:none;border:none;color:${t===wt?r.color:"#444"};font-family:Georgia,serif;font-size:9px;border-bottom:${t===wt?`2px solid ${r.color}`:"2px solid transparent"}"><div>${wt==="skin"?"👤":wt==="hair"?"💇":"👕"}</div><div>${wt}</div></button>`).join("")}</div><div style="padding:15px;max-width:480px;margin:0 auto">${t==="skin"?`<div style="color:#666;font-size:9px;margin-bottom:9px;letter-spacing:1px">SKIN TONE</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${SKINS.map((s,i)=>`<button onclick="G.cos.sk=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.sk===i?r.color:"#222"};border-radius:8px;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:50%;background:${s};border:2px solid #333"></div></button>`).join("")}</div>`:""}${t==="hair"?`<div style="color:#666;font-size:9px;margin-bottom:9px;letter-spacing:1px">HAIR COLOR</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${HAIRS.map((h,i)=>`<button onclick="G.cos.hr=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.hr===i?r.color:"#222"};border-radius:8px;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:18px;height:18px;border-radius:50%;background:${h};border:2px solid #333"></div></button>`).join("")}</div>`:""}${t==="outfit"?`<div style="color:#666;font-size:9px;margin-bottom:9px;letter-spacing:1px">OUTFIT COLOR</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${OUTFITS.map((o,i)=>`<button onclick="G.cos.ot=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.ot===i?r.color:"#222"};border-radius:8px;padding:11px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:30px;height:13px;border-radius:3px;background:linear-gradient(135deg,${o.p},${o.s});border:1px solid #333"></div><div style="font-size:7px;color:#555">${o.name}</div></button>`).join("")}</div>`:""}<button onclick="persistPlayer();toast('✨ Look saved!');go('game')" class="btn-gold" style="margin-top:16px">✅ SAVE LOOK</button></div></div>`;}
+function rWardrobe(){const c=gch();const r=RARITY[c.rarity];const t=G.wardTab;return`<div style="min-height:100vh;background:${c.bg};font-family:Georgia,serif"><div style="background:#0a0a0a;border-bottom:1px solid #222;padding:11px 14px;display:flex;align-items:center;gap:10px"><button onclick="go('game')" class="btn-ghost" style="width:auto;padding:5px 10px;font-size:16px">← Back</button><div style="font-weight:bold;color:${r.color};font-size:17px">👗 ${c.name}'s Wardrobe</div></div><div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 13px;background:linear-gradient(180deg,${c.bg},#0a0a0a)"><div data-sp="${c.sprId||c.id}" data-sc="5" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-gw="${r.glow}" data-an="spBob .7s ease-in-out infinite"></div><div style="margin-top:7px;font-size:16px;color:${r.color};letter-spacing:2px">${c.name.toUpperCase()}</div><div style="font-size:16px;color:#C4A35A;font-weight:bold;margin-top:3px">${displayName(G.username)}</div>${rb(c.rarity)}</div><div style="display:flex;background:#0a0a0a;border-top:1px solid #111;border-bottom:1px solid #111">${["skin","hair","outfit"].map(wt=>`<button onclick="G.wardTab='${wt}';render()" style="flex:1;padding:8px 0;background:none;border:none;color:${t===wt?r.color:"#444"};font-family:Georgia,serif;font-size:17px;border-bottom:${t===wt?`2px solid ${r.color}`:"2px solid transparent"}"><div>${wt==="skin"?"👤":wt==="hair"?"💇":"👕"}</div><div>${wt}</div></button>`).join("")}</div><div style="padding:15px;max-width:480px;margin:0 auto">${t==="skin"?`<div style="color:#666;font-size:17px;margin-bottom:9px;letter-spacing:1px">SKIN TONE</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${SKINS.map((s,i)=>`<button onclick="G.cos.sk=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.sk===i?r.color:"#222"};border-radius:8px;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:50%;background:${s};border:2px solid #333"></div></button>`).join("")}</div>`:""}${t==="hair"?`<div style="color:#666;font-size:17px;margin-bottom:9px;letter-spacing:1px">HAIR COLOR</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">${HAIRS.map((h,i)=>`<button onclick="G.cos.hr=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.hr===i?r.color:"#222"};border-radius:8px;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:18px;height:18px;border-radius:50%;background:${h};border:2px solid #333"></div></button>`).join("")}</div>`:""}${t==="outfit"?`<div style="color:#666;font-size:17px;margin-bottom:9px;letter-spacing:1px">OUTFIT COLOR</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${OUTFITS.map((o,i)=>`<button onclick="G.cos.ot=${i};persistPlayer();render()" style="background:#0d0d0d;border:2px solid ${G.cos.ot===i?r.color:"#222"};border-radius:8px;padding:11px 0;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:30px;height:13px;border-radius:3px;background:linear-gradient(135deg,${o.p},${o.s});border:1px solid #333"></div><div style="font-size:16px;color:#555">${o.name}</div></button>`).join("")}</div>`:""}<button onclick="persistPlayer();toast('✨ Look saved!');go('game')" class="btn-gold" style="margin-top:16px">✅ SAVE LOOK</button></div></div>`;}
 
 // ── BATTLE SCREEN ──────────────────────────────
 function rBattle(){
@@ -823,32 +823,32 @@ function rBattle(){
   const m=G.activeMission;
   return`<div style="min-height:100vh;background:radial-gradient(ellipse at 50% 40%,${mc.bg},#000);font-family:Georgia,serif;position:relative;overflow:hidden">
   <div style="position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:4"></div>
-  ${isPvp?`<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#1a0020,#0d0010);border-bottom:2px solid #7EB8F744;padding:6px 14px;z-index:20;display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;color:#7EB8F7;font-weight:bold">⚔️ PvP Battle</span><div style="text-align:right"><div style="font-size:10px;color:#C4A35A">${displayName(G.username)} vs ${e.oppTag||e.oppName}</div><div style="font-size:8px;color:#555">${mc.name} vs ${e.name}</div></div></span></div>`:""}
+  ${isPvp?`<div style="position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#1a0020,#0d0010);border-bottom:2px solid #7EB8F744;padding:6px 14px;z-index:20;display:flex;align-items:center;justify-content:space-between"><span style="font-size:16px;color:#7EB8F7;font-weight:bold">⚔️ PvP Battle</span><div style="text-align:right"><div style="font-size:16px;color:#C4A35A">${displayName(G.username)} vs ${e.oppTag||e.oppName}</div><div style="font-size:17px;color:#555">${mc.name} vs ${e.name}</div></div></span></div>`:""}
   <div style="max-width:480px;margin:0 auto;padding:${isPvp?"38px":"10px"} 12px 90px;position:relative;z-index:10">
-    ${isMission&&curStage?`<div style="background:linear-gradient(135deg,${m.bgCol},#0a0a0a);border:1px solid ${m.accent}44;border-radius:10px;padding:8px 11px;margin-bottom:7px;animation:stageIn .4s ease"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:9px;color:${m.accent};font-weight:bold;letter-spacing:1px">${m.title.toUpperCase()}</div><div style="display:flex;gap:3px">${m.stages.map((_,si)=>`<div style="width:6px;height:6px;border-radius:50%;background:${si<G.missionStage?"#4ade80":si===G.missionStage?m.accent:"#333"}"></div>`).join("")}</div></div><div style="font-size:8px;color:#666;margin-top:2px">Stage ${G.missionStage+1}/${m.stages.length} — ${curStage.title}</div>${curStage.special?`<div style="font-size:8px;color:#FFD700;margin-top:2px">${curStage.specialDesc}</div>`:""}</div>`:""}
-    <div style="background:#0d0d0d;border-radius:12px 12px 0 0;padding:10px 12px 8px;border:1px solid #1c1c1c"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:bold;color:${e.color};font-family:monospace;font-size:12px">${bs.isBoss?"👑 ":""}${e.name.toUpperCase()}</span><span style="font-size:9px;color:#555;font-family:monospace">HP ${bs.e.hp}/${e.hp}</span></div><div style="height:8px;background:#111;border-radius:4px;overflow:hidden;border:1px solid #222"><div style="width:${Math.max(0,bs.e.hp/e.hp*100)}%;height:100%;background:linear-gradient(90deg,${e.color},${e.color}88);transition:width .35s;border-radius:4px"></div></div>${isPvp?`<div style="font-size:9px;color:#C4A35A;margin-top:3px">${e.oppTag||e.oppName}'s fighter</div>`:""}</div>
+    ${isMission&&curStage?`<div style="background:linear-gradient(135deg,${m.bgCol},#0a0a0a);border:1px solid ${m.accent}44;border-radius:10px;padding:8px 11px;margin-bottom:7px;animation:stageIn .4s ease"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:17px;color:${m.accent};font-weight:bold;letter-spacing:1px">${m.title.toUpperCase()}</div><div style="display:flex;gap:3px">${m.stages.map((_,si)=>`<div style="width:6px;height:6px;border-radius:50%;background:${si<G.missionStage?"#4ade80":si===G.missionStage?m.accent:"#333"}"></div>`).join("")}</div></div><div style="font-size:17px;color:#666;margin-top:2px">Stage ${G.missionStage+1}/${m.stages.length} — ${curStage.title}</div>${curStage.special?`<div style="font-size:17px;color:#FFD700;margin-top:2px">${curStage.specialDesc}</div>`:""}</div>`:""}
+    <div style="background:#0d0d0d;border-radius:12px 12px 0 0;padding:10px 12px 8px;border:1px solid #1c1c1c"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:bold;color:${e.color};font-family:monospace;font-size:17px">${bs.isBoss?"👑 ":""}${e.name.toUpperCase()}</span><span style="font-size:17px;color:#555;font-family:monospace">HP ${bs.e.hp}/${e.hp}</span></div><div style="height:8px;background:#111;border-radius:4px;overflow:hidden;border:1px solid #222"><div style="width:${Math.max(0,bs.e.hp/e.hp*100)}%;height:100%;background:linear-gradient(90deg,${e.color},${e.color}88);transition:width .35s;border-radius:4px"></div></div>${isPvp?`<div style="font-size:17px;color:#C4A35A;margin-top:3px">${e.oppTag||e.oppName}'s fighter</div>`:""}</div>
     <div style="position:relative;background:linear-gradient(180deg,#0c0c20,#050510 55%,#090806);padding:14px 14px 12px;display:flex;justify-content:space-between;align-items:flex-end;min-height:130px;overflow:hidden">
       <div style="position:absolute;bottom:18px;left:0;right:0;height:1px;background:#ffffff08"></div>
       ${[...Array(10)].map((_,i)=>`<div style="position:absolute;width:2px;height:2px;border-radius:50%;background:#ffffff1a;top:${8+Math.sin(i*43)*20}%;left:${5+i*9}%"></div>`).join("")}
       <div style="position:relative" id="eSpr">
-        <div id="eHit" style="position:absolute;top:-10px;left:50%;font-size:14px;font-weight:bold;font-family:monospace;pointer-events:none;z-index:60;white-space:nowrap;display:none"></div>
+        <div id="eHit" style="position:absolute;top:-10px;left:50%;font-size:17px;font-weight:bold;font-family:monospace;pointer-events:none;z-index:60;white-space:nowrap;display:none"></div>
         <div data-sp="${e.sprId||"philistine"}" data-sc="3" data-gw="${won?"#555":e.color}" style="${won?"opacity:.2":""}"></div>
         ${won?`<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:24px">💀</div>`:""}
-        <div style="text-align:center;font-size:7px;color:#444;margin-top:2px;font-family:monospace">${isPvp?(e.oppTag||"ENEMY"):"ENEMY"}</div>
+        <div style="text-align:center;font-size:16px;color:#444;margin-top:2px;font-family:monospace">${isPvp?(e.oppTag||"ENEMY"):"ENEMY"}</div>
       </div>
-      <div style="color:#1a1a1a;font-family:monospace;font-size:9px;font-weight:bold;padding-bottom:18px">VS</div>
+      <div style="color:#1a1a1a;font-family:monospace;font-size:17px;font-weight:bold;padding-bottom:18px">VS</div>
       <div style="position:relative" id="pSpr">
-        <div id="pHit" style="position:absolute;top:-10px;left:50%;font-size:14px;font-weight:bold;font-family:monospace;pointer-events:none;z-index:60;white-space:nowrap;display:none"></div>
+        <div id="pHit" style="position:absolute;top:-10px;left:50%;font-size:17px;font-weight:bold;font-family:monospace;pointer-events:none;z-index:60;white-space:nowrap;display:none"></div>
         <div data-sp="${mc.sprId||mc.id}" data-sc="3" data-sk="${G.cos.sk}" data-hr="${G.cos.hr}" data-ot="${G.cos.ot}" data-fl="1" data-gw="${won?"#FFD700":mr.glow}" data-an="${!dead&&bs.turn==="player"?"spBob .7s ease-in-out infinite":"none"}" ${dead&&!won?`style="opacity:.2"`:""}></div>
-        ${won?`<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:15px;animation:victBounce .5s ease infinite">🏆</div>`:""}
-        <div style="text-align:center;font-size:7px;color:#C4A35A;margin-top:2px;font-family:monospace">${displayName(G.username)||"YOU"}</div>
+        ${won?`<div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:17px;animation:victBounce .5s ease infinite">🏆</div>`:""}
+        <div style="text-align:center;font-size:16px;color:#C4A35A;margin-top:2px;font-family:monospace">${displayName(G.username)||"YOU"}</div>
       </div>
     </div>
-    <div style="background:#0d0d0d;border-radius:0 0 12px 12px;padding:8px 12px 11px;border:1px solid #1c1c1c"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div style="display:flex;gap:5px;align-items:center"><span style="font-weight:bold;color:${mc.color};font-family:monospace;font-size:12px">${mc.name.toUpperCase()}</span><span style="font-size:8px;color:#555;font-family:monospace">Lv.${glv()}</span>${rb(mc.rarity)}</div><div style="display:flex;gap:3px;align-items:center">${bs.sword?`<span style="font-size:7px;background:#FFD70022;color:#FFD700;padding:1px 3px;border-radius:3px">⚔️2X</span>`:""}${bs.defUp?`<span style="font-size:7px;background:#7EB8F722;color:#7EB8F7;padding:1px 3px;border-radius:3px">🛡️</span>`:""}<span style="font-size:9px;color:#555;font-family:monospace">HP ${bs.pHp}/${gmhp()}</span></div></div><div style="height:8px;background:#111;border-radius:4px;overflow:hidden;border:1px solid #222"><div style="width:${Math.max(0,bs.pHp/gmhp()*100)}%;height:100%;background:linear-gradient(90deg,${mc.color},${mc.color}88);transition:width .35s;border-radius:4px"></div></div></div>
-    <div style="background:#050505;border:1px solid #111;border-radius:8px;padding:7px 10px;margin:7px 0;min-height:50px;font-family:monospace">${G.log.map((l,i)=>`<div style="font-size:9px;color:${i===0?"#ccc":"#3a3a3a"};margin-bottom:1px">${i===0?"▶ ":"  "}${l}</div>`).join("")}</div>
-    ${dead?`<div style="text-align:center;padding:10px 0"><div style="font-size:38px;animation:${won?"victBounce .5s ease infinite":"blink 1s ease infinite"}">${won?"🏆":"💀"}</div><div style="color:${won?"#4ade80":"#ef4444"};font-family:monospace;letter-spacing:3px;font-size:14px;text-shadow:0 0 12px ${won?"#4ade80":"#ef4444"}">${won?(isMission&&G.missionStage<(G.activeMission?.stages.length||1)-1?"STAGE CLEAR!":"VICTORY!"):"DEFEATED..."}</div></div>`:""}
-    ${bs.active&&bs.turn==="player"?`<div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px"><button onclick="pAtk('basic')" style="background:linear-gradient(135deg,#1a2a1a,#0d1a0d);border:1px solid #4ade80;color:#4ade80;padding:11px 6px;border-radius:10px;font-size:11px;font-weight:bold;font-family:monospace" onmousedown="this.style.transform='scale(.95)'" onmouseup="this.style.transform='scale(1)'">⚔️ ATTACK</button><button onclick="pAtk('ability')" style="background:linear-gradient(135deg,${mc.bg},#111);border:2px solid ${mc.color};color:${mc.color};padding:11px 6px;border-radius:10px;font-size:10px;font-weight:bold;font-family:monospace;box-shadow:0 0 6px ${mc.color}44" onmousedown="this.style.transform='scale(.95)'" onmouseup="this.style.transform='scale(1)'">✨ ABILITY</button></div>${G.pd.powerups.length>0?`<div style="display:flex;gap:5px;margin-bottom:5px;flex-wrap:wrap">${G.pd.powerups.map((pu,i)=>`<button onclick="usePu(${i})" style="background:#111;border:1px solid #C4A35A55;color:#C4A35A;padding:7px 10px;border-radius:7px;font-size:13px" title="${pu.name}">${pu.emoji}</button>`).join("")}</div>`:""}<button onclick="flee()" style="width:100%;background:transparent;border:1px solid #1a1a1a;color:#333;padding:7px;border-radius:7px;font-size:9px;font-family:monospace">🏃 FLEE</button></div>`:""}
-    ${bs.active&&bs.turn==="enemy"?`<div style="text-align:center;padding:11px;color:#FF6B6B;font-family:monospace;font-size:10px;animation:blink .55s ease infinite">▶ ${e.name.toUpperCase()} IS ATTACKING...</div>`:""}
+    <div style="background:#0d0d0d;border-radius:0 0 12px 12px;padding:8px 12px 11px;border:1px solid #1c1c1c"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div style="display:flex;gap:5px;align-items:center"><span style="font-weight:bold;color:${mc.color};font-family:monospace;font-size:17px">${mc.name.toUpperCase()}</span><span style="font-size:17px;color:#555;font-family:monospace">Lv.${glv()}</span>${rb(mc.rarity)}</div><div style="display:flex;gap:3px;align-items:center">${bs.sword?`<span style="font-size:16px;background:#FFD70022;color:#FFD700;padding:1px 3px;border-radius:3px">⚔️2X</span>`:""}${bs.defUp?`<span style="font-size:16px;background:#7EB8F722;color:#7EB8F7;padding:1px 3px;border-radius:3px">🛡️</span>`:""}<span style="font-size:17px;color:#555;font-family:monospace">HP ${bs.pHp}/${gmhp()}</span></div></div><div style="height:8px;background:#111;border-radius:4px;overflow:hidden;border:1px solid #222"><div style="width:${Math.max(0,bs.pHp/gmhp()*100)}%;height:100%;background:linear-gradient(90deg,${mc.color},${mc.color}88);transition:width .35s;border-radius:4px"></div></div></div>
+    <div style="background:#050505;border:1px solid #111;border-radius:8px;padding:7px 10px;margin:7px 0;min-height:50px;font-family:monospace">${G.log.map((l,i)=>`<div style="font-size:17px;color:${i===0?"#ccc":"#3a3a3a"};margin-bottom:1px">${i===0?"▶ ":"  "}${l}</div>`).join("")}</div>
+    ${dead?`<div style="text-align:center;padding:10px 0"><div style="font-size:38px;animation:${won?"victBounce .5s ease infinite":"blink 1s ease infinite"}">${won?"🏆":"💀"}</div><div style="color:${won?"#4ade80":"#ef4444"};font-family:monospace;letter-spacing:3px;font-size:17px;text-shadow:0 0 12px ${won?"#4ade80":"#ef4444"}">${won?(isMission&&G.missionStage<(G.activeMission?.stages.length||1)-1?"STAGE CLEAR!":"VICTORY!"):"DEFEATED..."}</div></div>`:""}
+    ${bs.active&&bs.turn==="player"?`<div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px"><button onclick="pAtk('basic')" style="background:linear-gradient(135deg,#1a2a1a,#0d1a0d);border:1px solid #4ade80;color:#4ade80;padding:11px 6px;border-radius:10px;font-size:17px;font-weight:bold;font-family:monospace" onmousedown="this.style.transform='scale(.95)'" onmouseup="this.style.transform='scale(1)'">⚔️ ATTACK</button><button onclick="pAtk('ability')" style="background:linear-gradient(135deg,${mc.bg},#111);border:2px solid ${mc.color};color:${mc.color};padding:11px 6px;border-radius:10px;font-size:16px;font-weight:bold;font-family:monospace;box-shadow:0 0 6px ${mc.color}44" onmousedown="this.style.transform='scale(.95)'" onmouseup="this.style.transform='scale(1)'">✨ ABILITY</button></div>${G.pd.powerups.length>0?`<div style="display:flex;gap:5px;margin-bottom:5px;flex-wrap:wrap">${G.pd.powerups.map((pu,i)=>`<button onclick="usePu(${i})" style="background:#111;border:1px solid #C4A35A55;color:#C4A35A;padding:7px 10px;border-radius:7px;font-size:16px" title="${pu.name}">${pu.emoji}</button>`).join("")}</div>`:""}<button onclick="flee()" style="width:100%;background:transparent;border:1px solid #1a1a1a;color:#333;padding:7px;border-radius:7px;font-size:17px;font-family:monospace">🏃 FLEE</button></div>`:""}
+    ${bs.active&&bs.turn==="enemy"?`<div style="text-align:center;padding:11px;color:#FF6B6B;font-family:monospace;font-size:16px;animation:blink .55s ease infinite">▶ ${e.name.toUpperCase()} IS ATTACKING...</div>`:""}
   </div></div>`;}
 
 // ── BATTLE LOGIC ──────────────────────────────
@@ -1239,7 +1239,7 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
   }
   // Name tag
   if(tag){
-    ctx.save();ctx.font='bold 9px monospace';
+    ctx.save();ctx.font='bold 12px monospace';
     var tw=ctx.measureText(tag).width+8;
     ctx.fillStyle='rgba(0,0,0,0.8)';
     ctx.beginPath();ctx.roundRect(cx-tw/2,cy-ts*.52,tw,12,4);ctx.fill();
@@ -1274,14 +1274,14 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=3;
   ctx.fillText(npc.emoji||'👤',cx,cy-ts*.6);ctx.restore();
   // Name tag
-  ctx.save();ctx.font='bold 8px monospace';
+  ctx.save();ctx.font='bold 11px monospace';
   var tw=ctx.measureText(npc.name).width+8;
   ctx.fillStyle='rgba(0,0,0,0.85)';
   ctx.beginPath();ctx.roundRect(cx-tw/2,cy-ts*.88,tw,11,3);ctx.fill();
   ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,cy-ts*.8);ctx.restore();
   // Talk indicator
   if(CWS.nearNpc===npc.id){
-    ctx.save();ctx.font='12px serif';ctx.textAlign='center';
+    ctx.save();ctx.font='15px serif';ctx.textAlign='center';
     ctx.fillStyle='rgba(0,0,0,0.6)';
     ctx.beginPath();ctx.roundRect(cx+ts*.2,cy-ts*.72,18,16,4);ctx.fill();
     ctx.fillText('💬',cx+ts*.29,cy-ts*.6);ctx.restore();
@@ -1323,7 +1323,7 @@ function cw_rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 // ── HUD ────────────────────────────────────────────────
 function cw_drawHUD(ctx,vw,vh){
   // XP counter top-right
-  ctx.save();ctx.font='bold 10px monospace';ctx.textAlign='right';
+  ctx.save();ctx.font='bold 13px monospace';ctx.textAlign='right';
   ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-80,4,76,18);
   ctx.fillStyle='#FFD700';ctx.fillText('✨ '+G.pd.xp+' XP',vw-6,17);ctx.restore();
   if(CWS.dialog||CWS.activity) return;
@@ -1336,7 +1336,7 @@ function cw_drawHUD(ctx,vw,vh){
     if(z){hint=z.icon+' '+z.label+' — tap A';hcol='#4ade80';}
   }
   if(hint){
-    ctx.save();ctx.font='bold 12px Georgia';
+    ctx.save();ctx.font='bold 15px Georgia';
     var tw=ctx.measureText(hint).width+24,bw=Math.min(tw,vw-20),bh=34;
     var bx=(vw-bw)/2,by=vh-72;
     ctx.fillStyle=hbg;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();
@@ -1363,10 +1363,10 @@ function cw_drawDialog(ctx,vw,vh){
   ag.addColorStop(0,'rgba(196,163,90,0)');ag.addColorStop(0.2,'#C4A35A');ag.addColorStop(0.8,'#C4A35A');ag.addColorStop(1,'rgba(196,163,90,0)');
   ctx.fillStyle=ag;ctx.fillRect(bx+14,by,bw-28,2);
   // Speaker
-  ctx.fillStyle='#C4A35A';ctx.font='bold 13px Georgia';ctx.textAlign='left';
+  ctx.fillStyle='#C4A35A';ctx.font='bold 16px Georgia';ctx.textAlign='left';
   ctx.fillText((d.emoji||'')+' '+(d.speaker||''),bx+16,by+24);
   // Text wrap
-  ctx.fillStyle='#E8E0D0';ctx.font='13px Georgia';
+  ctx.fillStyle='#E8E0D0';ctx.font='16px Georgia';
   var words=d.text.split(' '),line='',ty=by+46;
   for(var i=0;i<words.length;i++){
     var test=line+words[i]+' ';
@@ -1374,8 +1374,8 @@ function cw_drawDialog(ctx,vw,vh){
     else line=test;
   }
   ctx.fillText(line,bx+16,ty);
-  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';ctx.fillText('+'+d.xp+' XP',bx+16,by+bh-32);}
-  ctx.fillStyle='#C4A35A66';ctx.font='10px monospace';ctx.textAlign='right';
+  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold 14px monospace';ctx.fillText('+'+d.xp+' XP',bx+16,by+bh-32);}
+  ctx.fillStyle='#C4A35A66';ctx.font='13px monospace';ctx.textAlign='right';
   ctx.fillText('Tap A →',bx+bw-12,by+bh-14);
 }
 
@@ -1410,17 +1410,17 @@ function cw_htmlPew(a){
   var done=prog>=1;
   return`<div style="background:linear-gradient(135deg,#0d0d0d,#1a1000);border:1px solid #C4A35A55;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
     <div style="font-size:36px;margin-bottom:10px">🪑</div>
-    <div style="font-size:16px;font-weight:bold;color:#C4A35A;margin-bottom:16px">Sitting in Reflection</div>
+    <div style="font-size:18px;font-weight:bold;color:#C4A35A;margin-bottom:16px">Sitting in Reflection</div>
     <div style="background:#1a1000;border-left:3px solid #C4A35A;border-radius:8px;padding:14px 16px;margin-bottom:18px;text-align:left">
-      <div style="font-style:italic;color:#E8DCC0;font-size:14px;line-height:1.6">"${a.verse.text}"</div>
-      <div style="color:#C4A35A;font-size:11px;margin-top:8px;font-weight:bold">— ${a.verse.ref}</div>
+      <div style="font-style:italic;color:#E8DCC0;font-size:17px;line-height:1.6">"${a.verse.text}"</div>
+      <div style="color:#C4A35A;font-size:17px;margin-top:8px;font-weight:bold">— ${a.verse.ref}</div>
     </div>
     <div style="height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-bottom:10px">
       <div style="width:${prog*100}%;height:100%;background:linear-gradient(90deg,#C4A35A,#FFD700);transition:width 0.5s;border-radius:4px"></div>
     </div>
-    <div style="color:#888;font-size:11px;margin-bottom:18px">${done?'✅ Meditation complete!':'Meditating… '+Math.ceil((10000-elapsed)/1000)+'s remaining'}</div>
-    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">✨ Receive +${a.xp} XP</button>`:
-    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:13px">Skip</button>`}
+    <div style="color:#888;font-size:17px;margin-bottom:18px">${done?'✅ Meditation complete!':'Meditating… '+Math.ceil((10000-elapsed)/1000)+'s remaining'}</div>
+    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">✨ Receive +${a.xp} XP</button>`:
+    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:16px">Skip</button>`}
   </div>`;
 }
 
@@ -1431,16 +1431,16 @@ function cw_htmlPrayer(a){
   return`<div style="background:linear-gradient(135deg,#0d000d,#1a001a);border:1px solid #CC00FF55;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
     <div style="font-size:36px;margin-bottom:10px">🙏</div>
     <div style="font-size:16px;font-weight:bold;color:#E8A0BF;margin-bottom:8px">Kneeling in Prayer</div>
-    <div style="font-size:10px;color:#888;margin-bottom:16px">Today's prayer prompt:</div>
+    <div style="font-size:16px;color:#888;margin-bottom:16px">Today's prayer prompt:</div>
     <div style="background:#1a001a;border-left:3px solid #CC00FF;border-radius:8px;padding:14px 16px;margin-bottom:18px;text-align:left">
-      <div style="color:#F0D0F0;font-size:14px;line-height:1.6;font-style:italic">${a.prompt}</div>
+      <div style="color:#F0D0F0;font-size:17px;line-height:1.6;font-style:italic">${a.prompt}</div>
     </div>
     <div style="height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-bottom:10px">
       <div style="width:${prog*100}%;height:100%;background:linear-gradient(90deg,#CC00FF,#FF66FF);transition:width 0.5s;border-radius:4px"></div>
     </div>
-    <div style="color:#888;font-size:11px;margin-bottom:18px">${done?'🙏 Amen!':'Praying… '+Math.ceil((15000-elapsed)/1000)+'s remaining'}</div>
-    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#CC00FF,#8800AA);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">✨ Receive +${a.xp} XP · Faith +3</button>`:
-    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:13px">Skip</button>`}
+    <div style="color:#888;font-size:17px;margin-bottom:18px">${done?'🙏 Amen!':'Praying… '+Math.ceil((15000-elapsed)/1000)+'s remaining'}</div>
+    ${done?`<button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#CC00FF,#8800AA);border:none;color:#fff;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">✨ Receive +${a.xp} XP · Faith +3</button>`:
+    `<button onclick="cw_interact()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:16px">Skip</button>`}
   </div>`;
 }
 
@@ -1449,9 +1449,9 @@ function cw_htmlWorship(a){
   if(a.phase==='intro') return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
     <div style="font-size:36px;margin-bottom:10px">🎵</div>
     <div style="font-size:16px;font-weight:bold;color:#FF6B35;margin-bottom:8px">Worship Band</div>
-    <div style="font-size:12px;color:#aaa;margin-bottom:18px">Match the rhythm pattern using the arrow buttons below or your keyboard!</div>
+    <div style="font-size:17px;color:#aaa;margin-bottom:18px">Match the rhythm pattern using the arrow buttons below or your keyboard!</div>
     <div style="font-size:26px;letter-spacing:6px;color:#FFD700;background:#111;padding:14px;border-radius:10px;margin-bottom:20px">${a.pattern.join('  ')}</div>
-    <button onclick="CWS.activity.phase='play';cw_renderActivity()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">🥁 Start Playing!</button>
+    <button onclick="CWS.activity.phase='play';cw_renderActivity()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">🥁 Start Playing!</button>
   </div>`;
 
   if(a.phase==='play'){
@@ -1460,9 +1460,9 @@ function cw_htmlWorship(a){
       return`<span style="font-size:${cur?28:20}px;color:${done?'#4ade80':cur?'#FFD700':'#333'};transition:all 0.1s">${ar}</span>`;
     }).join('<span style="color:#222"> </span>');
     return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:24px 18px;max-width:340px;width:100%;margin:auto;text-align:center">
-      <div style="font-size:13px;font-weight:bold;color:#FF6B35;margin-bottom:12px">🎵 Match the Pattern!</div>
+      <div style="font-size:16px;font-weight:bold;color:#FF6B35;margin-bottom:12px">🎵 Match the Pattern!</div>
       <div style="background:#111;padding:12px;border-radius:10px;margin-bottom:12px;letter-spacing:4px">${arrows}</div>
-      <div style="font-size:11px;color:#888;margin-bottom:14px">Score: ${a.score}/${a.pattern.length} · Note ${a.idx+1}/${a.pattern.length}${a.combo>2?' 🔥 x'+a.combo+' Combo!':''}</div>
+      <div style="font-size:17px;color:#888;margin-bottom:14px">Score: ${a.score}/${a.pattern.length} · Note ${a.idx+1}/${a.pattern.length}${a.combo>2?' 🔥 x'+a.combo+' Combo!':''}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <div></div>
         <button onclick="cw_handleKey('ArrowUp')" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px;border-radius:8px;font-size:20px;touch-action:manipulation">⬆</button>
@@ -1483,10 +1483,10 @@ function cw_htmlWorship(a){
   var bonus=grade==='S'||grade==='A';
   return`<div style="background:linear-gradient(135deg,#1a0800,#0d0500);border:1px solid #FF6B3555;border-radius:16px;padding:28px 22px;max-width:340px;width:100%;margin:auto;text-align:center">
     <div style="font-size:72px;font-weight:bold;color:${gc};font-family:monospace;line-height:1;margin-bottom:8px">${grade}</div>
-    <div style="font-size:13px;color:#aaa;margin-bottom:6px">${a.score}/${a.pattern.length} notes hit</div>
-    <div style="font-size:14px;font-weight:bold;color:#4ade80;margin-bottom:${bonus?6:16}px">+${a.xp} Worship XP!</div>
-    ${bonus?`<div style="font-size:12px;color:#FFD700;margin-bottom:16px">🎵 Bonus: Worship power-up earned!</div>`:''}
-    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Continue</button>
+    <div style="font-size:16px;color:#aaa;margin-bottom:6px">${a.score}/${a.pattern.length} notes hit</div>
+    <div style="font-size:17px;font-weight:bold;color:#4ade80;margin-bottom:${bonus?6:16}px">+${a.xp} Worship XP!</div>
+    ${bonus?`<div style="font-size:17px;color:#FFD700;margin-bottom:16px">🎵 Bonus: Worship power-up earned!</div>`:''}
+    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#FF6B35,#CC4400);border:none;color:#fff;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">Continue</button>
   </div>`;
 }
 
@@ -1496,11 +1496,11 @@ function cw_htmlOffering(a){
     <div style="font-size:52px;margin-bottom:12px">💝</div>
     <div style="font-size:17px;font-weight:bold;color:#FFD700;margin-bottom:14px">Give an Offering</div>
     <div style="background:#1a1000;border-radius:10px;padding:14px;margin-bottom:20px">
-      <div style="font-style:italic;color:#E8DCA0;font-size:13px;line-height:1.6">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."</div>
-      <div style="color:#C4A35A;font-size:11px;margin-top:8px;font-weight:bold">— 2 Corinthians 9:7 (ESV)</div>
+      <div style="font-style:italic;color:#E8DCA0;font-size:16px;line-height:1.6">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."</div>
+      <div style="color:#C4A35A;font-size:17px;margin-top:8px;font-weight:bold">— 2 Corinthians 9:7 (ESV)</div>
     </div>
-    <div style="color:#4ade80;font-size:13px;font-weight:bold;margin-bottom:18px">✨ +${a.xp} XP · Generosity blessing!</div>
-    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Give with a Cheerful Heart 🙏</button>
+    <div style="color:#4ade80;font-size:16px;font-weight:bold;margin-bottom:18px">✨ +${a.xp} XP · Generosity blessing!</div>
+    <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;color:#000;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">Give with a Cheerful Heart 🙏</button>
   </div>`;
 }
 
@@ -1513,15 +1513,15 @@ function cw_htmlVerseQuiz(a){
       +'<span style="background:#FFD70033;border:1px solid #FFD700;border-radius:4px;padding:2px 10px;color:#FFD700;font-weight:bold;font-style:normal"> _______ </span>'
       +'<span style="color:#E8DCC0"> '+vq.after+'</span>';
     var btnGrid=a.choices.map(function(ch,i){
-      return`<button onclick="cw_selectAnswer(${i})" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px 10px;border-radius:10px;font-size:14px;font-weight:bold;touch-action:manipulation;width:100%">${ch}</button>`;
+      return`<button onclick="cw_selectAnswer(${i})" style="background:#1a1a2a;border:2px solid #7EB8F7;color:#fff;padding:14px 10px;border-radius:10px;font-size:17px;font-weight:bold;touch-action:manipulation;width:100%">${ch}</button>`;
     }).join('');
     return`<div style="background:linear-gradient(135deg,#000d1a,#000a12);border:1px solid #7EB8F755;border-radius:16px;padding:24px 20px;max-width:360px;width:100%;margin:auto">
       <div style="text-align:center;margin-bottom:14px">
         <div style="font-size:24px;margin-bottom:4px">📖</div>
-        <div style="font-size:14px;font-weight:bold;color:#7EB8F7">Fill in the Blank</div>
-        <div style="font-size:11px;color:#555;margin-top:3px">${vq.ref} · ESV</div>
+        <div style="font-size:17px;font-weight:bold;color:#7EB8F7">Fill in the Blank</div>
+        <div style="font-size:17px;color:#555;margin-top:3px">${vq.ref} · ESV</div>
       </div>
-      <div style="background:#0d1a2a;border-left:3px solid #7EB8F7;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:14px;line-height:1.8;font-style:italic">${verseHTML}</div>
+      <div style="background:#0d1a2a;border-left:3px solid #7EB8F7;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:17px;line-height:1.8;font-style:italic">${verseHTML}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${btnGrid}</div>
     </div>`;
   } else {
@@ -1531,10 +1531,10 @@ function cw_htmlVerseQuiz(a){
     return`<div style="background:linear-gradient(135deg,#000d1a,#000a12);border:1px solid ${correct?'#4ade8055':'#ef444455'};border-radius:16px;padding:28px 22px;max-width:360px;width:100%;margin:auto;text-align:center">
       <div style="font-size:40px;margin-bottom:8px">${correct?'✅':'❌'}</div>
       <div style="font-size:18px;font-weight:bold;color:${correct?'#4ade80':'#ef4444'};margin-bottom:8px">${correct?'Correct!':'Not quite…'}</div>
-      <div style="font-size:11px;color:#555;margin-bottom:12px">${vq.ref} · ESV</div>
-      <div style="background:#0d1a2a;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#aaa;line-height:1.7;text-align:left">${fullVerse}</div>
-      <div style="font-size:14px;font-weight:bold;color:#FFD700;margin-bottom:20px">${correct?'+'+a.xp+' XP!':'+'+Math.floor(a.xp/4)+' XP for trying'}</div>
-      <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#1a3a6a,#0d2040);border:1px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:10px;font-size:15px;font-weight:bold">Continue →</button>
+      <div style="font-size:17px;color:#555;margin-bottom:12px">${vq.ref} · ESV</div>
+      <div style="background:#0d1a2a;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:16px;color:#aaa;line-height:1.7;text-align:left">${fullVerse}</div>
+      <div style="font-size:17px;font-weight:bold;color:#FFD700;margin-bottom:20px">${correct?'+'+a.xp+' XP!':'+'+Math.floor(a.xp/4)+' XP for trying'}</div>
+      <button onclick="cw_interact()" style="width:100%;background:linear-gradient(135deg,#1a3a6a,#0d2040);border:1px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">Continue →</button>
     </div>`;
   }
 }
@@ -1749,14 +1749,14 @@ function rChurchWorld(){
   <div style="background:#0a0500;border-bottom:1px solid #C4A35A33;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">⛪</span>
-      <div><div style="font-size:11px;font-weight:bold;color:#C4A35A">${CFG.churchName}</div><div style="font-size:8px;color:#555">Exploring — tap A to interact<span id="cwPeerCount"></span></div></div>
+      <div><div style="font-size:18px;font-weight:bold;color:#C4A35A">${CFG.churchName}</div><div style="font-size:17px;color:#555">Exploring — tap A to interact<span id="cwPeerCount"></span></div></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:9px;color:#888">Lv.${glv()} · ${G.pd.xp} XP</span>
-      <button onclick="leaveChurch()" style="background:#1a0a00;border:1px solid #C4A35A55;color:#C4A35A;padding:5px 12px;border-radius:8px;font-size:10px;font-weight:bold">✕ Leave</button>
-      <button onclick="cwm_toggleChat()" style="position:relative;background:#001a00;border:1px solid #4ade8044;color:#4ade80;padding:5px 11px;border-radius:8px;font-size:10px;font-weight:bold">
+      <span style="font-size:17px;color:#888">Lv.${glv()} · ${G.pd.xp} XP</span>
+      <button onclick="leaveChurch()" style="background:#1a0a00;border:1px solid #C4A35A55;color:#C4A35A;padding:5px 12px;border-radius:8px;font-size:16px;font-weight:bold">✕ Leave</button>
+      <button onclick="cwm_toggleChat()" style="position:relative;background:#001a00;border:1px solid #4ade8044;color:#4ade80;padding:5px 11px;border-radius:8px;font-size:16px;font-weight:bold">
         💬 Chat
-        <span id="cwChatBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:8px;align-items:center;justify-content:center;font-family:monospace">0</span>
+        <span id="cwChatBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:17px;align-items:center;justify-content:center;font-family:monospace">0</span>
       </button>
     </div>
   </div>
@@ -1766,20 +1766,20 @@ function rChurchWorld(){
 
   <!-- Chat overlay -->
   <div id="cwChat" style="display:none;position:absolute;bottom:130px;right:0;width:min(340px,100vw);height:420px;background:#0a0a12;border:1px solid #333;border-radius:16px 0 0 16px;flex-direction:column;z-index:25;overflow:hidden;box-shadow:-4px 0 24px rgba(0,0,0,0.8)">
-    <div style="background:#0d0d18;border-bottom:1px solid #1a1a2a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="background:#0d0d18;border-bottom:1px solid #1a1a2a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div>
-        <div style="font-size:12px;font-weight:bold;color:#7EB8F7">💬 Congregation Chat</div>
-        <div id="cwChatPeers" style="font-size:9px;color:#555">Loading presence…</div>
+        <div style="font-size:17px;font-weight:bold;color:#7EB8F7">💬 Congregation Chat</div>
+        <div id="cwChatPeers" style="font-size:17px;color:#555">Loading presence…</div>
       </div>
       <button onclick="cwm_toggleChat()" style="background:none;border:none;color:#555;font-size:16px;padding:0 4px">✕</button>
     </div>
     <div id="cwChatLog" style="flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;scroll-behavior:smooth"></div>
     <div style="border-top:1px solid #1a1a2a;padding:8px 10px;display:flex;gap:6px;flex-shrink:0;background:#0d0d18">
       <input id="cwChatInput" type="text" maxlength="120" placeholder="Type a message…"
-        style="flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-family:Georgia,serif;outline:none"
+        style="flex:1;background:#111;border:1px solid #333;color:#fff;border-radius:10px;padding:8px 12px;font-size:16px;font-family:Georgia,serif;outline:none"
         onkeydown="if(event.key==='Enter'){cwm_sendChat();event.preventDefault();}"
       >
-      <button onclick="cwm_sendChat()" style="background:linear-gradient(135deg,#7EB8F7,#4488CC);border:none;color:#000;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:bold;touch-action:manipulation">↑</button>
+      <button onclick="cwm_sendChat()" style="background:linear-gradient(135deg,#7EB8F7,#4488CC);border:none;color:#000;padding:8px 14px;border-radius:10px;font-size:16px;font-weight:bold;touch-action:manipulation">↑</button>
     </div>
   </div>
 
@@ -1799,7 +1799,7 @@ function rChurchWorld(){
       <button onpointerdown="CWS.keys['dpad_down']=true" onpointerup="delete CWS.keys['dpad_down']" onpointerleave="delete CWS.keys['dpad_down']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬇</button>
       <div></div>
     </div>
-    <div style="flex:1;text-align:center;font-size:9px;color:#444;line-height:1.5">Walk to glowing zones<br>&amp; congregation members<br>then tap <strong style="color:#C4A35A">A</strong></div>
+    <div style="flex:1;text-align:center;font-size:17px;color:#444;line-height:1.5">Walk to glowing zones<br>&amp; congregation members<br>then tap <strong style="color:#C4A35A">A</strong></div>
     <button ontouchstart="cw_interact();event.preventDefault()" onclick="cw_interact()" style="width:64px;height:64px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:22px;font-weight:bold;box-shadow:0 4px 14px rgba(196,163,90,.5);touch-action:manipulation;flex-shrink:0;user-select:none">A</button>
   </div>
 </div>`;}
@@ -1831,23 +1831,23 @@ function leaveChurch(){
 function rHomeTab(c,r){
   return rCheckInCard()+`
   <div class="section-card" style="border-color:#FF444422;margin-bottom:10px">
-    <div style="color:#FF6B6B;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ Battle Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Fight biblical enemies for XP and hero unlocks!</p>
-    <button onclick="startArena()" style="width:100%;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:1px solid #FF4444;color:#FF6B6B;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">ENTER THE ARENA</button>
+    <div style="color:#FF6B6B;font-weight:bold;font-size:17px;margin-bottom:3px">⚔️ Battle Arena</div>
+    <p style="color:#555;font-size:16px;margin-bottom:7px">Fight biblical enemies for XP and hero unlocks!</p>
+    <button onclick="startArena()" style="width:100%;background:linear-gradient(135deg,#7f1d1d,#450a0a);border:1px solid #FF4444;color:#FF6B6B;padding:10px;border-radius:8px;font-size:18px;font-weight:bold">ENTER THE ARENA</button>
   </div>
   <div class="section-card" style="border-color:#7EB8F733;margin-bottom:10px">
-    <div style="color:#7EB8F7;font-weight:bold;font-size:12px;margin-bottom:3px">⚔️ PvP Arena</div>
-    <p style="color:#555;font-size:10px;margin-bottom:7px">Challenge congregation members! Your tag shows on all hero cards.</p>
-    <button onclick="go('pvp_lobby')" style="width:100%;background:transparent;border:1px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:11px;font-weight:bold">OPEN PvP LOBBY</button>
+    <div style="color:#7EB8F7;font-weight:bold;font-size:17px;margin-bottom:3px">⚔️ PvP Arena</div>
+    <p style="color:#555;font-size:16px;margin-bottom:7px">Challenge congregation members! Your tag shows on all hero cards.</p>
+    <button onclick="go('pvp_lobby')" style="width:100%;background:transparent;border:1px solid #7EB8F7;color:#7EB8F7;padding:10px;border-radius:8px;font-size:18px;font-weight:bold">OPEN PvP LOBBY</button>
   </div>
   <div class="section-card" style="border-color:#4ade8033;background:linear-gradient(135deg,#001a00,#0a0a0a)">
-    <div style="color:#4ade80;font-weight:bold;font-size:12px;margin-bottom:3px">⛪ Explore the Church</div>
-    <p style="color:#555;font-size:10px;margin-bottom:6px">Walk around, sit in a pew, talk to members, join worship, lead prayer &amp; give an offering.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;font-size:9px;color:#555;text-align:center">
+    <div style="color:#4ade80;font-weight:bold;font-size:17px;margin-bottom:3px">⛪ Explore the Church</div>
+    <p style="color:#555;font-size:16px;margin-bottom:6px">Walk around, sit in a pew, talk to members, join worship, lead prayer &amp; give an offering.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;font-size:17px;color:#555;text-align:center">
       <span>🪑 Sit &amp; reflect</span><span>🙏 Lead prayer</span><span>🎵 Worship band</span>
       <span>💬 Talk to members</span><span>💝 Give offering</span><span>📖 Hear sermon</span>
     </div>
-    <button onclick="go('church')" style="width:100%;background:linear-gradient(135deg,#166534,#14532d);border:1px solid #4ade80;color:#4ade80;padding:11px;border-radius:8px;font-size:12px;font-weight:bold">🚪 ENTER THE CHURCH</button>
+    <button onclick="go('church')" style="width:100%;background:linear-gradient(135deg,#166534,#14532d);border:1px solid #4ade80;color:#4ade80;padding:11px;border-radius:8px;font-size:18px;font-weight:bold">🚪 ENTER THE CHURCH</button>
   </div>`;
 }
 
@@ -2492,7 +2492,7 @@ function td_render(){
       }
     });
     // Start/end labels
-    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='bold 9px monospace';ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='bold 12px monospace';ctx.textAlign='center';
     ctx.fillText('START',TDS.path[0].x,TDS.path[0].y-16);
     ctx.fillText('END',TDS.path[TDS.path.length-1].x,TDS.path[TDS.path.length-1].y-16);
   }
@@ -2607,7 +2607,7 @@ function td_render(){
     }
     ctx.restore();
     // Effects
-    if(e.burning){ctx.font='10px serif';ctx.textBaseline='alphabetic';ctx.fillText('🔥',r*0.7,-r*0.5);}
+    if(e.burning){ctx.font='13px serif';ctx.textBaseline='alphabetic';ctx.fillText('🔥',r*0.7,-r*0.5);}
     if(e.raging){
       ctx.strokeStyle='#FF0000';ctx.lineWidth=2;ctx.globalAlpha=0.6+0.4*Math.sin(Date.now()/100);
       ctx.beginPath();ctx.arc(0,0,r+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
@@ -2624,7 +2624,7 @@ function td_render(){
     ctx.fillStyle=hpPct>0.5?'#4ade80':hpPct>0.25?'#FFD700':'#ef4444';
     ctx.fillRect(e.x-r,e.y-r-10,r*2*hpPct,5);
     if(e.boss){
-      ctx.fillStyle='#FFD700';ctx.font='bold 8px monospace';ctx.textAlign='center';
+      ctx.fillStyle='#FFD700';ctx.font='bold 11px monospace';ctx.textAlign='center';
       ctx.fillText('👑 '+e.t.toUpperCase(),e.x,e.y-r-14);
     }
   });
@@ -2654,19 +2654,19 @@ function td_render(){
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(4,8,90,14);
   ctx.fillStyle=bhpPct>0.5?'#4ade80':bhpPct>0.25?'#FFD700':'#ef4444';
   ctx.fillRect(4,8,90*bhpPct,14);
-  ctx.fillStyle='#fff';ctx.font='bold 10px monospace';ctx.textAlign='left';
+  ctx.fillStyle='#fff';ctx.font='bold 13px monospace';ctx.textAlign='left';
   ctx.fillText('⛪ '+TDS.baseHp+'/'+TDS.maxBaseHp,8,19);
   // Center: mana
   ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(W/2-50,8,100,14);
   ctx.fillStyle='#3388FF';ctx.fillRect(W/2-50,8,100*(TDS.mana/TDS.maxMana),14);
-  ctx.fillStyle='#fff';ctx.font='bold 10px monospace';ctx.textAlign='center';
+  ctx.fillStyle='#fff';ctx.font='bold 13px monospace';ctx.textAlign='center';
   ctx.fillText('✨ '+Math.floor(TDS.mana),W/2,19);
   // Right: wave
   var wt=TDS.stage.waves.length;var wc=Math.min(TDS.waveIdx,wt);
-  ctx.fillStyle='#aaa';ctx.font='bold 10px monospace';ctx.textAlign='right';
+  ctx.fillStyle='#aaa';ctx.font='bold 13px monospace';ctx.textAlign='right';
   ctx.fillText('Wave '+wc+'/'+wt,W-6,19);
   // Stage name
-  ctx.fillStyle=stage.accent||'#C4A35A';ctx.font='bold 10px monospace';ctx.textAlign='center';
+  ctx.fillStyle=stage.accent||'#C4A35A';ctx.font='bold 13px monospace';ctx.textAlign='center';
   ctx.fillText(stage.title||'',W/2,T-6);
 
   // ── Between-wave countdown ────────────────────────────
@@ -2674,9 +2674,9 @@ function td_render(){
     var t=Math.ceil(TDS._nextWaveCountdown);
     ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(W/2-80,FH/2+T-22,160,40);
     ctx.strokeStyle='#4ade80';ctx.lineWidth=1.5;ctx.strokeRect(W/2-80,FH/2+T-22,160,40);
-    ctx.fillStyle='#4ade80';ctx.font='bold 13px Georgia';ctx.textAlign='center';
+    ctx.fillStyle='#4ade80';ctx.font='bold 16px Georgia';ctx.textAlign='center';
     ctx.fillText('⚔️ Wave Cleared!',W/2,FH/2+T-2);
-    ctx.fillStyle='#aaa';ctx.font='10px monospace';
+    ctx.fillStyle='#aaa';ctx.font='13px monospace';
     ctx.fillText('Next wave in '+t+'s',W/2,FH/2+T+14);
   }
 
@@ -2684,7 +2684,7 @@ function td_render(){
   if(stage.special&&TDS.waveIdx===0&&!TDS.waveActive&&TDS.enemies.length===0){
     ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(10,FH/2+T-18,W-20,32);
     ctx.strokeStyle=stage.accent||'#FFD700';ctx.lineWidth=1;ctx.strokeRect(10,FH/2+T-18,W-20,32);
-    ctx.fillStyle=stage.accent||'#FFD700';ctx.font='bold 11px Georgia';ctx.textAlign='center';
+    ctx.fillStyle=stage.accent||'#FFD700';ctx.font='bold 14px Georgia';ctx.textAlign='center';
     ctx.fillText(stage.special,W/2,FH/2+T+4);
   }
 
@@ -2693,7 +2693,7 @@ function td_render(){
     var udef=TD_UNITS.find(function(u){return u.id===TDS.selectedUnit;});
     if(udef){
       ctx.fillStyle='rgba(0,0,0,0.8)';ctx.fillRect(W/2-90,FH+T-30,180,24);
-      ctx.fillStyle=udef.color;ctx.font='bold 11px Georgia';ctx.textAlign='center';
+      ctx.fillStyle=udef.color;ctx.font='bold 14px Georgia';ctx.textAlign='center';
       ctx.fillText(udef.emoji+' Tap field to place '+udef.name,W/2,FH+T-14);
     }
   }
@@ -2704,11 +2704,11 @@ function td_render(){
     ctx.textAlign='center';
     if(TDS.won){
       ctx.fillStyle='#4ade80';ctx.font='bold 32px Georgia';ctx.fillText('⚔️ Stage Clear!',W/2,H/2-16);
-      ctx.fillStyle='#FFD700';ctx.font='bold 16px monospace';
+      ctx.fillStyle='#FFD700';ctx.font='bold 19px monospace';
       ctx.fillText('+'+(TDS.missionRef?TDS.missionRef.stages[TDS.stageIdx].xp:100)+' XP',W/2,H/2+18);
     } else {
       ctx.fillStyle='#ef4444';ctx.font='bold 32px Georgia';ctx.fillText('💀 Defeated',W/2,H/2-16);
-      ctx.fillStyle='#888';ctx.font='14px Georgia';ctx.fillText('Tap to return',W/2,H/2+18);
+      ctx.fillStyle='#888';ctx.font='17px Georgia';ctx.fillText('Tap to return',W/2,H/2+18);
     }
   }
 }
@@ -2799,9 +2799,9 @@ function rTowerDefense(){
   <canvas id="tdCanvas" style="flex:1;display:block;touch-action:none;min-height:0;cursor:crosshair"></canvas>
   <div style="background:#0a0a0a;border-top:2px solid #1a1a1a;padding:5px 8px 6px;flex-shrink:0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span id="tdManaLbl" style="font-size:10px;color:#3388FF;font-weight:bold;font-family:monospace">✨ 120/250</span>
-      <span style="font-size:9px;color:#555">Select unit → tap field to place</span>
-      <span id="tdWaveLbl" style="font-size:10px;color:#888;font-family:monospace">Wave 0/3</span>
+      <span id="tdManaLbl" style="font-size:16px;color:#3388FF;font-weight:bold;font-family:monospace">✨ 120/250</span>
+      <span style="font-size:17px;color:#555">Select unit → tap field to place</span>
+      <span id="tdWaveLbl" style="font-size:16px;color:#888;font-family:monospace">Wave 0/3</span>
     </div>
     <div style="display:flex;gap:5px;overflow-x:auto;padding-bottom:2px">
       ${avail.map(function(u){
@@ -2811,14 +2811,14 @@ function rTowerDefense(){
           display:flex;flex-direction:column;align-items:center;gap:2px;min-width:56px;
           flex-shrink:0;touch-action:manipulation;transition:all 0.12s">
           <span style="font-size:20px;line-height:1">${u.emoji}</span>
-          <span style="font-size:8px;color:${u.color};font-weight:bold;white-space:nowrap">${u.name}</span>
-          <span style="font-size:9px;color:#3388FF;font-family:monospace">✨${u.cost}</span>
+          <span style="font-size:17px;color:${u.color};font-weight:bold;white-space:nowrap">${u.name}</span>
+          <span style="font-size:17px;color:#3388FF;font-family:monospace">✨${u.cost}</span>
         </button>`;
       }).join('')}
       <button onclick="td_retreat()"
         style="background:#1a0000;border:1px solid #ef444444;color:#ef4444;border-radius:10px;
-        padding:6px 10px;font-size:11px;min-width:50px;flex-shrink:0;touch-action:manipulation">
-        🏃<br><span style="font-size:8px">Retreat</span>
+        padding:6px 10px;font-size:17px;min-width:50px;flex-shrink:0;touch-action:manipulation">
+        🏃<br><span style="font-size:17px">Retreat</span>
       </button>
     </div>
   </div>
@@ -2869,17 +2869,17 @@ function beginMissionTD(mission, stageIdx){
   var isBoss=stageData&&stageData.bossStage;
   document.getElementById('app').innerHTML=`<div style="min-height:100vh;background:radial-gradient(ellipse at center,${mission.bgCol||'#0a0a0a'},#000);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:Georgia,serif;text-align:center">
     <div style="font-size:${isBoss?52:40}px;margin-bottom:10px">${mission.heroEmoji}</div>
-    <div style="font-size:11px;color:${accent};letter-spacing:2px;margin-bottom:4px;font-family:monospace">${mission.title.toUpperCase()}</div>
-    <div style="font-size:15px;font-weight:bold;color:#fff;margin-bottom:12px">${stage.title}</div>
-    ${isBoss?'<div style="font-size:11px;color:#ef4444;font-weight:bold;letter-spacing:1px;margin-bottom:10px">👑 BOSS STAGE</div>':''}
+    <div style="font-size:17px;color:${accent};letter-spacing:2px;margin-bottom:4px;font-family:monospace">${mission.title.toUpperCase()}</div>
+    <div style="font-size:17px;font-weight:bold;color:#fff;margin-bottom:12px">${stage.title}</div>
+    ${isBoss?'<div style="font-size:17px;color:#ef4444;font-weight:bold;letter-spacing:1px;margin-bottom:10px">👑 BOSS STAGE</div>':''}
     <div style="background:rgba(255,255,255,0.05);border:1px solid ${accent}44;border-radius:12px;padding:16px 20px;max-width:300px;margin-bottom:16px">
-      <div style="font-style:italic;color:#ccc;font-size:13px;line-height:1.6">"${stage.story}"</div>
+      <div style="font-style:italic;color:#ccc;font-size:16px;line-height:1.6">"${stage.story}"</div>
     </div>
-    ${stageData&&stageData.specialMsg?`<div style="font-size:11px;color:${accent};background:rgba(0,0,0,0.4);border:1px solid ${accent}44;border-radius:8px;padding:8px 14px;margin-bottom:14px">${stageData.specialMsg}</div>`:''}
-    <div style="font-size:11px;color:#555;margin-bottom:20px">⚔️ Tower Defense — defend your base across ${stageData?stageData.waves.length:3} waves</div>
+    ${stageData&&stageData.specialMsg?`<div style="font-size:17px;color:${accent};background:rgba(0,0,0,0.4);border:1px solid ${accent}44;border-radius:8px;padding:8px 14px;margin-bottom:14px">${stageData.specialMsg}</div>`:''}
+    <div style="font-size:17px;color:#555;margin-bottom:20px">⚔️ Tower Defense — defend your base across ${stageData?stageData.waves.length:3} waves</div>
     <div style="display:flex;gap:10px;max-width:300px;width:100%">
-      <button onclick="go('game')" style="flex:1;background:transparent;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:12px">← Back</button>
-      <button onclick="td_launch()" style="flex:2;background:linear-gradient(135deg,${accent},${accent}88);border:none;color:#000;padding:12px;border-radius:10px;font-size:14px;font-weight:bold">⚔️ Begin!</button>
+      <button onclick="go('game')" style="flex:1;background:transparent;border:1px solid #333;color:#555;padding:12px;border-radius:10px;font-size:17px">← Back</button>
+      <button onclick="td_launch()" style="flex:2;background:linear-gradient(135deg,${accent},${accent}88);border:none;color:#000;padding:12px;border-radius:10px;font-size:18px;font-weight:bold">⚔️ Begin!</button>
     </div>
   </div>`;
   // Store launch params for td_launch()
@@ -3160,10 +3160,10 @@ function cwm_renderChatLog(){
     var ch=ALL_CHARS.find(function(c){return c.id===msg.charId;})||ALL_CHARS[0];
     var r=RARITY[ch.rarity]||RARITY.common;
     return`<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:8px;${isMine?'flex-direction:row-reverse':''}">
-      <div style="width:28px;height:28px;border-radius:50%;background:${r.bg};border:1px solid ${r.color};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px">${ch.name.slice(0,1)}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:${r.bg};border:1px solid ${r.color};flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px">${ch.name.slice(0,1)}</div>
       <div style="max-width:70%;${isMine?'align-items:flex-end':''}display:flex;flex-direction:column;gap:2px">
-        <span style="font-size:9px;color:${isMine?'#C4A35A':'#888'}">${isMine?'You':('@'+msg.username)}</span>
-        <div style="background:${isMine?'#1a1000':'#1a1a2a'};border:1px solid ${isMine?'#C4A35A33':'#333'};border-radius:${isMine?'10px 2px 10px 10px':'2px 10px 10px 10px'};padding:7px 10px;font-size:12px;color:#E8E0D0;line-height:1.4">${escHtml(msg.text)}</div>
+        <span style="font-size:17px;color:${isMine?'#C4A35A':'#888'}">${isMine?'You':('@'+msg.username)}</span>
+        <div style="background:${isMine?'#1a1000':'#1a1a2a'};border:1px solid ${isMine?'#C4A35A33':'#333'};border-radius:${isMine?'10px 2px 10px 10px':'2px 10px 10px 10px'};padding:7px 10px;font-size:17px;color:#E8E0D0;line-height:1.4">${escHtml(msg.text)}</div>
       </div>
     </div>`;
   }).join('');
@@ -3206,7 +3206,7 @@ function cwm_drawPeers(ctx,ts,camX,camY,vw,vh){
     var a=Math.min(1,CWM.lastMsg.timer/0.5);
     ctx.save();ctx.globalAlpha=a;
     ctx.fillStyle='rgba(0,0,0,0.85)';
-    ctx.font='bold 11px Georgia';
+    ctx.font='bold 14px Georgia';
     var tw=ctx.measureText(CWM.lastMsg.text).width+20;
     ctx.beginPath();ctx.roundRect((vw-tw)/2,vw>400?70:56,tw,24,6);ctx.fill();
     ctx.strokeStyle='#C4A35A';ctx.lineWidth=1;ctx.stroke();
