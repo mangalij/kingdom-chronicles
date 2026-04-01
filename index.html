@@ -69,22 +69,25 @@ function lsGet(k,def=null){try{const v=localStorage.getItem(k);return v?JSON.par
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 
 // ── Church config — admin editable ───────────
+var _KC_DEFAULT_FIREBASE={
+  apiKey:"AIzaSyCHfjnme0OeU2lBpXU_SrG8akin8spj9u8",
+  authDomain:"christlife-kc.firebaseapp.com",
+  databaseURL:"https://christlife-kc-default-rtdb.firebaseio.com",
+  projectId:"christlife-kc",
+  storageBucket:"christlife-kc.firebasestorage.app",
+  messagingSenderId:"668999351976",
+  appId:"1:668999351976:web:519938aceb84df61cacc9d"
+};
 let CFG = Object.assign({
   churchName:"ChristLife Church",
   churchAddress:"14071 Springdale St, Westminster, CA",
   lat:33.7542, lng:-117.9943,
   radiusMeters:200,
   locationRequired:true,  // false = open check-in for anyone
-  firebaseCfg:{
-    apiKey:"AIzaSyCHfjnme0OeU2lBpXU_SrG8akin8spj9u8",
-    authDomain:"christlife-kc.firebaseapp.com",
-    databaseURL:"https://christlife-kc-default-rtdb.firebaseio.com",
-    projectId:"christlife-kc",
-    storageBucket:"christlife-kc.firebasestorage.app",
-    messagingSenderId:"668999351976",
-    appId:"1:668999351976:web:519938aceb84df61cacc9d"
-  }
+  firebaseCfg:_KC_DEFAULT_FIREBASE
 }, lsGet(LS_SETTINGS,{}));
+// Always ensure Firebase config is present (localStorage null won't override)
+if(!CFG.firebaseCfg||!CFG.firebaseCfg.apiKey) CFG.firebaseCfg=_KC_DEFAULT_FIREBASE;
 
 function saveCFG(){lsSet(LS_SETTINGS,CFG);}
 
