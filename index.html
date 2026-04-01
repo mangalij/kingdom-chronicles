@@ -75,7 +75,15 @@ let CFG = Object.assign({
   lat:33.7542, lng:-117.9943,
   radiusMeters:200,
   locationRequired:true,  // false = open check-in for anyone
-  firebaseCfg:null        // set in Admin Panel for multiplayer
+  firebaseCfg:{
+    apiKey:"AIzaSyCHfjnme0OeU2lBpXU_SrG8akin8spj9u8",
+    authDomain:"christlife-kc.firebaseapp.com",
+    databaseURL:"https://christlife-kc-default-rtdb.firebaseio.com",
+    projectId:"christlife-kc",
+    storageBucket:"christlife-kc.firebasestorage.app",
+    messagingSenderId:"668999351976",
+    appId:"1:668999351976:web:519938aceb84df61cacc9d"
+  }
 }, lsGet(LS_SETTINGS,{}));
 
 function saveCFG(){lsSet(LS_SETTINGS,CFG);}
@@ -569,7 +577,7 @@ function submitSignup(){
   const playerId="player_"+Date.now();
   registerUsername(username,playerId);
   G.username=username;
-  G.pd={xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],displayName:displayN||null};
+  G.pd={xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],displayName:displayN||null,playerId:playerId};
   G.unlocked=["shepherd"];G.completedMissions=[];G.charId="shepherd";G.cos={sk:0,hr:1,ot:0};
   persistPlayer();
   go("title");
