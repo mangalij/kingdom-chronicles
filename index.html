@@ -1872,9 +1872,7 @@ function cwAmbientDraw(ctx,w,h){
     var flicker=0.5+0.5*Math.sin(p.phase*3);
     ctx.globalAlpha=p.alpha*flicker;
     ctx.fillStyle='#FFFBE6';
-    ctx.shadowColor='#FFFBE6';ctx.shadowBlur=p.size*3;
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;
   }
   ctx.globalAlpha=1;
 }
@@ -3067,7 +3065,7 @@ function cw_finishBaptism(){
   var npc=CW_NPCS.find(function(x){return x.id===a.selected;});
   toast('🕊️ '+((npc&&npc.name)||'')+' baptized! +'+a.xp+' XP +'+a.coinReward+' 🪙');
   cwShake(3,10);
-  cwParticleSpawn(CWS.px*CWS.TILE+CWS.TILE/2,CWS.py*CWS.TILE+CWS.TILE/2,30,{colors:['#7EB8F7','#4ade80','#FFD700','#fff'],speed:4,decay:0.01,size:4,shape:'star',glow:true});
+  cwParticleSpawn(CWS.fpx*CWS.TILE+CWS.TILE/2,CWS.fpy*CWS.TILE+CWS.TILE/2,30,{colors:['#7EB8F7','#4ade80','#FFD700','#fff'],speed:4,decay:0.01,size:4,shape:'star',glow:true});
   SFX&&SFX.victory&&SFX.victory();
   CWS.activity=null;cw_hideActivityOverlay();CWS._lastActivityRender=0;
 }
@@ -3155,25 +3153,53 @@ function cw_loop(){
 
   // Player movement (disabled while sitting or in activity)
   if(!s.activity && !s.dialog && !s.sitting){
-    s.moveTimer=(s.moveTimer||0)+1;
-    if(s.moveTimer>=5){
-      s.moveTimer=0;
-      var dx=0,dy=0;
-      if(s.keys['ArrowUp']  ||s.keys['w']||s.keys['dpad_up'])   {dy=-1;s.pDir='up';}
-      if(s.keys['ArrowDown']||s.keys['s']||s.keys['dpad_down']) {dy= 1;s.pDir='down';}
-      if(dy===0){
-        if(s.keys['ArrowLeft'] ||s.keys['a']||s.keys['dpad_left']) {dx=-1;s.pDir='left';}
-        if(s.keys['ArrowRight']||s.keys['d']||s.keys['dpad_right']){dx= 1;s.pDir='right';}
-      }
-      if(dx||dy){
-        var nx=s.px+dx,ny=s.py+dy;
-        if(cw_walkable(nx,ny)){s.px=nx;s.py=ny;s.pAnim=(s.pAnim+1)%4;}
-      }
+    // Gather input vector from keyboard, d-pad, OR joystick
+    var ix=0,iy=0;
+    if(s.keys['ArrowUp']  ||s.keys['w']||s.keys['W']||s.keys['dpad_up'])    iy=-1;
+    if(s.keys['ArrowDown']||s.keys['s']||s.keys['S']||s.keys['dpad_down'])  iy= 1;
+    if(s.keys['ArrowLeft'] ||s.keys['a']||s.keys['dpad_left'])  ix=-1;
+    if(s.keys['ArrowRight']||s.keys['d']||s.keys['dpad_right']) ix= 1;
+    // Joystick overrides d-pad if active
+    if(Math.abs(s.joyX)>0.15||Math.abs(s.joyY)>0.15){ix=s.joyX;iy=s.joyY;}
+    // Normalize diagonal so you don't go faster
+    var imag=Math.sqrt(ix*ix+iy*iy);
+    if(imag>1){ix/=imag;iy/=imag;}
+    if(imag>0.15){
+      // Determine facing direction
+      if(Math.abs(ix)>Math.abs(iy)) s.pDir=ix>0?'right':'left';
+      else s.pDir=iy>0?'down':'up';
+      // Smooth sub-pixel movement (speed = 0.12 tiles/frame ≈ 7.2 tiles/sec at 60fps)
+      var spd=0.12;
+      var nx=s.fpx+ix*spd, ny=s.fpy+iy*spd;
+      // Collision: check the tile the player would enter (with a small margin)
+      var margin=0.25;
+      var canX=true,canY=true;
+      // Check horizontal
+      if(ix>0&&!cw_walkable(Math.floor(nx+1-margin),Math.floor(s.fpy+margin))&&!cw_walkable(Math.floor(nx+1-margin),Math.floor(s.fpy+1-margin))) canX=false;
+      if(ix<0&&!cw_walkable(Math.floor(nx+margin),Math.floor(s.fpy+margin))&&!cw_walkable(Math.floor(nx+margin),Math.floor(s.fpy+1-margin))) canX=false;
+      if(ix>0&&!cw_walkable(Math.floor(nx+1-margin),Math.floor(s.fpy))) canX=false;
+      if(ix<0&&!cw_walkable(Math.floor(nx+margin),Math.floor(s.fpy))) canX=false;
+      // Check vertical
+      if(iy>0&&!cw_walkable(Math.floor(s.fpx+margin),Math.floor(ny+1-margin))&&!cw_walkable(Math.floor(s.fpx+1-margin),Math.floor(ny+1-margin))) canY=false;
+      if(iy<0&&!cw_walkable(Math.floor(s.fpx+margin),Math.floor(ny+margin))&&!cw_walkable(Math.floor(s.fpx+1-margin),Math.floor(ny+margin))) canY=false;
+      if(iy>0&&!cw_walkable(Math.floor(s.fpx),Math.floor(ny+1-margin))) canY=false;
+      if(iy<0&&!cw_walkable(Math.floor(s.fpx),Math.floor(ny+margin))) canY=false;
+      // Bounds
+      if(nx<0||nx>=CW_W-1) canX=false;
+      if(ny<0||ny>=CW_H-1) canY=false;
+      if(canX) s.fpx=nx;
+      if(canY) s.fpy=ny;
+      // Snap integer tile position for zone/NPC detection
+      s.px=Math.round(s.fpx);
+      s.py=Math.round(s.fpy);
+      // Walk animation
+      s.animTimer=(s.animTimer||0)+spd*imag*6;
+      if(s.animTimer>=1){s.animTimer-=1;s.pAnim=(s.pAnim+1)%4;}
     }
   }
 
-  // Camera (smooth eased lerp)
-  var tcx=s.px*ts+ts/2-vw/2,tcy=s.py*ts+ts/2-vh/2;
+  // Camera (smooth eased lerp) — tracks sub-pixel position
+  var tcx=s.fpx*ts+ts/2-vw/2,tcy=s.fpy*ts+ts/2-vh/2;
   var cdx=tcx-s.camX,cdy=tcy-s.camY;
   var cdist=Math.sqrt(cdx*cdx+cdy*cdy);
   var lerpF=cdist>100?0.18:cdist>30?0.10:0.06;
@@ -3195,10 +3221,9 @@ function cw_loop(){
 
   // Render tiles
   ctx.clearRect(0,0,vw,vh);
-  // Roblox-style sky gradient background
-  var skyG=ctx.createLinearGradient(0,0,0,vh);
-  skyG.addColorStop(0,'#87CEEB');skyG.addColorStop(0.4,'#B8E0F0');skyG.addColorStop(1,'#E8D8C0');
-  ctx.fillStyle=skyG;ctx.fillRect(0,0,vw,vh);
+  // Solid background (replaces expensive per-frame gradient)
+  ctx.fillStyle='#B8DDE8';
+  ctx.fillRect(0,0,vw,vh);
 
   var sx=Math.max(0,Math.floor(s.camX/ts)),sy=Math.max(0,Math.floor(s.camY/ts));
   var ex=Math.min(CW_W,sx+Math.ceil(vw/ts)+2),ey=Math.min(CW_H,sy+Math.ceil(vh/ts)+2);
@@ -3208,10 +3233,9 @@ function cw_loop(){
     cw_drawTile(ctx,tt,tx2*ts-camOx,ty*ts-camOy,ts);
   }
 
-  // Roblox-style global ambient light overlay (warm top-down glow)
-  var ambG=ctx.createRadialGradient(vw/2,vh*0.3,0,vw/2,vh*0.3,vw*0.8);
-  ambG.addColorStop(0,'rgba(255,248,220,0.08)');ambG.addColorStop(1,'rgba(0,0,0,0.04)');
-  ctx.fillStyle=ambG;ctx.fillRect(0,0,vw,vh);
+  // Roblox-style global ambient light overlay (warm top-down glow) — simplified for perf
+  ctx.fillStyle='rgba(255,248,220,0.04)';
+  ctx.fillRect(0,0,vw,vh);
 
   // Church upgrade visual overlays drawn on top of tiles
   var _upsList=G.pd.churchUpgrades||[];
@@ -3278,7 +3302,7 @@ function cw_loop(){
   // NPCs
   for(var ni=0;ni<CW_NPCS.length;ni++) cw_drawNPC(ctx,CW_NPCS[ni],ts,camOx,camOy,vw,vh);
   // Player
-  cw_drawChar(ctx,s.px*ts-camOx,s.py*ts-camOy,ts,G.cos.sk,G.cos.ot,s.pDir,s.pAnim,'@'+(G.username||'you'),true);
+  cw_drawChar(ctx,s.fpx*ts-camOx,s.fpy*ts-camOy,ts,G.cos.sk,G.cos.ot,s.pDir,s.pAnim,'@'+(G.username||'you'),true);
   cwm_drawPeers(ctx,ts,camOx,camOy,vw,vh);
   cwm_syncPos();
 
@@ -3547,6 +3571,9 @@ function cw_completeActivity(){var _ca=CWS.activity;
 function cw_init(canvas,onExit){
   CWS.canvas=canvas;CWS.ctx=canvas.getContext('2d');CWS.onExit=onExit;CWS.active=true;
   CWS.px=14;CWS.py=20;CWS.pDir='down';CWS.pAnim=0;
+  CWS.fpx=14;CWS.fpy=20; // sub-pixel float position for smooth movement
+  CWS.joyX=0;CWS.joyY=0; // joystick input (-1..1)
+  CWS.animTimer=0;
   CWS.dialog=null;CWS.activity=null;CWS.keys={};CWS.moveTimer=0;CWS.sitting=false;
   CWS.nearZone=null;CWS.nearNpc=null;CWS.nearPeer=null;CWS.npcTimers={};CWS._lastActivityRender=0;
   CWS.evangelized={};if(G.pd.evangelized){for(var ei=0;ei<G.pd.evangelized.length;ei++)CWS.evangelized[G.pd.evangelized[ei]]=true;}
@@ -3569,6 +3596,7 @@ function cw_destroy(){
   if(CWS.rafId){cancelAnimationFrame(CWS.rafId);CWS.rafId=null;}
   if(CWS._kd)document.removeEventListener('keydown',CWS._kd);
   if(CWS._ku)document.removeEventListener('keyup',CWS._ku);
+  CWS.joyX=0;CWS.joyY=0;
   cw_hideActivityOverlay();
   CWS.canvas=null;CWS.ctx=null;
 }
@@ -3618,20 +3646,13 @@ function rChurchWorld(){
   <!-- Activity overlay — full-screen HTML for mobile -->
   <div id="cwActivity" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.88);z-index:20;align-items:safe center;justify-content:safe center;padding:16px;overflow-y:auto;touch-action:auto;-webkit-overflow-scrolling:touch"></div>
 
-  <!-- D-pad controls -->
-  <div style="background:#0a0a0a;border-top:1px solid #1a1a1a;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px">
-    <div style="display:grid;grid-template-columns:40px 40px 40px;grid-template-rows:40px 40px 40px;gap:3px">
-      <div></div>
-      <button onpointerdown="CWS.keys['dpad_up']=true" onpointerup="delete CWS.keys['dpad_up']" onpointerleave="delete CWS.keys['dpad_up']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬆</button>
-      <div></div>
-      <button onpointerdown="CWS.keys['dpad_left']=true" onpointerup="delete CWS.keys['dpad_left']" onpointerleave="delete CWS.keys['dpad_left']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬅</button>
-      <div style="background:#111;border:1px solid #222;border-radius:8px"></div>
-      <button onpointerdown="CWS.keys['dpad_right']=true" onpointerup="delete CWS.keys['dpad_right']" onpointerleave="delete CWS.keys['dpad_right']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">➡</button>
-      <div></div>
-      <button onpointerdown="CWS.keys['dpad_down']=true" onpointerup="delete CWS.keys['dpad_down']" onpointerleave="delete CWS.keys['dpad_down']" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none">⬇</button>
-      <div></div>
+  <!-- Virtual Joystick (Roblox-style) -->
+  <div style="background:#0a0a0a;border-top:1px solid #1a1a1a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px">
+    <div id="cwJoystickArea" style="width:120px;height:120px;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0">
+      <div id="cwJoyBase" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.12)"></div>
+      <div id="cwJoyKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,0.25),rgba(255,255,255,0.08));border:2px solid rgba(255,255,255,0.2);box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.05s ease-out,box-shadow 0.15s ease"></div>
     </div>
-    <div style="flex:1;text-align:center;font-size:17px;color:#444;line-height:1.5">Walk to glowing zones<br>&amp; congregation members<br>then tap <strong style="color:#C4A35A">A</strong></div>
+    <div style="flex:1;text-align:center;font-size:15px;color:#555;line-height:1.5">Walk to glowing zones<br>&amp; tap <strong style="color:#C4A35A">A</strong></div>
     <button ontouchstart="cw_interact();event.preventDefault()" onclick="cw_interact()" style="width:64px;height:64px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:22px;font-weight:bold;box-shadow:0 4px 14px rgba(196,163,90,.5);touch-action:manipulation;flex-shrink:0;user-select:none">A</button>
   </div>
 </div>`;}
@@ -3648,7 +3669,80 @@ function initChurchWorld(){
   resize();
   window.addEventListener('resize',resize);
   cw_init(canvas,leaveChurch);
+  cw_initJoystick();
   cwm_connect();
+}
+
+// ── Virtual Joystick Logic ─────────────────────────────
+function cw_initJoystick(){
+  var area=document.getElementById('cwJoystickArea');
+  var knob=document.getElementById('cwJoyKnob');
+  if(!area||!knob) return;
+  var active=false,touchId=null;
+  var cx=0,cy=0,maxR=38; // center and max radius
+
+  function getCenter(){
+    var r=area.getBoundingClientRect();
+    cx=r.left+r.width/2;cy=r.top+r.height/2;
+  }
+
+  function updateKnob(px,py){
+    var dx=px-cx,dy=py-cy;
+    var dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>maxR){dx=dx/dist*maxR;dy=dy/dist*maxR;dist=maxR;}
+    knob.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px))';
+    knob.style.boxShadow='0 2px 12px rgba(196,163,90,0.4)';
+    // Normalize to -1..1
+    var nx=dx/maxR,ny=dy/maxR;
+    CWS.joyX=Math.abs(nx)>0.12?nx:0;
+    CWS.joyY=Math.abs(ny)>0.12?ny:0;
+  }
+
+  function resetKnob(){
+    knob.style.transform='translate(-50%,-50%)';
+    knob.style.boxShadow='0 2px 8px rgba(0,0,0,0.4)';
+    CWS.joyX=0;CWS.joyY=0;
+    active=false;touchId=null;
+  }
+
+  area.addEventListener('touchstart',function(e){
+    e.preventDefault();
+    if(active) return;
+    var t=e.changedTouches[0];touchId=t.identifier;active=true;
+    getCenter();updateKnob(t.clientX,t.clientY);
+  },{passive:false});
+
+  area.addEventListener('touchmove',function(e){
+    e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){
+      if(e.changedTouches[i].identifier===touchId){
+        updateKnob(e.changedTouches[i].clientX,e.changedTouches[i].clientY);
+        break;
+      }
+    }
+  },{passive:false});
+
+  area.addEventListener('touchend',function(e){
+    for(var i=0;i<e.changedTouches.length;i++){
+      if(e.changedTouches[i].identifier===touchId){resetKnob();break;}
+    }
+  });
+  area.addEventListener('touchcancel',function(){resetKnob();});
+
+  // Mouse fallback (desktop testing)
+  area.addEventListener('pointerdown',function(e){
+    if(e.pointerType==='touch') return; // handled by touch events
+    active=true;getCenter();updateKnob(e.clientX,e.clientY);
+    area.setPointerCapture(e.pointerId);
+  });
+  area.addEventListener('pointermove',function(e){
+    if(!active||e.pointerType==='touch') return;
+    updateKnob(e.clientX,e.clientY);
+  });
+  area.addEventListener('pointerup',function(e){
+    if(e.pointerType==='touch') return;
+    resetKnob();
+  });
 }
 
 function leaveChurch(){
@@ -6825,10 +6919,11 @@ function pvp_showOverlay(){
   if(!el){
     el=document.createElement('div');
     el.id='pvpChallengeOverlay';
-    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;pointer-events:auto;touch-action:auto;-webkit-tap-highlight-color:transparent';
-    // Stop events from leaking to church world canvas behind
-    el.addEventListener('pointerdown',function(e){e.stopPropagation();});
-    el.addEventListener('touchstart',function(e){e.stopPropagation();});
+    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent';
+    // Stop events from leaking to church world canvas behind — only for background taps
+    el.addEventListener('pointerdown',function(e){if(e.target===el)e.stopPropagation();});
+    el.addEventListener('touchstart',function(e){if(e.target===el)e.stopPropagation();},{passive:true});
+    el.addEventListener('click',function(e){e.stopPropagation();});
     el.addEventListener('keydown',function(e){e.stopPropagation();});
     document.body.appendChild(el);
   }
@@ -6860,7 +6955,7 @@ function pvp_renderOverlay(){
         '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(p.username)+'</div><div style="font-size:12px;color:'+ch.color+'">'+ch.name+' · Lv.'+(p.lv||'?')+'</div></div>'+
       '</div>'+
       '<div style="width:100%;height:3px;background:#111;border-radius:2px;overflow:hidden;margin-bottom:14px"><div style="width:100%;height:100%;background:#7EB8F7;animation:pvpPulse 1.5s ease infinite"></div></div>'+
-      '<button onpointerdown="pvp_cancelChallenge()" style="width:100%;background:#111;border:1px solid #333;color:#666;padding:10px;border-radius:10px;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent">Cancel</button>'+
+      '<button onclick="pvp_cancelChallenge()" style="width:100%;background:#111;border:1px solid #333;color:#666;padding:10px;border-radius:10px;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent">Cancel</button>'+
     '</div>';
   }
 
@@ -6880,8 +6975,8 @@ function pvp_renderOverlay(){
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:8px">'+
-        '<button onpointerdown="pvp_declineChallenge()" style="flex:1;background:#111;border:1px solid #ef444455;color:#ef4444;padding:12px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;-webkit-tap-highlight-color:transparent">✕ Decline</button>'+
-        '<button onpointerdown="pvp_acceptChallenge()" style="flex:2;background:linear-gradient(135deg,#1a3a1a,#0d200d);border:2px solid #4ade80;color:#4ade80;padding:12px;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;animation:pvpPulse 1s ease infinite;-webkit-tap-highlight-color:transparent">⚔️ ACCEPT!</button>'+
+        '<button onclick="pvp_declineChallenge()" style="flex:1;background:#111;border:1px solid #ef444455;color:#ef4444;padding:12px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;-webkit-tap-highlight-color:transparent">✕ Decline</button>'+
+        '<button onclick="pvp_acceptChallenge()" style="flex:2;background:linear-gradient(135deg,#1a3a1a,#0d200d);border:2px solid #4ade80;color:#4ade80;padding:12px;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;animation:pvpPulse 1s ease infinite;-webkit-tap-highlight-color:transparent">⚔️ ACCEPT!</button>'+
       '</div>'+
     '</div>';
   }
