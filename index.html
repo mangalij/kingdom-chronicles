@@ -1053,9 +1053,18 @@ function submitLogin(){
           toast("☁️ Welcome back, "+displayName(local.username)+"!");
           go("game");
         } else {
-          // No data anywhere — let them create a profile while staying signed in
-          toast("Logged in! Set up your profile to get started.");
-          go("skip_signup");
+          // No data anywhere — create a fresh profile using the Firebase display name
+          var fbUser = user;
+          var uname = (fbUser.displayName || fbUser.email.split('@')[0] || 'player').replace(/[^a-zA-Z0-9_]/g,'').slice(0,20);
+          if(!uname || uname.length < 3) uname = 'player_' + Date.now().toString(36).slice(-5);
+          var playerId = "player_" + Date.now();
+          G.username = uname;
+          G.pd = {xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],displayName:fbUser.displayName||null,playerId:playerId,coins:0,devotional:{lastDate:null,streak:0},churchUpgrades:[],npcRelations:{},baptized:[]};
+          G.unlocked = ["shepherd"]; G.completedMissions = []; G.charId = "shepherd"; G.cos = {sk:0,hr:1,ot:0};
+          persistPlayer();
+          KC_AUTH.cloudSave();
+          toast("☁️ Welcome back, "+displayName(uname)+"! Your profile has been restored.");
+          go("game");
         }
       }
     });
@@ -2310,6 +2319,10 @@ var CW_PARTICLES=[];
 var CW_AMBIENT_PARTICLES=[];
 function cwParticleSpawn(x,y,count,opts){
   opts=opts||{};
+  // Cap particles on mobile to prevent performance issues
+  var isMobile='ontouchstart' in window;
+  if(isMobile){count=Math.min(count,12);if(CW_PARTICLES.length>60)return;}
+  else if(CW_PARTICLES.length>150)return;
   for(var i=0;i<count;i++){
     var angle=opts.angle!=null?opts.angle+(Math.random()-.5)*(opts.spread||1):Math.random()*Math.PI*2;
     var speed=opts.speed||2;
@@ -2338,12 +2351,13 @@ function cwParticlesUpdate(){
   }
 }
 function cwParticlesDraw(ctx,ox,oy){
+  var isMobile='ontouchstart' in window;
   for(var i=0;i<CW_PARTICLES.length;i++){
     var p=CW_PARTICLES[i];
     var a=Math.max(0,p.life);
     var sz=p.size*a;
     ctx.globalAlpha=a;
-    if(p.glow){ctx.shadowColor=p.color;ctx.shadowBlur=sz*2;}
+    if(p.glow&&!isMobile){ctx.shadowColor=p.color;ctx.shadowBlur=sz*2;}
     ctx.fillStyle=p.color;
     if(p.shape==='star'){
       cwDrawStar(ctx,p.x-ox,p.y-oy,sz);
@@ -2352,7 +2366,7 @@ function cwParticlesDraw(ctx,ox,oy){
     }else{
       ctx.beginPath();ctx.arc(p.x-ox,p.y-oy,sz,0,Math.PI*2);ctx.fill();
     }
-    if(p.glow){ctx.shadowBlur=0;}
+    if(p.glow&&!isMobile){ctx.shadowBlur=0;}
   }
   ctx.globalAlpha=1;
 }
@@ -3673,6 +3687,7 @@ function cw_closeUpgrades(){
 
 // ── GAME LOOP ──────────────────────────────────────────
 function cw_loop(){
+  var _cwFrameStart=Date.now();
   var s=CWS,c=s.canvas,ctx=s.ctx;
   if(!c||!s.active){s.rafId=null;return;}
   // Recover from lost canvas context (mobile Safari under memory pressure)
@@ -3684,8 +3699,12 @@ function cw_loop(){
   // Guard against zero-size canvas (tab hidden, resize race)
   if(!vw||!vh){s.rafId=requestAnimationFrame(cw_loop);return;}
 
-  // NPC AI wander
-  cw_updateNPCs();
+  // Frame budget: track if previous frame was slow so we can skip expensive fx
+  var _cwSlowFrame=(s._lastFrameTime&&s._lastFrameTime>25);
+
+  // NPC AI wander — skip every other frame if slow
+  if(!_cwSlowFrame||!(s._frameCount&1)) cw_updateNPCs();
+  s._frameCount=(s._frameCount||0)+1;
 
   // Player movement (disabled while sitting or in activity)
   if(!s.activity && !s.dialog && !s.sitting){
@@ -3842,12 +3861,14 @@ function cw_loop(){
   cwm_drawPeers(ctx,ts,camOx,camOy,vw,vh);
   cwm_syncPos();
 
-  // Ambient floating particles (dust motes / light)
-  cwAmbientUpdate(vw,vh);
-  cwAmbientDraw(ctx,vw,vh);
+  // Ambient floating particles (dust motes / light) — skip on slow frames
+  if(!_cwSlowFrame){
+    cwAmbientUpdate(vw,vh);
+    cwAmbientDraw(ctx,vw,vh);
+  }
   // Game particles (hits, XP, etc)
   cwParticlesUpdate();
-  cwParticlesDraw(ctx,camOx,camOy);
+  if(!_cwSlowFrame) cwParticlesDraw(ctx,camOx,camOy);
 
   // HUD and dialog
   cw_drawHUD(ctx,vw,vh);
@@ -3867,6 +3888,7 @@ function cw_loop(){
     cw_renderActivity();
   }
 
+  s._lastFrameTime=Date.now()-_cwFrameStart;
   s.rafId=requestAnimationFrame(cw_loop);
 }
 
@@ -4135,7 +4157,15 @@ function cw_destroy(){
   if(CWS.rafId){cancelAnimationFrame(CWS.rafId);CWS.rafId=null;}
   if(CWS._kd)document.removeEventListener('keydown',CWS._kd);
   if(CWS._ku)document.removeEventListener('keyup',CWS._ku);
+  // Remove joystick touch listeners to prevent leaking on re-entry
+  if(CWS._joyTouchMove)document.removeEventListener('touchmove',CWS._joyTouchMove);
+  if(CWS._joyTouchEnd)document.removeEventListener('touchend',CWS._joyTouchEnd);
+  if(CWS._joyTouchCancel)document.removeEventListener('touchcancel',CWS._joyTouchCancel);
+  CWS._joyTouchMove=null;CWS._joyTouchEnd=null;CWS._joyTouchCancel=null;
   CWS.joyX=0;CWS.joyY=0;
+  // Clear particles to free memory
+  CW_PARTICLES.length=0;
+  CW_AMBIENT_PARTICLES.length=0;
   cw_hideActivityOverlay();
   CWS.canvas=null;CWS.ctx=null;
 }
@@ -4267,7 +4297,8 @@ function cw_initJoystick(){
   },{passive:false});
 
   // Listen on document so dragging outside the joystick area still tracks/releases
-  document.addEventListener('touchmove',function(e){
+  // Store references so cw_destroy can remove them
+  CWS._joyTouchMove=function(e){
     if(!active) return;
     for(var i=0;i<e.changedTouches.length;i++){
       if(e.changedTouches[i].identifier===touchId){
@@ -4276,20 +4307,22 @@ function cw_initJoystick(){
         break;
       }
     }
-  },{passive:false});
-
-  document.addEventListener('touchend',function(e){
+  };
+  CWS._joyTouchEnd=function(e){
     if(!active) return;
     for(var i=0;i<e.changedTouches.length;i++){
       if(e.changedTouches[i].identifier===touchId){resetKnob();break;}
     }
-  });
-  document.addEventListener('touchcancel',function(e){
+  };
+  CWS._joyTouchCancel=function(e){
     if(!active) return;
     for(var i=0;i<e.changedTouches.length;i++){
       if(e.changedTouches[i].identifier===touchId){resetKnob();break;}
     }
-  });
+  };
+  document.addEventListener('touchmove',CWS._joyTouchMove,{passive:false});
+  document.addEventListener('touchend',CWS._joyTouchEnd);
+  document.addEventListener('touchcancel',CWS._joyTouchCancel);
 
   // Mouse fallback (desktop testing)
   area.addEventListener('pointerdown',function(e){
