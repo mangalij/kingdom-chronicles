@@ -175,8 +175,8 @@ var KC_AUTH = (function(){
       _auth.createUserWithEmailAndPassword(email, password)
         .then(function(cred){
           _user = cred.user;
-          // Set display name on Firebase profile
-          return _user.updateProfile({displayName: displayN || username});
+          // Set display name and username on Firebase profile (photoURL stores username for recovery)
+          return _user.updateProfile({displayName: displayN || username, photoURL: 'kc:' + username});
         })
         .then(function(){
           cb(null, _user);
@@ -780,6 +780,8 @@ function restorePlayer(d){
   G.pd.churchUpgrades=G.pd.churchUpgrades||[];
   G.pd.npcRelations=G.pd.npcRelations||{};
   G.pd.baptized=G.pd.baptized||[];
+  if(!G.pd.displayName && G.pd.displayName !== null) G.pd.displayName = null;
+  if(!G.pd.playerId) G.pd.playerId = "player_" + Date.now();
   G.unlocked=d.unlocked||["shepherd"];
   G.completedMissions=d.completedMissions||[];
 }
@@ -1008,7 +1010,10 @@ function submitSignup(){
       persistPlayer();
       // Cloud save — wait for it to finish so login works later
       KC_AUTH.cloudSave(function(saveErr){
-        if(saveErr) console.warn('[KC] Initial cloud save error:', saveErr);
+        if(saveErr){
+          console.warn('[KC] Initial cloud save error:', saveErr);
+          toast("⚠️ Account created but cloud sync failed. Your progress is saved locally.");
+        }
         go("title");
       });
     });
@@ -1055,7 +1060,9 @@ function submitLogin(){
         } else {
           // No data anywhere — create a fresh profile using the Firebase display name
           var fbUser = user;
-          var uname = (fbUser.displayName || fbUser.email.split('@')[0] || 'player').replace(/[^a-zA-Z0-9_]/g,'').slice(0,20);
+          // Recover username from photoURL if stored during signup (format: 'kc:username')
+          var storedUsername = fbUser.photoURL && fbUser.photoURL.startsWith('kc:') ? fbUser.photoURL.slice(3) : null;
+          var uname = storedUsername || (fbUser.displayName || fbUser.email.split('@')[0] || 'player').replace(/[^a-zA-Z0-9_]/g,'').slice(0,20);
           if(!uname || uname.length < 3) uname = 'player_' + Date.now().toString(36).slice(-5);
           var playerId = "player_" + Date.now();
           G.username = uname;
