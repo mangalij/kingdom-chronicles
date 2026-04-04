@@ -2303,6 +2303,70 @@ var CW_VERSE_QUIZ=[
 ];
 
 // ── World state ───────────────────────────────────────
+// ── roundRect polyfill for older mobile browsers ──────
+if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(typeof r==='number')r=[r,r,r,r];
+    if(!r)r=[0,0,0,0];
+    var tl=r[0]||0,tr=r[1]||tl,br=r[2]||tl,bl=r[3]||tr;
+    this.moveTo(x+tl,y);this.lineTo(x+w-tr,y);this.quadraticCurveTo(x+w,y,x+w,y+tr);
+    this.lineTo(x+w,y+h-br);this.quadraticCurveTo(x+w,y+h,x+w-br,y+h);
+    this.lineTo(x+bl,y+h);this.quadraticCurveTo(x,y+h,x,y+h-bl);
+    this.lineTo(x,y+tl);this.quadraticCurveTo(x,y,x+tl,y);this.closePath();
+    return this;
+  };
+}
+
+// ── Mobile detection for performance scaling ──────────
+var CW_IS_MOBILE='ontouchstart' in window || navigator.maxTouchPoints>0;
+
+// ── Tile cache: pre-render tiles to offscreen canvases ──
+var CW_TILE_CACHE={};
+var CW_TILE_CACHE_KEY=''; // invalidation key (upgrades hash)
+function cw_buildTileCache(ts){
+  var ups=(G.pd.churchUpgrades||[]).slice().sort().join(',');
+  var key=ts+'_'+ups;
+  if(CW_TILE_CACHE_KEY===key) return; // already cached
+  CW_TILE_CACHE_KEY=key;
+  CW_TILE_CACHE={};
+  // Cache static tiles (types that don't animate or vary by position)
+  var staticTypes=[0,2,3,4,5,6,7,10,13,14];
+  for(var si=0;si<staticTypes.length;si++){
+    var tt=staticTypes[si];
+    var oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
+    var octx=oc.getContext('2d');
+    cw_drawTile(octx,tt,0,0,ts);
+    CW_TILE_CACHE['t'+tt]=oc;
+  }
+  // Cache wall tile variants (even/odd row)
+  for(var row=0;row<2;row++){
+    var oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
+    var octx=oc.getContext('2d');
+    octx.save();octx.translate(0,-row*ts);
+    cw_drawTile(octx,1,0,row*ts,ts);
+    octx.restore();
+    CW_TILE_CACHE['t1_r'+row]=oc;
+  }
+  // Cache foyer tile variants (even/odd checkerboard)
+  for(var fv=0;fv<2;fv++){
+    var oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
+    var octx=oc.getContext('2d');
+    octx.save();octx.translate(-fv*ts,0);
+    cw_drawTile(octx,11,fv*ts,0,ts);
+    octx.restore();
+    CW_TILE_CACHE['t11_v'+fv]=oc;
+  }
+  // Cache window tile variants (3 color variants)
+  for(var wv=0;wv<3;wv++){
+    var oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
+    var octx=oc.getContext('2d');
+    octx.save();octx.translate(-wv*ts,0);
+    cw_drawTile(octx,9,wv*ts,0,ts);
+    octx.restore();
+    CW_TILE_CACHE['t9_v'+wv]=oc;
+  }
+}
+
 var CWS={
   active:false,canvas:null,ctx:null,rafId:null,
   px:14,py:20,pDir:"down",pAnim:0,
@@ -2594,7 +2658,7 @@ function cw_drawTile(ctx,t,px,py,ts){
     var _radiant=_ups.includes('goldcross');
     // Cross beam with glow
     ctx.save();
-    ctx.shadowColor=_radiant?'#FFFFFF':'#FFD700';ctx.shadowBlur=_radiant?22:14;
+    if(!CW_IS_MOBILE){ctx.shadowColor=_radiant?'#FFFFFF':'#FFD700';ctx.shadowBlur=_radiant?22:14;}
     var cg2=ctx.createLinearGradient(px+ts*0.35,py,px+ts*0.65,py+ts);
     if(_radiant){
       cg2.addColorStop(0,'#FFFFFF');cg2.addColorStop(0.3,'#FFE566');cg2.addColorStop(0.7,'#FFD700');cg2.addColorStop(1,'#FFFFFF');
@@ -2717,7 +2781,7 @@ function cw_drawTile(ctx,t,px,py,ts){
     ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1;
     ctx.beginPath();ctx.ellipse(px+ts/2,py+ts*0.45,ts*0.35,ts*0.22,0,0,Math.PI*2);ctx.stroke();
     // Glow
-    ctx.save();ctx.shadowColor='#FFD700';ctx.shadowBlur=10;
+    ctx.save();if(!CW_IS_MOBILE){ctx.shadowColor='#FFD700';ctx.shadowBlur=10;}
     ctx.fillStyle='rgba(255,215,0,0.15)';
     ctx.beginPath();ctx.ellipse(px+ts/2,py+ts*0.45,ts*0.25,ts*0.14,0,0,Math.PI*2);ctx.fill();
     ctx.restore();
@@ -2812,12 +2876,18 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
   var walk=[0,2,-2,0][animF%4];
   var d=Math.floor(ts*0.12); // 3D depth
 
-  // Drop shadow (soft gradient ellipse)
+  // Drop shadow (simplified on mobile — flat ellipse instead of radial gradient)
   ctx.save();
-  var shGrad=ctx.createRadialGradient(cx,cy+ts*.44,0,cx,cy+ts*.44,ts*.3);
-  shGrad.addColorStop(0,'rgba(0,0,0,0.35)');shGrad.addColorStop(0.6,'rgba(0,0,0,0.15)');shGrad.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=shGrad;
-  ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.3,ts*.1,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  if(CW_IS_MOBILE){
+    ctx.fillStyle='rgba(0,0,0,0.22)';
+    ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.28,ts*.09,0,0,Math.PI*2);ctx.fill();
+  } else {
+    var shGrad=ctx.createRadialGradient(cx,cy+ts*.44,0,cx,cy+ts*.44,ts*.3);
+    shGrad.addColorStop(0,'rgba(0,0,0,0.35)');shGrad.addColorStop(0.6,'rgba(0,0,0,0.15)');shGrad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=shGrad;
+    ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.3,ts*.1,0,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
 
   // === LEGS (blocky 3D rectangles with side faces) ===
   var lw=ts*.14,lh=ts*.24;
@@ -2844,9 +2914,9 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
   // Bottom side face
   ctx.fillStyle=outD;ctx.fillRect(bx,by+bh-d,bw,d);
   // Front face
-  var bg2=ctx.createLinearGradient(bx,by,bx+bw*0.7,by+bh*0.7);
-  bg2.addColorStop(0,outC);bg2.addColorStop(1,outD);
-  ctx.fillStyle=bg2;ctx.fillRect(bx,by,bw-d,bh-d);
+  if(CW_IS_MOBILE){ctx.fillStyle=outC;}
+  else{var bg2=ctx.createLinearGradient(bx,by,bx+bw*0.7,by+bh*0.7);bg2.addColorStop(0,outC);bg2.addColorStop(1,outD);ctx.fillStyle=bg2;}
+  ctx.fillRect(bx,by,bw-d,bh-d);
   // Chest highlight (Roblox shiny)
   ctx.fillStyle='rgba(255,255,255,0.18)';
   ctx.fillRect(bx+2,by+2,bw*0.5,bh*0.3);
@@ -2887,9 +2957,8 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
   // Head bottom side face
   ctx.fillStyle=skinD;ctx.fillRect(hx,hy+hh-d,hw,d);
   // Head front face (rounded)
-  var hg=ctx.createRadialGradient(hx+hw*0.35,hy+hh*0.3,0,hx+hw/2,hy+hh/2,hw*0.7);
-  hg.addColorStop(0,skin);hg.addColorStop(1,skinD);
-  ctx.fillStyle=hg;
+  if(CW_IS_MOBILE){ctx.fillStyle=skin;}
+  else{var hg=ctx.createRadialGradient(hx+hw*0.35,hy+hh*0.3,0,hx+hw/2,hy+hh/2,hw*0.7);hg.addColorStop(0,skin);hg.addColorStop(1,skinD);ctx.fillStyle=hg;}
   ctx.beginPath();ctx.roundRect(hx,hy,hw-d,hh-d,4);ctx.fill();
   // Head highlight
   ctx.fillStyle='rgba(255,255,255,0.15)';
@@ -2922,7 +2991,8 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer){
 
   // Player glow ring (Roblox selection glow)
   if(isPlayer){
-    ctx.save();ctx.shadowColor='#FFD700';ctx.shadowBlur=16;
+    ctx.save();
+    if(!CW_IS_MOBILE){ctx.shadowColor='#FFD700';ctx.shadowBlur=16;}
     ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=2;
     ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.28,ts*.1,0,0,Math.PI*2);ctx.stroke();
     ctx.restore();
@@ -2951,11 +3021,16 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   var col=npc.color||'#888';
   var colD=col.length>=7?col.slice(0,1)+Math.max(0,parseInt(col.slice(1,3),16)-40).toString(16).padStart(2,'0')+Math.max(0,parseInt(col.slice(3,5),16)-40).toString(16).padStart(2,'0')+Math.max(0,parseInt(col.slice(5,7),16)-40).toString(16).padStart(2,'0'):'#555';
 
-  // Shadow (soft gradient)
-  var nshG=ctx.createRadialGradient(cx,cy+ts*.44,0,cx,cy+ts*.44,ts*.28);
-  nshG.addColorStop(0,'rgba(0,0,0,0.3)');nshG.addColorStop(0.6,'rgba(0,0,0,0.12)');nshG.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=nshG;
-  ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.28,ts*.09,0,0,Math.PI*2);ctx.fill();
+  // Shadow (simplified on mobile)
+  if(CW_IS_MOBILE){
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.26,ts*.08,0,0,Math.PI*2);ctx.fill();
+  } else {
+    var nshG=ctx.createRadialGradient(cx,cy+ts*.44,0,cx,cy+ts*.44,ts*.28);
+    nshG.addColorStop(0,'rgba(0,0,0,0.3)');nshG.addColorStop(0.6,'rgba(0,0,0,0.12)');nshG.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=nshG;
+    ctx.beginPath();ctx.ellipse(cx,cy+ts*.44,ts*.28,ts*.09,0,0,Math.PI*2);ctx.fill();
+  }
 
   // Legs (blocky)
   ctx.fillStyle=colD;
@@ -2970,9 +3045,9 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   var bw=ts*.38,bh=ts*.26;
   var bx=cx-bw/2,by=cy-ts*.08;
   ctx.fillStyle=colD;ctx.fillRect(bx+bw-d,by,d,bh);ctx.fillRect(bx,by+bh-d,bw,d);
-  var ng=ctx.createLinearGradient(bx,by,bx+bw*0.7,by+bh*0.7);
-  ng.addColorStop(0,col);ng.addColorStop(1,colD);
-  ctx.fillStyle=ng;ctx.fillRect(bx,by,bw-d,bh-d);
+  if(CW_IS_MOBILE){ctx.fillStyle=col;}
+  else{var ng=ctx.createLinearGradient(bx,by,bx+bw*0.7,by+bh*0.7);ng.addColorStop(0,col);ng.addColorStop(1,colD);ctx.fillStyle=ng;}
+  ctx.fillRect(bx,by,bw-d,bh-d);
   ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(bx+2,by+2,bw*0.4,bh*0.25);
 
   // Arms
@@ -2988,9 +3063,9 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   var hw=ts*.3,hh=ts*.3;
   var hx=cx-hw/2,hy=cy-ts*.36;
   ctx.fillStyle='#C89060';ctx.fillRect(hx+hw-d,hy+d/2,d,hh-d);ctx.fillRect(hx,hy+hh-d,hw,d);
-  var hg=ctx.createRadialGradient(hx+hw*0.35,hy+hh*0.3,0,hx+hw/2,hy+hh/2,hw*0.7);
-  hg.addColorStop(0,'#FDDBB4');hg.addColorStop(1,'#C89060');
-  ctx.fillStyle=hg;ctx.beginPath();ctx.roundRect(hx,hy,hw-d,hh-d,4);ctx.fill();
+  if(CW_IS_MOBILE){ctx.fillStyle='#FDDBB4';}
+  else{var hg=ctx.createRadialGradient(hx+hw*0.35,hy+hh*0.3,0,hx+hw/2,hy+hh/2,hw*0.7);hg.addColorStop(0,'#FDDBB4');hg.addColorStop(1,'#C89060');ctx.fillStyle=hg;}
+  ctx.beginPath();ctx.roundRect(hx,hy,hw-d,hh-d,4);ctx.fill();
   ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(hx+2,hy+2,hw*0.35,hh*0.2);
   // Hair
   ctx.fillStyle='#2A1A08';ctx.beginPath();ctx.roundRect(hx-1,hy-2,hw,hh*0.28,3);ctx.fill();
@@ -3004,7 +3079,7 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
 
   // Emoji above head (floating)
   ctx.save();ctx.font=(ts*.55)+'px serif';ctx.textAlign='center';
-  ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;
+  if(!CW_IS_MOBILE){ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;}
   ctx.fillText(npc.emoji||'👤',cx,hy-8);ctx.restore();
 
   // Name tag (Roblox floating pill)
@@ -3037,13 +3112,13 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
     if(CWS.evangelized&&CWS.evangelized[npc.id]){
       ctx.font='bold '+(ts*.45)+'px serif';ctx.textAlign='center';
       var _isBaptized=(G.pd.baptized||[]).includes(npc.id);
-      ctx.shadowColor=_isBaptized?'#7EB8F7':'#4ade80';ctx.shadowBlur=6;
+      ctx.shadowColor=_isBaptized?'#7EB8F7':'#4ade80';if(!CW_IS_MOBILE)ctx.shadowBlur=6;
       ctx.fillStyle=_isBaptized?'#7EB8F7':'#4ade80';ctx.fillText(_isBaptized?'🕊️':'✝',cx,ib+pulse);
     }else{
       ctx.fillStyle='rgba(239,68,68,0.18)';
       ctx.beginPath();ctx.arc(cx,cy,ts*0.5,0,Math.PI*2);ctx.fill();
       ctx.font='bold '+(ts*.5)+'px serif';ctx.textAlign='center';
-      ctx.shadowColor='#ef4444';ctx.shadowBlur=8;
+      ctx.shadowColor='#ef4444';if(!CW_IS_MOBILE)ctx.shadowBlur=8;
       ctx.fillStyle='#fbbf24';ctx.fillText('❓',cx,ib+pulse);
     }
     ctx.restore();
@@ -3056,7 +3131,7 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
     ctx.fillStyle='rgba(255,215,0,0.15)';
     ctx.beginPath();ctx.arc(cx,cy,ts*0.55,0,Math.PI*2);ctx.fill();
     ctx.font='bold 18px serif';ctx.textAlign='center';
-    ctx.shadowColor='#FFD700';ctx.shadowBlur=6;
+    ctx.shadowColor='#FFD700';if(!CW_IS_MOBILE)ctx.shadowBlur=6;
     ctx.fillStyle='#fff';ctx.fillText('💬',bx2,by2);
     ctx.restore();
   }
@@ -3706,8 +3781,15 @@ function cw_loop(){
   // Guard against zero-size canvas (tab hidden, resize race)
   if(!vw||!vh){s.rafId=requestAnimationFrame(cw_loop);return;}
 
+  try{ // ── Wrap entire frame in try-catch so loop never dies ──
+
+  // Build tile cache (only rebuilds when tile size or upgrades change)
+  cw_buildTileCache(ts);
+
   // Frame budget: track if previous frame was slow so we can skip expensive fx
   var _cwSlowFrame=(s._lastFrameTime&&s._lastFrameTime>25);
+  // On mobile, be more aggressive about detecting slow frames
+  if(CW_IS_MOBILE&&s._lastFrameTime&&s._lastFrameTime>18) _cwSlowFrame=true;
 
   // NPC AI wander — skip every other frame if slow
   if(!_cwSlowFrame||!(s._frameCount&1)) cw_updateNPCs();
@@ -3792,16 +3874,31 @@ function cw_loop(){
   var camOx=Math.floor(s.camX)+shOx,camOy=Math.floor(s.camY)+shOy;
   for(var ty=sy;ty<ey;ty++)for(var tx2=sx;tx2<ex;tx2++){
     var tt=(CW_MAP[ty]||[])[tx2]||0;
-    cw_drawTile(ctx,tt,tx2*ts-camOx,ty*ts-camOy,ts);
+    var _tpx=tx2*ts-camOx,_tpy=ty*ts-camOy;
+    // Use cached tile if available (huge perf win on mobile)
+    var _cacheKey;
+    if(tt===1) _cacheKey='t1_r'+(ty%2);
+    else if(tt===9) _cacheKey='t9_v'+(tx2%3);
+    else if(tt===11) _cacheKey='t11_v'+((tx2+ty)%2);
+    else if(tt===8||tt===12||tt===15) _cacheKey=null; // animated tiles — always redraw
+    else _cacheKey='t'+tt;
+    var _cached=_cacheKey?CW_TILE_CACHE[_cacheKey]:null;
+    if(_cached){
+      ctx.drawImage(_cached,_tpx,_tpy);
+    } else {
+      cw_drawTile(ctx,tt,_tpx,_tpy,ts);
+    }
   }
 
-  // Roblox-style global ambient light overlay (warm top-down glow) — simplified for perf
-  ctx.fillStyle='rgba(255,248,220,0.04)';
-  ctx.fillRect(0,0,vw,vh);
+  // Roblox-style global ambient light overlay (warm top-down glow) — skip on mobile
+  if(!CW_IS_MOBILE){
+    ctx.fillStyle='rgba(255,248,220,0.04)';
+    ctx.fillRect(0,0,vw,vh);
+  }
 
-  // Church upgrade visual overlays drawn on top of tiles
+  // Church upgrade visual overlays drawn on top of tiles — skip on slow mobile frames
   var _upsList=G.pd.churchUpgrades||[];
-  if(_upsList.includes('sound')){
+  if(!(CW_IS_MOBILE&&_cwSlowFrame)&&_upsList.includes('sound')){
     // Speakers on stage walls
     var _spkLx=2*ts-camOx,_spkRx=27*ts-camOx,_spkY=3*ts-camOy;
     ctx.fillStyle='#222';ctx.fillRect(_spkLx+2,_spkY,ts*0.6,ts*0.8);ctx.fillRect(_spkRx+ts*0.3,_spkY,ts*0.6,ts*0.8);
@@ -3817,7 +3914,7 @@ function cw_loop(){
       ctx.beginPath();ctx.arc(_spkRx+ts*0.45,_spkY+ts*0.4,ts*0.3*_swi,Math.PI*0.3,Math.PI*0.7);ctx.stroke();
     }
   }
-  if(_upsList.includes('belltower')){
+  if(!(CW_IS_MOBILE&&_cwSlowFrame)&&_upsList.includes('belltower')){
     // Bell above the entrance door
     var _bellX=14.5*ts-camOx,_bellY=0.5*ts-camOy;
     ctx.save();ctx.fillStyle='#C4A35A';
@@ -3829,7 +3926,7 @@ function cw_loop(){
     ctx.fillStyle='rgba(196,163,90,'+_bellP+')';ctx.beginPath();ctx.arc(_bellX,_bellY+ts*0.2,ts*0.5,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
-  if(_upsList.includes('garden')){
+  if(!(CW_IS_MOBILE&&_cwSlowFrame)&&_upsList.includes('garden')){
     // Greenery around altar area (rows 5-6, scattered plants)
     var _gardenTs=[[3,5],[5,6],[7,5],[22,6],[24,5],[26,6]];
     for(var _gi=0;_gi<_gardenTs.length;_gi++){
@@ -3896,6 +3993,21 @@ function cw_loop(){
   }
 
   s._lastFrameTime=Date.now()-_cwFrameStart;
+
+  }catch(_cwErr){
+    // Catch rendering errors so the loop never dies (prevents black/blue screen freeze)
+    console.warn('[CW] Frame error:',_cwErr);
+    // Reset canvas state in case save/restore got unbalanced
+    try{ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.setTransform(1,0,0,1,0,0);}catch(e2){}
+    // On persistent errors, try to re-acquire context
+    if(!s._errCount)s._errCount=0;
+    s._errCount++;
+    if(s._errCount>10){
+      s._errCount=0;
+      try{s.ctx=c.getContext('2d');ctx=s.ctx;}catch(e3){}
+    }
+  }
+
   s.rafId=requestAnimationFrame(cw_loop);
 }
 
