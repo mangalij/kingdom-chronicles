@@ -917,7 +917,7 @@ function rSignup(){return`
 </div>`;}
 
 // ── LOGIN SCREEN ──────────────────────────────
-function rLogin(){return`
+function rLogin(){var _savedEmail=localStorage.getItem('kc_remember_email')||'';var _checked=_savedEmail?'checked':'';return`
 <div style="min-height:100vh;background:radial-gradient(ellipse at top,#1a0a00,#050505);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px">
   <div style="font-size:52px;filter:drop-shadow(0 0 20px gold);margin-bottom:12px">✝️</div>
   <div style="font-size:28px;font-weight:bold;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px">KINGDOM</div>
@@ -927,17 +927,24 @@ function rLogin(){return`
     <div style="font-size:18px;font-weight:bold;color:#C4A35A;margin-bottom:4px;text-align:center">Welcome Back</div>
     <div style="font-size:15px;color:#555;text-align:center;margin-bottom:22px">Log in to restore your progress</div>
 
+    <form id="loginForm" autocomplete="on" onsubmit="event.preventDefault();submitLogin()">
     <div style="margin-bottom:14px">
       <div style="font-size:14px;color:#666;margin-bottom:6px;letter-spacing:1px">EMAIL</div>
-      <input id="loginEmail" class="inp" type="email" placeholder="your@email.com" maxlength="100"
+      <input id="loginEmail" name="email" autocomplete="email" class="inp" type="email" placeholder="your@email.com" maxlength="100" value="${_savedEmail}"
         onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()">
     </div>
 
-    <div style="margin-bottom:20px">
+    <div style="margin-bottom:12px">
       <div style="font-size:14px;color:#666;margin-bottom:6px;letter-spacing:1px">PASSWORD</div>
-      <input id="loginPw" class="inp" type="password" placeholder="Your password" maxlength="100"
+      <input id="loginPw" name="password" autocomplete="current-password" class="inp" type="password" placeholder="Your password" maxlength="100"
         onkeydown="if(event.key==='Enter')submitLogin()">
     </div>
+
+    <div style="margin-bottom:16px;display:flex;align-items:center;gap:8px">
+      <input id="rememberMe" type="checkbox" ${_checked} style="accent-color:#C4A35A;width:18px;height:18px;cursor:pointer">
+      <label for="rememberMe" style="font-size:14px;color:#888;cursor:pointer;user-select:none">Remember me</label>
+    </div>
+    </form>
 
     <div id="loginErr" style="font-size:14px;color:#ef4444;margin-bottom:10px;min-height:16px;text-align:center"></div>
 
@@ -999,9 +1006,11 @@ function submitSignup(){
       G.pd={xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],displayName:displayN||null,playerId:playerId,coins:0,devotional:{lastDate:null,streak:0},churchUpgrades:[],npcRelations:{},baptized:[]};
       G.unlocked=["shepherd"];G.completedMissions=[];G.charId="shepherd";G.cos={sk:0,hr:1,ot:0};
       persistPlayer();
-      // Cloud save happens automatically via persistPlayer debounce, but do an immediate one
-      KC_AUTH.cloudSave();
-      go("title");
+      // Cloud save — wait for it to finish so login works later
+      KC_AUTH.cloudSave(function(saveErr){
+        if(saveErr) console.warn('[KC] Initial cloud save error:', saveErr);
+        go("title");
+      });
     });
   });
 }
@@ -1012,8 +1021,12 @@ function submitLogin(){
   const pwEl=document.getElementById("loginPw");
   const errEl=document.getElementById("loginErr");
   const btn=document.getElementById("loginBtn");
+  const rememberEl=document.getElementById("rememberMe");
   const email=(emEl?emEl.value.trim():"");
   const password=(pwEl?pwEl.value:"");
+  // Save or clear remembered email
+  if(rememberEl&&rememberEl.checked){localStorage.setItem('kc_remember_email',email);}
+  else{localStorage.removeItem('kc_remember_email');}
   if(!email){errEl.textContent="Please enter your email";return;}
   if(!password){errEl.textContent="Please enter your password";return;}
   errEl.textContent="";
@@ -1032,10 +1045,18 @@ function submitLogin(){
         toast("☁️ Progress restored! Welcome back, "+displayName(data.username)+"!");
         go("game");
       } else {
-        // No cloud save — maybe they signed up elsewhere; go to signup with prefill
-        errEl.textContent="No saved progress found. Please create a new profile.";
-        btn.disabled=false;btn.textContent="LOG IN →";
-        KC_AUTH.signOut();
+        // No cloud save — check localStorage as fallback
+        var local = lsGet(LS_PLAYER, null);
+        if(local && local.username){
+          restorePlayer(local);
+          KC_AUTH.cloudSave(); // sync local data to cloud
+          toast("☁️ Welcome back, "+displayName(local.username)+"!");
+          go("game");
+        } else {
+          // No data anywhere — let them create a profile while staying signed in
+          toast("Logged in! Set up your profile to get started.");
+          go("skip_signup");
+        }
       }
     });
   });
@@ -1125,8 +1146,12 @@ function rTitle(){return`
 
 function doSignOut(){
   KC_AUTH.signOut(function(){
+    // Clear local session so they see the login screen on next visit
+    localStorage.removeItem(LS_PLAYER);
+    G.username=null;G.charId="shepherd";G.pd={xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[]};
+    G.unlocked=["shepherd"];G.completedMissions=[];
     toast("Signed out successfully","ok");
-    render();
+    go("login");
   });
 }
 
