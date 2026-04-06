@@ -4075,10 +4075,10 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
     else{a.skip=true;cw_renderActivity();}
     return;
   }
-  // Live PvP — challenge a nearby player
+  // Challenge a nearby player — show mode choice
   if(s.nearPeer&&MP.isConnected()){
     var peer=CWM.peers.find(function(p){return p.uid===s.nearPeer;});
-    if(peer){pvp_sendChallenge(peer);return;}
+    if(peer){pvp_showModeChoice(peer);return;}
   }
   if(s.nearNpc){
     var npc=CW_NPCS.find(function(x){return x.id===s.nearNpc;});
@@ -5295,6 +5295,188 @@ function brawl_spawnObstacles(){
   }
 }
 
+// ── Co-op Brawl — start a shared arena with a peer ───
+function brawl_startCoop(role,roomId,peerData){
+  var db=MP.getDb();var uid=MP.getUid();
+  if(!db||!uid) return;
+  // Pick a random campaign for co-op (harder: +30% enemy HP)
+  var campIdx=Math.floor(Math.random()*BRAWL_CAMPAIGNS.length);
+  var camp=BRAWL_CAMPAIGNS[campIdx];
+  var B=BRAWL;
+  B.campaign=camp;B.wave=0;B.state='playing';B.score=0;B.xpEarned=0;B.coinsEarned=0;
+  B.enemies=[];B.bullets=[];B.particles=[];B.pickups=[];B.obstacles=[];
+  B.enemiesKilled=0;B.waveTimer=0;B.camShake=0;B._frameCount=0;B._lastTime=0;
+  B.arenaW=900;B.arenaH=700;
+  // Player 1 bottom-left, Player 2 bottom-right
+  B.px=(role==='host')?B.arenaW*0.35:B.arenaW*0.65;
+  B.py=B.arenaH-80;
+  var stats=brawl_getCharStats();
+  B.pHp=stats.hp;B.pMaxHp=stats.hp;B.pSpeed=stats.speed;
+  B.pInvuln=0;B.pDir=-Math.PI/2;
+  B.moveJoyX=0;B.moveJoyY=0;B.aimJoyX=0;B.aimJoyY=0;B.aimActive=false;
+  B._shootCdTimer=0;B.pAbilityCd=0;B.pSuperCharge=0;
+  B._keys={};B._joyCleanup=[];B._endClickBound=false;B._reviveUsed=false;
+  _brawlDmgNums=[];
+  // Co-op state
+  B.coopMode=true;
+  B.coopRoomId=roomId;
+  B.coopRole=role;
+  B.coopPeerData=peerData;
+  B.coopAlly={x:(role==='host')?B.arenaW*0.65:B.arenaW*0.35,y:B.arenaH-80,hp:100,maxHp:100,dir:0,charId:peerData.charId,username:peerData.username,alive:true,animFrame:0};
+  // Set ally stats from their character
+  var allyChar=ALL_CHARS.find(function(c){return c.id===peerData.charId;})||ALL_CHARS[0];
+  var allyLv=peerData.lv||1;
+  B.coopAlly.maxHp=(allyChar.hp||100)+allyChar.str*2+allyLv*8;
+  B.coopAlly.hp=B.coopAlly.maxHp;
+  B.coopAlly.color=allyChar.color;
+  B.coopAlly.char=allyChar;
+  B._coopSyncTimer=0;
+  B._coopListeners=[];
+  B.active=true;
+  // Use seeded obstacles (host sends seed, guest uses same)
+  if(role==='host'){
+    B._coopSeed=Math.floor(Math.random()*999999);
+    brawl_spawnObstaclesSeeded(B._coopSeed);
+  }
+  G.screen='brawl';
+  document.getElementById('app').innerHTML=rBrawlScreen();
+  brawl_initCanvas();
+  pvp_hideOverlay();
+  // Set up Firebase sync
+  var roomRef=db.ref('kc/brawl_coop/'+roomId);
+  B._coopRoomRef=roomRef;
+  roomRef.onDisconnect().update({disconnected:uid,t:Date.now()});
+  if(role==='host'){
+    // Host writes initial state
+    roomRef.child('config').set({campId:camp.id,seed:B._coopSeed,t:Date.now()});
+    roomRef.child('host').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
+    // Host spawns waves and syncs enemy state
+    brawl_spawnWave();
+    brawl_coopSyncEnemies();
+  } else {
+    // Guest reads config from host
+    roomRef.child('config').once('value',function(snap){
+      var cfg=snap.val();
+      if(cfg){
+        var trueCamp=BRAWL_CAMPAIGNS.find(function(c){return c.id===cfg.campId;});
+        if(trueCamp) B.campaign=trueCamp;
+        brawl_spawnObstaclesSeeded(cfg.seed||0);
+      }
+    });
+    roomRef.child('guest').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
+  }
+  // Listen for ally position updates
+  var allyKey=role==='host'?'guest':'host';
+  var allyRef=roomRef.child(allyKey);
+  var allyListener=allyRef.on('value',function(snap){
+    var d=snap.val();
+    if(!d) return;
+    B.coopAlly.x=d.x;B.coopAlly.y=d.y;B.coopAlly.hp=d.hp;B.coopAlly.dir=d.dir;
+    B.coopAlly.alive=d.alive!==false;
+  });
+  B._coopListeners.push(function(){allyRef.off('value',allyListener);});
+  // Listen for enemy sync (guest only — host is authoritative)
+  if(role==='guest'){
+    var enemyRef=roomRef.child('enemies');
+    var enemyListener=enemyRef.on('value',function(snap){
+      var d=snap.val();
+      if(!d) return;
+      // Merge enemy positions from host
+      if(Array.isArray(d)){
+        for(var i=0;i<d.length&&i<B.enemies.length;i++){
+          if(d[i]){
+            B.enemies[i].x=d[i].x;B.enemies[i].y=d[i].y;
+            B.enemies[i].hp=d[i].hp;
+            if(d[i].dead) B.enemies[i].hp=0;
+          }
+        }
+      }
+    });
+    B._coopListeners.push(function(){enemyRef.off('value',enemyListener);});
+    // Listen for wave spawns
+    var waveRef=roomRef.child('wave');
+    var waveListener=waveRef.on('value',function(snap){
+      var w=snap.val();
+      if(w!==null&&w!==undefined&&w!==B.wave){
+        B.wave=w;
+        brawl_spawnWave();
+      }
+    });
+    B._coopListeners.push(function(){waveRef.off('value',waveListener);});
+  }
+  // Listen for disconnect
+  var dcRef=roomRef.child('disconnected');
+  var dcListener=dcRef.on('value',function(snap){
+    var val=snap.val();
+    if(val&&val!==uid&&B.active&&B.coopMode){
+      toast('\u26A1 Ally disconnected!','err');
+      B.coopAlly.alive=false;
+    }
+  });
+  B._coopListeners.push(function(){dcRef.off('value',dcListener);});
+  // Go fullscreen
+  setTimeout(brawl_requestFullscreen,100);
+}
+
+// Seeded obstacle spawner (deterministic for both players)
+function brawl_spawnObstaclesSeeded(seed){
+  var B=BRAWL;B.obstacles=[];
+  function lcg(s){return(s*1664525+1013904223)&0x7fffffff;}
+  var s=seed;
+  for(var i=0;i<6;i++){
+    s=lcg(s);var ox=80+(s%((B.arenaW-160)*100))/100;
+    s=lcg(s);var oy=80+(s%((B.arenaH-200)*100))/100;
+    if(Math.abs(ox-B.arenaW/2)<80&&oy>B.arenaH-150) continue;
+    s=lcg(s);var rad=18+(s%1300)/100;
+    B.obstacles.push({x:ox,y:oy,radius:rad,type:'rock'});
+  }
+  for(var j=0;j<4;j++){
+    s=lcg(s);var bx=60+(s%((B.arenaW-120)*100))/100;
+    s=lcg(s);var by=60+(s%((B.arenaH-180)*100))/100;
+    if(Math.abs(bx-B.arenaW/2)<80&&by>B.arenaH-150) continue;
+    s=lcg(s);var brad=20+(s%1100)/100;
+    B.obstacles.push({x:bx,y:by,radius:brad,type:'bush'});
+  }
+}
+
+// Co-op sync: host sends enemy state to Firebase periodically
+function brawl_coopSyncEnemies(){
+  var B=BRAWL;
+  if(!B.coopMode||!B._coopRoomRef||B.coopRole!=='host') return;
+  var enemyData=[];
+  for(var i=0;i<B.enemies.length;i++){
+    var e=B.enemies[i];
+    enemyData.push({x:Math.round(e.x),y:Math.round(e.y),hp:Math.round(e.hp),dead:e.hp<=0});
+  }
+  B._coopRoomRef.child('enemies').set(enemyData);
+}
+
+// Co-op sync: send my position to Firebase (called from update loop)
+function brawl_coopSyncSelf(){
+  var B=BRAWL;
+  if(!B.coopMode||!B._coopRoomRef) return;
+  var myKey=B.coopRole==='host'?'host':'guest';
+  B._coopRoomRef.child(myKey).set({
+    x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),dir:Math.round(B.pDir*100)/100,alive:B.pHp>0
+  });
+}
+
+// Co-op: sync wave number from host
+function brawl_coopSyncWave(){
+  var B=BRAWL;
+  if(!B.coopMode||!B._coopRoomRef||B.coopRole!=='host') return;
+  B._coopRoomRef.child('wave').set(B.wave);
+}
+
+// Co-op cleanup
+function brawl_coopCleanup(){
+  var B=BRAWL;
+  if(B._coopListeners){B._coopListeners.forEach(function(fn){try{fn();}catch(e){}});B._coopListeners=[];}
+  if(B._coopRoomRef){try{B._coopRoomRef.child('disconnected').set(MP.getUid());}catch(e){}B._coopRoomRef=null;}
+  B.coopMode=false;B.coopPeers=[];B.coopRoomId=null;B.coopRole=null;B.coopAlly=null;B.coopPeerData=null;
+  pvp_cleanup();
+}
+
 // ── Lobby screen ──────────────────────────────────────
 function rBrawlLobby(){
   var c=gch(),r=RARITY[c.rarity],lv=glv();
@@ -5402,6 +5584,7 @@ function rBrawlScreen(){
       '<div style="display:flex;align-items:center;gap:6px">'+
         '<div style="font-size:12px;color:#FF6B35;font-weight:bold">'+(camp?camp.icon:'')+' '+(camp?camp.name:'')+'</div>'+
         '<div id="brawlWaveLabel" style="font-size:11px;color:#C4A35A;background:#C4A35A15;padding:1px 6px;border-radius:10px">Wave 1/5</div>'+
+        (BRAWL.coopMode?'<div style="font-size:10px;color:#4ade80;background:#4ade8015;padding:1px 6px;border-radius:10px">\uD83E\uDD1D CO-OP</div>':'')+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:5px">'+
         '<div id="brawlKills" style="font-size:11px;color:#ef4444">\uD83D\uDCA0 0</div>'+
@@ -5462,9 +5645,14 @@ function brawl_initCanvas(){
     if(!BRAWL.active||!BRAWL.canvas) return;
     var rect=BRAWL.canvas.getBoundingClientRect();
     var mx=e.clientX-rect.left,my=e.clientY-rect.top;
-    var scale=Math.min(rect.width/BRAWL.arenaW,rect.height/BRAWL.arenaH);
-    if(scale>1.5)scale=1.5;
-    var ax=(mx/scale)+BRAWL.camX,ay=(my/scale)+BRAWL.camY;
+    // Use same scale as brawl_render camera
+    var cw=BRAWL.canvas.width,ch2=BRAWL.canvas.height;
+    var minDim=Math.min(cw,ch2);
+    var scale=minDim/280;
+    if(scale<0.8)scale=0.8;if(scale>2.2)scale=2.2;
+    // Convert screen pixels to canvas pixels (rect may differ from canvas size)
+    var sx=mx*(cw/rect.width),sy=my*(ch2/rect.height);
+    var ax=(sx/scale)+BRAWL.camX,ay=(sy/scale)+BRAWL.camY;
     var dx=ax-BRAWL.px,dy=ay-BRAWL.py;
     var d=Math.sqrt(dx*dx+dy*dy)||1;
     BRAWL.aimJoyX=dx/d;BRAWL.aimJoyY=dy/d;
@@ -5481,14 +5669,13 @@ function brawl_setupPointerJoy(areaId,knobId,type){
   var area=document.getElementById(areaId);
   var knob=document.getElementById(knobId);
   if(!area||!knob) return;
-  var maxR=38,activePid=null,cx=0,cy=0;
+  var maxR=40,activePid=null,cx=0,cy=0;
 
-  function getCenter(){var r=area.getBoundingClientRect();cx=r.left+r.width/2;cy=r.top+r.height/2;}
   function update(px,py){
     var dx=px-cx,dy=py-cy,dist=Math.sqrt(dx*dx+dy*dy);
     if(dist>maxR){dx=dx/dist*maxR;dy=dy/dist*maxR;}
     knob.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px))';
-    var nx=dx/maxR,ny=dy/maxR;
+    var nx=dist>0?dx/maxR:0,ny=dist>0?dy/maxR:0;
     if(type==='move'){
       BRAWL.moveJoyX=Math.abs(nx)>0.1?nx:0;
       BRAWL.moveJoyY=Math.abs(ny)>0.1?ny:0;
@@ -5513,7 +5700,12 @@ function brawl_setupPointerJoy(areaId,knobId,type){
     if(activePid!==null) return;
     activePid=e.pointerId;
     area.setPointerCapture(e.pointerId);
-    getCenter();update(e.clientX,e.clientY);
+    // Floating origin: joystick center = where you first touch
+    cx=e.clientX;cy=e.clientY;
+    // Don't update yet — no drag means no aim/move
+    knob.style.transform='translate(-50%,-50%)';
+    if(type==='move'){BRAWL.moveJoyX=0;BRAWL.moveJoyY=0;}
+    else{BRAWL.aimJoyX=0;BRAWL.aimJoyY=0;BRAWL.aimActive=false;}
   }
   function onMove(e){
     if(e.pointerId!==activePid) return;
@@ -5557,6 +5749,7 @@ function brawl_spawnWave(){
       else if(side===1){ex=-20-Math.random()*40;ey=30+Math.random()*B.arenaH*0.6;}
       else{ex=B.arenaW+20+Math.random()*40;ey=30+Math.random()*B.arenaH*0.6;}
       var wScale=1+B.wave*0.15;
+      if(B.coopMode) wScale*=1.4; // Tougher enemies in co-op
       var isRanged=!!def.shootCd;
       B.enemies.push({
         x:ex,y:ey,hp:Math.round(def.hp*wScale),maxHp:Math.round(def.hp*wScale),
@@ -5573,6 +5766,7 @@ function brawl_spawnWave(){
   if(waveData.hasBoss&&army.boss){
     var bd=army.boss;
     var wScale2=1+B.wave*0.1;
+    if(B.coopMode) wScale2*=1.4; // Tougher boss in co-op
     B.enemies.push({
       x:B.arenaW/2,y:-50,hp:Math.round(bd.hp*wScale2),maxHp:Math.round(bd.hp*wScale2),
       atk:Math.round(bd.atk*wScale2),speed:bd.speed,radius:bd.radius,
@@ -5782,6 +5976,16 @@ function brawl_update(dt){
     B.wave++;B.score+=100*B.wave;B.xpEarned+=30+B.wave*15;B.coinsEarned+=5+B.wave*3;
     if(B.wave>=B.campaign.waves.length){B.state='victory';SFX&&SFX.victory&&SFX.victory();}
     else{B.waveTimer=90;B.state='wave_clear';}
+    if(B.coopMode&&B.coopRole==='host') brawl_coopSyncWave();
+  }
+  // Co-op sync (every 3 frames to reduce Firebase writes)
+  if(B.coopMode){
+    B._coopSyncTimer=(B._coopSyncTimer||0)+1;
+    if(B._coopSyncTimer>=3){
+      B._coopSyncTimer=0;
+      brawl_coopSyncSelf();
+      if(B.coopRole==='host') brawl_coopSyncEnemies();
+    }
   }
 }
 
@@ -6007,6 +6211,24 @@ function brawl_render(){
     B.aimActive?Math.atan2(B.aimJoyY,B.aimJoyX):B.pDir,
     B._frameCount,B.pInvuln);
 
+  // Co-op ally
+  if(B.coopMode&&B.coopAlly&&B.coopAlly.alive){
+    var ally=B.coopAlly;
+    var allyChar=ally.char||ALL_CHARS.find(function(c){return c.id===ally.charId;})||ALL_CHARS[0];
+    ally.animFrame=(ally.animFrame||0)+1;
+    brawl_drawHero(ctx,ally.x,ally.y,B.pRadius,allyChar,ally.dir,ally.animFrame,0);
+    // Ally HP bar
+    var ahbW=34,ahbH=4;
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(ally.x-ahbW/2,ally.y-B.pRadius-12,ahbW,ahbH);
+    var ahpPct=ally.maxHp>0?ally.hp/ally.maxHp:0;
+    ctx.fillStyle=ahpPct>0.5?'#4ade80':'#ef4444';
+    ctx.fillRect(ally.x-ahbW/2,ally.y-B.pRadius-12,ahbW*ahpPct,ahbH);
+    // Ally name tag
+    ctx.fillStyle='#4ade80';ctx.font='bold 8px Georgia';ctx.textAlign='center';
+    ctx.fillText(ally.username||'Ally',ally.x,ally.y-B.pRadius-15);
+    ctx.textAlign='left';
+  }
+
   // Bullets
   for(var bi2=0;bi2<B.bullets.length;bi2++){
     var bu=B.bullets[bi2];
@@ -6120,6 +6342,7 @@ function brawl_cleanup(){
   }
   if(B._joyCleanup){B._joyCleanup.forEach(function(fn){fn();});B._joyCleanup=[];}
   if(B._mouseHandler&&B.canvas){B.canvas.removeEventListener('click',B._mouseHandler);}
+  if(B.coopMode) brawl_coopCleanup();
   B._endClickBound=false;B.canvas=null;B.ctx=null;
 }
 
@@ -9116,7 +9339,11 @@ function pvp_startListening(){
       // Our challenge was accepted — start battle as host
       if(PVP_LIVE.sentTimeout){clearTimeout(PVP_LIVE.sentTimeout);PVP_LIVE.sentTimeout=null;}
       PVP_LIVE.state='battle';
-      pvp_startBattle('host',data.roomId,PVP_LIVE.challengeTo);
+      if(PVP_LIVE._challengeMode==='brawl_coop'){
+        brawl_startCoop('host',data.roomId,PVP_LIVE.challengeTo);
+      } else {
+        pvp_startBattle('host',data.roomId,PVP_LIVE.challengeTo);
+      }
     }
     if(data.type==='declined'&&PVP_LIVE.state==='sent'){
       PVP_LIVE.state='idle';
@@ -9134,21 +9361,49 @@ function pvp_stopListening(){
   pvp_cleanup();
 }
 
+// ── Mode choice popup ─────────────────────────────────
+function pvp_showModeChoice(peer){
+  var el=document.getElementById('pvpChallengeOverlay');
+  if(!el){
+    el=document.createElement('div');
+    el.id='pvpChallengeOverlay';
+    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent';
+    el.addEventListener('pointerdown',function(e){if(e.target===el)e.stopPropagation();});
+    el.addEventListener('touchstart',function(e){if(e.target===el)e.stopPropagation();},{passive:true});
+    el.addEventListener('click',function(e){e.stopPropagation();});
+    el.addEventListener('keydown',function(e){e.stopPropagation();});
+    document.body.appendChild(el);
+  }
+  el.style.display='flex';
+  var ch=ALL_CHARS.find(function(c){return c.id===peer.charId;})||ALL_CHARS[0];
+  el.innerHTML='<div style="background:linear-gradient(135deg,#0d0d1a,#0a0a12);border:2px solid #C4A35A55;border-radius:18px;padding:24px 20px;max-width:340px;width:90%;text-align:center;animation:storyFadeIn .3s ease">'+
+    '<div style="font-size:16px;color:#C4A35A;font-weight:bold;margin-bottom:4px">CHALLENGE @'+escHtml(peer.username)+'</div>'+
+    '<div style="font-size:12px;color:#666;margin-bottom:16px">'+ch.name+' \u00B7 Lv.'+(peer.lv||'?')+'</div>'+
+    '<div style="font-size:14px;color:#aaa;margin-bottom:14px">Choose battle mode:</div>'+
+    '<button onclick="pvp_sendChallenge(PVP_LIVE._modeChoicePeer,\'pvp\')" style="width:100%;background:linear-gradient(135deg,#1a0d2a,#0d0520);border:2px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:12px;font-size:16px;font-weight:bold;margin-bottom:10px;cursor:pointer;touch-action:manipulation">\u2694\uFE0F PvP Card Battle<div style="font-size:11px;color:#7EB8F766;margin-top:2px">Turn-based 1v1 card duel</div></button>'+
+    '<button onclick="pvp_sendChallenge(PVP_LIVE._modeChoicePeer,\'brawl_coop\')" style="width:100%;background:linear-gradient(135deg,#1a2a0d,#0d200a);border:2px solid #4ade80;color:#4ade80;padding:14px;border-radius:12px;font-size:16px;font-weight:bold;margin-bottom:10px;cursor:pointer;touch-action:manipulation">\uD83D\uDEE1\uFE0F Brawl Co-op<div style="font-size:11px;color:#4ade8066;margin-top:2px">Fight waves together in the arena</div></button>'+
+    '<button onclick="pvp_hideOverlay();PVP_LIVE._modeChoicePeer=null;" style="width:100%;background:#111;border:1px solid #333;color:#666;padding:10px;border-radius:10px;font-size:14px;cursor:pointer;touch-action:manipulation">Cancel</button>'+
+  '</div>';
+  PVP_LIVE._modeChoicePeer=peer;
+}
+
 // ── Send a challenge to a peer ────────────────────────
-function pvp_sendChallenge(peer){
+function pvp_sendChallenge(peer,mode){
   var db=MP.getDb();var uid=MP.getUid();
   if(!db||!uid||PVP_LIVE.state!=='idle') return;
+  mode=mode||'pvp';
   PVP_LIVE.state='sent';
   PVP_LIVE.challengeTo=peer;
+  PVP_LIVE._challengeMode=mode;
   // Write challenge to THEIR node
   var theirRef=db.ref('kc/pvp/challenges/'+peer.uid);
   theirRef.set({
-    type:'challenge',fromUid:uid,
+    type:'challenge',fromUid:uid,mode:mode,
     username:G.username,charId:G.charId,cos:G.cos,lv:glv(),
     t:Date.now()
   });
   pvp_showOverlay();
-  // Auto-cancel after 15s
+  // Auto-cancel after 30s
   PVP_LIVE.sentTimeout=setTimeout(function(){
     if(PVP_LIVE.state==='sent'){
       PVP_LIVE.state='idle';
@@ -9176,9 +9431,14 @@ function pvp_acceptChallenge(){
   });
   // Clean our challenge node
   if(PVP_LIVE.challengeRef)PVP_LIVE.challengeRef.remove();
-  // Start battle as guest
+  // Start battle as guest — route based on mode
   PVP_LIVE.state='battle';
-  pvp_startBattle('guest',roomId,{uid:from.fromUid,username:from.username,charId:from.charId,cos:from.cos,lv:from.lv||1});
+  var peerData={uid:from.fromUid,username:from.username,charId:from.charId,cos:from.cos,lv:from.lv||1};
+  if(from.mode==='brawl_coop'){
+    brawl_startCoop('guest',roomId,peerData);
+  } else {
+    pvp_startBattle('guest',roomId,peerData);
+  }
 }
 
 function pvp_declineChallenge(){
@@ -9429,16 +9689,20 @@ function pvp_renderOverlay(){
     var p=PVP_LIVE.challengeTo;
     var ch=ALL_CHARS.find(function(c){return c.id===p.charId;})||ALL_CHARS[0];
     var r=RARITY[ch.rarity]||RARITY.common;
-    el.innerHTML='<div style="background:linear-gradient(135deg,#0d0d1a,#0a0a12);border:2px solid #7EB8F755;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center">'+
-      '<div style="font-size:40px;margin-bottom:8px;animation:spBob .8s ease-in-out infinite">⚔️</div>'+
-      '<div style="font-size:18px;font-weight:bold;color:#7EB8F7;margin-bottom:6px">CHALLENGE SENT!</div>'+
+    var isCoop=PVP_LIVE._challengeMode==='brawl_coop';
+    var modeLabel=isCoop?'\uD83D\uDEE1\uFE0F Brawl Co-op':'\u2694\uFE0F PvP Card Battle';
+    var modeColor=isCoop?'#4ade80':'#7EB8F7';
+    el.innerHTML='<div style="background:linear-gradient(135deg,#0d0d1a,#0a0a12);border:2px solid '+modeColor+'55;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center">'+
+      '<div style="font-size:40px;margin-bottom:8px;animation:spBob .8s ease-in-out infinite">'+(isCoop?'\uD83D\uDEE1\uFE0F':'\u2694\uFE0F')+'</div>'+
+      '<div style="font-size:18px;font-weight:bold;color:'+modeColor+';margin-bottom:4px">CHALLENGE SENT!</div>'+
+      '<div style="font-size:13px;color:'+modeColor+'88;margin-bottom:6px">'+modeLabel+'</div>'+
       '<div style="font-size:15px;color:#aaa;margin-bottom:16px">Waiting for <span style="color:#C4A35A;font-weight:bold">@'+escHtml(p.username)+'</span> to respond...</div>'+
       '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">'+
-        '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(G.username)+'</div><div style="font-size:12px;color:'+gch().color+'">'+gch().name+' · Lv.'+glv()+'</div></div>'+
-        '<div style="font-size:16px;color:#555">VS</div>'+
-        '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(p.username)+'</div><div style="font-size:12px;color:'+ch.color+'">'+ch.name+' · Lv.'+(p.lv||'?')+'</div></div>'+
+        '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(G.username)+'</div><div style="font-size:12px;color:'+gch().color+'">'+gch().name+' \u00B7 Lv.'+glv()+'</div></div>'+
+        '<div style="font-size:16px;color:#555">'+(isCoop?'&':'VS')+'</div>'+
+        '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(p.username)+'</div><div style="font-size:12px;color:'+ch.color+'">'+ch.name+' \u00B7 Lv.'+(p.lv||'?')+'</div></div>'+
       '</div>'+
-      '<div style="width:100%;height:3px;background:#111;border-radius:2px;overflow:hidden;margin-bottom:14px"><div style="width:100%;height:100%;background:#7EB8F7;animation:pvpPulse 1.5s ease infinite"></div></div>'+
+      '<div style="width:100%;height:3px;background:#111;border-radius:2px;overflow:hidden;margin-bottom:14px"><div style="width:100%;height:100%;background:'+modeColor+';animation:pvpPulse 1.5s ease infinite"></div></div>'+
       '<button onclick="pvp_cancelChallenge()" style="width:100%;background:#111;border:1px solid #333;color:#666;padding:10px;border-radius:10px;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent">Cancel</button>'+
     '</div>';
   }
@@ -9447,20 +9711,26 @@ function pvp_renderOverlay(){
     var f=PVP_LIVE.challengeFrom;
     var ch=ALL_CHARS.find(function(c){return c.id===f.charId;})||ALL_CHARS[0];
     var r=RARITY[ch.rarity]||RARITY.common;
-    el.innerHTML='<div style="background:linear-gradient(135deg,#1a0d0d,#120a0a);border:2px solid #ef444455;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center;animation:storyFadeIn .4s ease">'+
-      '<div style="font-size:40px;margin-bottom:8px;animation:spBob .6s ease-in-out infinite">⚔️</div>'+
-      '<div style="font-size:18px;font-weight:bold;color:#ef4444;margin-bottom:4px;letter-spacing:1px">BATTLE CHALLENGE!</div>'+
-      '<div style="font-size:14px;color:#888;margin-bottom:14px"><span style="color:#C4A35A;font-weight:bold">@'+escHtml(f.username)+'</span> wants to fight you!</div>'+
+    var isCoop=f.mode==='brawl_coop';
+    var modeLabel=isCoop?'\uD83D\uDEE1\uFE0F Brawl Co-op':'\u2694\uFE0F PvP Card Battle';
+    var modeColor=isCoop?'#4ade80':'#ef4444';
+    var titleText=isCoop?'CO-OP INVITE!':'BATTLE CHALLENGE!';
+    var subtitleText=isCoop?'wants to team up with you!':'wants to fight you!';
+    el.innerHTML='<div style="background:linear-gradient(135deg,'+(isCoop?'#0d1a0d,#0a120a':'#1a0d0d,#120a0a')+');border:2px solid '+modeColor+'55;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center;animation:storyFadeIn .4s ease">'+
+      '<div style="font-size:40px;margin-bottom:8px;animation:spBob .6s ease-in-out infinite">'+(isCoop?'\uD83D\uDEE1\uFE0F':'\u2694\uFE0F')+'</div>'+
+      '<div style="font-size:18px;font-weight:bold;color:'+modeColor+';margin-bottom:4px;letter-spacing:1px">'+titleText+'</div>'+
+      '<div style="font-size:13px;color:'+modeColor+'88;margin-bottom:4px">'+modeLabel+'</div>'+
+      '<div style="font-size:14px;color:#888;margin-bottom:14px"><span style="color:#C4A35A;font-weight:bold">@'+escHtml(f.username)+'</span> '+subtitleText+'</div>'+
       '<div style="background:#ffffff08;border:1px solid #ffffff11;border-radius:12px;padding:14px;margin-bottom:16px">'+
         '<div style="display:flex;align-items:center;justify-content:center;gap:14px">'+
           '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(f.username)+'</div><div style="font-size:13px;color:'+ch.color+';font-weight:bold">'+ch.name+'</div><div style="font-size:12px;color:#555">Lv.'+(f.lv||'?')+'</div></div>'+
-          '<div style="font-size:22px;color:#ef4444">⚡</div>'+
+          '<div style="font-size:22px;color:'+modeColor+'">'+(isCoop?'\uD83E\uDD1D':'\u26A1')+'</div>'+
           '<div style="text-align:center"><div style="font-size:14px;color:#C4A35A;font-weight:bold">@'+escHtml(G.username)+'</div><div style="font-size:13px;color:'+gch().color+';font-weight:bold">'+gch().name+'</div><div style="font-size:12px;color:#555">Lv.'+glv()+'</div></div>'+
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:8px">'+
-        '<button onclick="pvp_declineChallenge()" style="flex:1;background:#111;border:1px solid #ef444455;color:#ef4444;padding:12px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;-webkit-tap-highlight-color:transparent">✕ Decline</button>'+
-        '<button onclick="pvp_acceptChallenge()" style="flex:2;background:linear-gradient(135deg,#1a3a1a,#0d200d);border:2px solid #4ade80;color:#4ade80;padding:12px;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;animation:pvpPulse 1s ease infinite;-webkit-tap-highlight-color:transparent">⚔️ ACCEPT!</button>'+
+        '<button onclick="pvp_declineChallenge()" style="flex:1;background:#111;border:1px solid '+modeColor+'55;color:'+modeColor+';padding:12px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;-webkit-tap-highlight-color:transparent">\u2715 Decline</button>'+
+        '<button onclick="pvp_acceptChallenge()" style="flex:2;background:linear-gradient(135deg,#1a3a1a,#0d200d);border:2px solid #4ade80;color:#4ade80;padding:12px;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;animation:pvpPulse 1s ease infinite;-webkit-tap-highlight-color:transparent">'+(isCoop?'\uD83D\uDEE1\uFE0F JOIN!':'\u2694\uFE0F ACCEPT!')+'</button>'+
       '</div>'+
     '</div>';
   }
