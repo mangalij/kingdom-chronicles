@@ -802,7 +802,7 @@ function go(s){
   }
   if(s==="church"){G.screen="church";initChurchWorld();return;}
   if(G.screen==="church") cw_destroy();
-  if(G.screen==="brawl"&&BRAWL.active) brawl_cleanup();
+  if(G.screen==="brawl"&&BRAWL.active){brawl_cleanup();brawl_exitFullscreen();}
   G.screen=s;render();
 }
 function setTab(t){G.tab=t;render();}
@@ -5275,6 +5275,8 @@ function brawl_startCampaign(campId){
   document.getElementById('app').innerHTML=rBrawlScreen();
   brawl_initCanvas();
   brawl_spawnWave();
+  // Go fullscreen on mobile for max play area
+  setTimeout(brawl_requestFullscreen,100);
 }
 
 function brawl_spawnObstacles(){
@@ -5369,28 +5371,50 @@ function rBrawlLobby(){
   '</div>';
 }
 
+// ── Fullscreen API helpers ─────────────────────────────
+function brawl_requestFullscreen(){
+  var el=document.getElementById('brawlRoot')||document.documentElement;
+  try{
+    if(el.requestFullscreen) el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if(el.msRequestFullscreen) el.msRequestFullscreen();
+  }catch(e){}
+  // Also try to lock orientation to landscape for more play area
+  try{if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('landscape').catch(function(){});}
+  catch(e){}
+}
+function brawl_exitFullscreen(){
+  try{
+    if(document.fullscreenElement||document.webkitFullscreenElement){
+      if(document.exitFullscreen) document.exitFullscreen().catch(function(){});
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  }catch(e){}
+  try{if(screen.orientation&&screen.orientation.unlock) screen.orientation.unlock();}catch(e){}
+}
+
 // ── Battle screen ─────────────────────────────────────
 function rBrawlScreen(){
   var camp=BRAWL.campaign;
   var ch=gch();
   return '<div id="brawlRoot" style="position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:100;overflow:hidden;font-family:Georgia,serif;user-select:none;-webkit-user-select:none">'+
-    '<div style="background:linear-gradient(90deg,#0a0500,#120800);border-bottom:2px solid #FF6B3544;padding:6px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:5">'+
-      '<div style="display:flex;align-items:center;gap:8px">'+
-        '<div style="font-size:13px;color:#FF6B35;font-weight:bold">'+(camp?camp.icon:'')+' '+(camp?camp.name:'')+'</div>'+
-        '<div id="brawlWaveLabel" style="font-size:12px;color:#C4A35A;background:#C4A35A15;padding:2px 8px;border-radius:10px">Wave 1/5</div>'+
-      '</div>'+
+    '<div style="background:linear-gradient(90deg,#0a0500,#120800);border-bottom:2px solid #FF6B3544;padding:4px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:5;height:32px">'+
       '<div style="display:flex;align-items:center;gap:6px">'+
-        '<div id="brawlKills" style="font-size:12px;color:#ef4444">\uD83D\uDCA0 0</div>'+
-        '<div id="brawlScore" style="font-size:13px;color:#FFD700;font-weight:bold">\u2B50 0</div>'+
-        '<button onclick="brawl_quit()" style="background:none;border:1px solid #FF6B3555;color:#FF6B35;padding:2px 8px;border-radius:6px;font-size:12px;touch-action:manipulation">\u2715</button>'+
+        '<div style="font-size:12px;color:#FF6B35;font-weight:bold">'+(camp?camp.icon:'')+' '+(camp?camp.name:'')+'</div>'+
+        '<div id="brawlWaveLabel" style="font-size:11px;color:#C4A35A;background:#C4A35A15;padding:1px 6px;border-radius:10px">Wave 1/5</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:5px">'+
+        '<div id="brawlKills" style="font-size:11px;color:#ef4444">\uD83D\uDCA0 0</div>'+
+        '<div id="brawlScore" style="font-size:12px;color:#FFD700;font-weight:bold">\u2B50 0</div>'+
+        '<button onclick="brawl_quit()" style="background:none;border:1px solid #FF6B3555;color:#FF6B35;padding:2px 6px;border-radius:6px;font-size:11px;touch-action:manipulation">\u2715</button>'+
       '</div>'+
     '</div>'+
     '<canvas id="brawlCanvas" style="flex:1;display:block;touch-action:none;min-height:0"></canvas>'+
-    '<div id="brawlControls" style="background:linear-gradient(0deg,#0a0a0a,#111);border-top:2px solid #1a1a1a;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;height:132px;gap:4px;touch-action:none">'+
-      '<div id="brawlMoveJoy" style="width:116px;height:116px;position:relative;touch-action:none;flex-shrink:0">'+
-        '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;background:rgba(255,107,53,0.05);border:2px solid rgba(255,107,53,0.15)"></div>'+
-        '<div id="brawlMoveKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,107,53,0.5),rgba(255,107,53,0.15));border:2px solid rgba(255,107,53,0.4);box-shadow:0 2px 10px rgba(255,107,53,0.3);pointer-events:none"></div>'+
-        '<div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:10px;color:#FF6B3566;pointer-events:none">MOVE</div>'+
+    '<div id="brawlControls" style="background:linear-gradient(0deg,#0a0a0a,#111);border-top:2px solid #1a1a1a;padding:4px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;height:116px;gap:4px;touch-action:none">'+
+      '<div id="brawlMoveJoy" style="width:104px;height:104px;position:relative;touch-action:none;flex-shrink:0">'+
+        '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88px;height:88px;border-radius:50%;background:rgba(255,107,53,0.05);border:2px solid rgba(255,107,53,0.15)"></div>'+
+        '<div id="brawlMoveKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,107,53,0.5),rgba(255,107,53,0.15));border:2px solid rgba(255,107,53,0.4);box-shadow:0 2px 10px rgba(255,107,53,0.3);pointer-events:none"></div>'+
+        '<div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:9px;color:#FF6B3566;pointer-events:none">MOVE</div>'+
       '</div>'+
       '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0">'+
         '<div style="width:100%;max-width:160px">'+
@@ -5400,10 +5424,10 @@ function rBrawlScreen(){
         '<button id="brawlAbilityBtn" ontouchstart="brawl_useAbility();event&&event.preventDefault?event.preventDefault():0" onclick="brawl_useAbility()" style="width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#CC00FF33,#111);border:2.5px solid #CC00FF;color:#CC00FF;font-size:15px;font-weight:bold;touch-action:manipulation;position:relative;overflow:hidden">\u2728</button>'+
         '<div id="brawlAbilityLbl" style="font-size:10px;color:#CC00FF;max-width:100px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>'+
       '</div>'+
-      '<div id="brawlAimJoy" style="width:116px;height:116px;position:relative;touch-action:none;flex-shrink:0">'+
-        '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:96px;height:96px;border-radius:50%;background:rgba(239,68,68,0.05);border:2px solid rgba(239,68,68,0.15)"></div>'+
-        '<div id="brawlAimKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(239,68,68,0.5),rgba(239,68,68,0.15));border:2px solid rgba(239,68,68,0.4);box-shadow:0 2px 10px rgba(239,68,68,0.3);pointer-events:none"></div>'+
-        '<div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:10px;color:#ef444466;pointer-events:none">AIM & FIRE</div>'+
+      '<div id="brawlAimJoy" style="width:104px;height:104px;position:relative;touch-action:none;flex-shrink:0">'+
+        '<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88px;height:88px;border-radius:50%;background:rgba(239,68,68,0.05);border:2px solid rgba(239,68,68,0.15)"></div>'+
+        '<div id="brawlAimKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(239,68,68,0.5),rgba(239,68,68,0.15));border:2px solid rgba(239,68,68,0.4);box-shadow:0 2px 10px rgba(239,68,68,0.3);pointer-events:none"></div>'+
+        '<div style="position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);font-size:9px;color:#ef444466;pointer-events:none">AIM & FIRE</div>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -5418,6 +5442,8 @@ function brawl_initCanvas(){
   resize();
   BRAWL._resizeHandler=resize;
   window.addEventListener('resize',resize);
+  document.addEventListener('fullscreenchange',resize);
+  document.addEventListener('webkitfullscreenchange',resize);
   BRAWL.ctx=canvas.getContext('2d');
   // Joysticks use Pointer Events API for reliable multi-touch
   brawl_setupPointerJoy('brawlMoveJoy','brawlMoveKnob','move');
@@ -5858,7 +5884,11 @@ function brawl_render(){
   var B=BRAWL,ctx=B.ctx,cv=B.canvas;
   if(!ctx||!cv)return;var vw=cv.width,vh=cv.height;if(!vw||!vh)return;
 
-  var scale=Math.min(vw/B.arenaW,vh/B.arenaH);if(scale>1.8)scale=1.8;
+  // Zoom: show ~280 game units across the smallest screen dimension
+  // This keeps characters large and readable on phone screens
+  var minDim=Math.min(vw,vh);
+  var scale=minDim/280;
+  if(scale<0.8)scale=0.8;if(scale>2.2)scale=2.2;
   var camW=vw/scale,camH=vh/scale;
   B.camX=B.px-camW/2;B.camY=B.py-camH/2;
   B.camX=Math.max(0,Math.min(B.arenaW-camW,B.camX));
@@ -5914,7 +5944,7 @@ function brawl_render(){
   }
   // Border
   var campAccent=B.campaign?BRAWL_ARMIES[B.campaign.id].accent:'#FF6B35';
-  ctx.strokeStyle=campAccent+'44';ctx.lineWidth=4;ctx.strokeRect(2,2,B.arenaW-4,B.arenaH-4);
+  ctx.strokeStyle=campAccent+'66';ctx.lineWidth=6;ctx.strokeRect(2,2,B.arenaW-4,B.arenaH-4);
 
   // Obstacles (improved detail)
   for(var oi=0;oi<B.obstacles.length;oi++){
@@ -6059,7 +6089,7 @@ function brawl_endClick(){
     persistPlayer();
     toast('\uD83D\uDC80 Defeated \u2014 +'+p+' XP +'+(5+B.wave*2)+' Power Pts');
   }
-  brawl_cleanup();go('game');
+  brawl_cleanup();brawl_exitFullscreen();go('game');
 }
 
 function brawl_updateHUD(){
@@ -6083,7 +6113,11 @@ function brawl_cleanup(){
   if(B.rafId){cancelAnimationFrame(B.rafId);B.rafId=null;}
   if(B._kd)document.removeEventListener('keydown',B._kd);
   if(B._ku)document.removeEventListener('keyup',B._ku);
-  if(B._resizeHandler)window.removeEventListener('resize',B._resizeHandler);
+  if(B._resizeHandler){
+    window.removeEventListener('resize',B._resizeHandler);
+    document.removeEventListener('fullscreenchange',B._resizeHandler);
+    document.removeEventListener('webkitfullscreenchange',B._resizeHandler);
+  }
   if(B._joyCleanup){B._joyCleanup.forEach(function(fn){fn();});B._joyCleanup=[];}
   if(B._mouseHandler&&B.canvas){B.canvas.removeEventListener('click',B._mouseHandler);}
   B._endClickBound=false;B.canvas=null;B.ctx=null;
@@ -6092,7 +6126,7 @@ function brawl_cleanup(){
 function brawl_quit(){
   if(BRAWL.state==='playing'||BRAWL.state==='boss'||BRAWL.state==='wave_clear'){
     if(!confirm('Leave the battle? Progress will be lost.'))return;}
-  brawl_cleanup();go('game');
+  brawl_cleanup();brawl_exitFullscreen();go('game');
 }
 
 // ═══════════════════════════════════════════════════════
