@@ -477,7 +477,309 @@ function drawJesus(c,sk,hr,ot){
   // Sandals
   rect(c,10,32,5,2,"#8B6914");rect(c,17,32,5,2,"#8B6914");
 }
-const DRAW_FN={shepherd:drawShepherd,david:drawDavid,esther:drawEsther,samson:drawSamson,deborah:drawDeborah,elijah:drawElijah,ruth:drawRuth,joshua:drawJoshua,daniel:drawDaniel,moses:drawMoses,solomon:drawSolomon,jesus:drawJesus,abraham:drawAbraham,jacob:drawJacob,joseph:drawJoseph,noah:drawNoah,peter:drawPeter,paul:drawPaul,gideon:drawGideon,isaiah:drawIsaiah,godfather:drawGodFather,holyspirit:drawHolySpirit,goliath:drawGoliath,philistine:drawPhilistine,false_prophet:drawFalseProphet,legion:drawLegion,king_saul:drawKingSaul,pharaoh:drawPharaoh};
+
+// ── New Heroes (batch 2) ──────────────────────
+function drawMiriam(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const o=OUTFITS[ot]||OUTFITS[0];const sd=shade(skin,-30);
+  // Headscarf
+  rect(c,9,2,14,6,"#B8E0D2");rect(c,8,4,2,10,shade("#B8E0D2",-15));rect(c,22,4,2,10,shade("#B8E0D2",-15));
+  // Face
+  rect(c,11,5,10,9,skin);
+  // Eyes
+  rect(c,13,9,2,2,"#4B2E1A");rect(c,17,9,2,2,"#4B2E1A");rect(c,13,9,1,1,"#fff");rect(c,17,9,1,1,"#fff");
+  rect(c,14,12,4,1,sd);rect(c,14,14,4,3,skin);
+  // Robe
+  rect(c,7,17,18,13,o.p);rect(c,10,18,12,9,o.s);
+  // Flowing sleeves
+  rect(c,3,17,6,10,o.p);rect(c,23,17,6,10,o.p);
+  rect(c,4,23,4,3,skin);rect(c,24,23,4,3,skin);
+  // Tambourine in right hand
+  circle(c,26,20,3,"#DAA520");circle(c,26,20,2,"#F5DEB3");rect(c,25,19,2,1,"#FFD700");rect(c,27,21,1,2,"#FFD700");
+  // Skirt trim
+  rect(c,7,29,18,2,o.acc);
+}
+function drawTimothy(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const o=OUTFITS[ot]||OUTFITS[0];const sd=shade(skin,-30);
+  // Head — youthful
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,hair);rect(c,10,4,2,5,hair);rect(c,20,4,2,5,hair);
+  // Eyes — bright, eager
+  rect(c,13,7,2,2,"#2244AA");rect(c,17,7,2,2,"#2244AA");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,2,skin);
+  // Simple tunic
+  rect(c,8,14,16,14,"#A8D8EA");rect(c,10,15,12,10,shade("#A8D8EA",15));
+  rect(c,8,14,16,1,"#628CA6");
+  // Belt
+  rect(c,8,22,16,2,"#8B6914");rect(c,14,22,4,2,"#C4A35A");
+  // Arms
+  rect(c,4,14,5,9,"#A8D8EA");rect(c,23,14,5,9,"#A8D8EA");
+  rect(c,4,20,4,3,skin);rect(c,24,20,4,3,skin);
+  // Scroll in left hand
+  rect(c,2,16,4,8,"#F5F0E8");rect(c,2,16,4,1,"#DEB887");rect(c,2,23,4,1,"#DEB887");
+  // Sandals
+  rect(c,9,28,5,3,"#8B6914");rect(c,18,28,5,3,"#8B6914");
+}
+function drawCaleb(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const sd=shade(skin,-35);
+  // Helmet
+  rect(c,9,1,14,5,"#5C9E31");rect(c,10,1,12,3,shade("#5C9E31",20));
+  rect(c,9,3,2,4,"#5C9E31");rect(c,21,3,2,4,"#5C9E31");
+  // Face — weathered warrior
+  rect(c,11,5,10,8,skin);
+  rect(c,13,8,2,2,"#1a3a00");rect(c,17,8,2,2,"#1a3a00");
+  rect(c,13,8,1,1,"#fff");rect(c,17,8,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,12,4,2,skin);
+  // Armor
+  rect(c,7,14,18,14,"#5C9E31");rect(c,9,15,14,10,shade("#5C9E31",15));
+  rect(c,7,14,18,1,"#3D6B1F");
+  // Belt with buckle
+  rect(c,7,22,18,2,"#3D6B1F");rect(c,14,22,4,2,"#C0C0C0");
+  // Arms
+  rect(c,3,14,5,10,"#5C9E31");rect(c,24,14,5,10,"#5C9E31");
+  rect(c,3,20,4,3,skin);rect(c,25,20,4,3,skin);
+  // Sword in right hand
+  rect(c,26,10,2,14,"#C0C0C0");rect(c,25,10,4,2,"#8B6914");rect(c,26,8,2,3,shade("#C0C0C0",30));
+  // Shield on left
+  rect(c,1,16,5,8,"#8B6914");rect(c,2,17,3,6,"#5C9E31");rect(c,3,19,1,2,"#FFD700");
+  // Boots
+  rect(c,8,28,6,4,"#3D6B1F");rect(c,18,28,6,4,"#3D6B1F");
+}
+function drawNehemiah(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const sd=shade(skin,-30);
+  // Head
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,hair);rect(c,10,4,2,5,hair);rect(c,20,4,2,5,hair);
+  // Eyes — determined
+  rect(c,13,7,2,2,"#2a2a2a");rect(c,17,7,2,2,"#2a2a2a");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Short beard
+  rect(c,12,11,8,3,hair);rect(c,13,12,6,2,shade(hair,-10));
+  rect(c,14,13,4,3,skin);
+  // Mason's tunic
+  rect(c,7,16,18,14,"#C0C0C0");rect(c,10,17,12,10,shade("#C0C0C0",10));
+  rect(c,7,16,18,1,"#8B8B8B");
+  // Apron
+  rect(c,9,20,14,8,"#8B6914");rect(c,11,21,10,6,"#A0822D");
+  // Arms
+  rect(c,3,16,5,10,"#C0C0C0");rect(c,24,16,5,10,"#C0C0C0");
+  rect(c,3,22,4,3,skin);rect(c,24,22,4,3,skin);
+  // Trowel in right hand
+  rect(c,25,18,3,2,"#C0C0C0");rect(c,27,17,2,4,"#8B6914");
+  // Stone block in left hand
+  rect(c,1,20,4,4,"#A0A0A0");rect(c,2,21,2,2,shade("#A0A0A0",15));
+  // Boots
+  rect(c,8,30,6,2,"#5C3317");rect(c,18,30,6,2,"#5C3317");
+}
+function drawJonathan(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const sd=shade(skin,-30);
+  // Crown band (prince)
+  rect(c,10,2,12,3,"#E6B422");rect(c,12,1,2,3,"#E6B422");rect(c,18,1,2,3,"#E6B422");rect(c,15,0,2,4,"#E6B422");
+  // Head
+  rect(c,10,4,12,8,skin);rect(c,10,4,12,3,hair);rect(c,9,5,2,5,hair);rect(c,21,5,2,5,hair);
+  // Eyes — loyal, warm
+  rect(c,12,8,2,2,"#2a5a2a");rect(c,18,8,2,2,"#2a5a2a");rect(c,12,8,1,1,"#fff");rect(c,18,8,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,2,skin);
+  // Royal armor
+  rect(c,7,13,18,15,"#E6B422");rect(c,9,14,14,11,shade("#E6B422",15));
+  rect(c,7,13,18,1,"#B8921B");
+  // Chest plate detail
+  rect(c,12,15,8,6,"#B8921B");rect(c,14,16,4,4,"#FFD700");
+  // Belt
+  rect(c,7,22,18,2,"#8B6914");
+  // Arms
+  rect(c,3,13,5,10,"#E6B422");rect(c,24,13,5,10,"#E6B422");
+  rect(c,3,19,4,3,skin);rect(c,25,19,4,3,skin);
+  // Bow on back
+  rect(c,24,6,2,16,"#8B6914");rect(c,25,5,1,3,shade("#8B6914",20));rect(c,25,19,1,3,shade("#8B6914",20));
+  // Arrow quiver
+  rect(c,22,4,3,10,"#5C3317");rect(c,23,5,1,3,"#C0C0C0");rect(c,24,6,1,2,"#C0C0C0");
+  // Boots
+  rect(c,8,28,6,4,"#8B6914");rect(c,18,28,6,4,"#8B6914");
+}
+function drawJeremiah(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const sd=shade(skin,-30);
+  // Head — sorrowful face
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,"#888888");rect(c,10,4,2,6,"#888888");rect(c,20,4,2,6,"#888888");
+  // Eyes — tearful
+  rect(c,13,7,2,2,"#1a3a3a");rect(c,17,7,2,2,"#1a3a3a");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  // Tears
+  rect(c,15,9,1,2,"#64C8FF");rect(c,19,9,1,2,"#64C8FF");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Beard
+  rect(c,12,11,8,4,"#888888");rect(c,13,12,6,3,shade("#888888",-10));
+  rect(c,14,14,4,3,skin);
+  // Dark robe — mourning
+  rect(c,7,17,18,13,"#4A6B6B");rect(c,10,18,12,9,"#6B8E8E");
+  rect(c,7,17,18,1,"#3A5A5A");
+  // Sash
+  rect(c,7,24,18,2,"#3A5A5A");
+  // Arms
+  rect(c,3,17,5,10,"#4A6B6B");rect(c,24,17,5,10,"#4A6B6B");
+  rect(c,4,23,4,3,skin);rect(c,24,23,4,3,skin);
+  // Scroll of prophecy
+  rect(c,2,18,4,8,"#F5F0E8");rect(c,2,18,4,1,"#DEB887");rect(c,2,25,4,1,"#DEB887");
+  rect(c,3,20,2,4,"#1a1a1a");
+  // Feet
+  rect(c,8,30,6,2,"#3A5A5A");rect(c,18,30,6,2,"#3A5A5A");
+}
+function drawEzekiel(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const sd=shade(skin,-30);
+  // Head
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,"#555555");rect(c,10,4,2,6,"#555555");rect(c,20,4,2,6,"#555555");
+  // Eyes — visionary, intense
+  rect(c,13,7,2,2,"#4488CC");rect(c,17,7,2,2,"#4488CC");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Beard
+  rect(c,12,11,8,4,"#555555");rect(c,13,12,6,3,shade("#555555",-10));
+  rect(c,14,14,4,3,skin);
+  // Robe — prophet's garment
+  rect(c,7,17,18,13,"#8090A0");rect(c,10,18,12,9,"#B0C4DE");
+  rect(c,7,17,18,1,"#607080");
+  // Arms
+  rect(c,3,17,5,10,"#8090A0");rect(c,24,17,5,10,"#8090A0");
+  rect(c,4,23,4,3,skin);rect(c,24,23,4,3,skin);
+  // Bones at feet — valley of dry bones
+  rect(c,3,28,3,1,"#FFFFF0");rect(c,7,30,4,1,"#FFFFF0");rect(c,20,29,3,1,"#FFFFF0");rect(c,25,28,4,1,"#FFFFF0");
+  circle(c,5,28,1,"#FFFFF0");circle(c,23,30,1,"#FFFFF0");
+  // Spirit wind swirls
+  rect(c,26,10,2,3,"#B0C4DE88");rect(c,27,14,2,2,"#B0C4DE88");rect(c,25,8,2,2,"#B0C4DE88");
+  // Feet
+  rect(c,8,30,6,2,"#5C3317");rect(c,18,30,6,2,"#5C3317");
+}
+function drawMaryMagd(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const sd=shade(skin,-25);
+  // Long flowing hair
+  rect(c,9,3,14,5,"#8B2500");rect(c,8,5,2,14,shade("#8B2500",-10));rect(c,22,5,2,14,shade("#8B2500",-10));
+  rect(c,9,7,2,12,"#8B2500");rect(c,21,7,2,12,"#8B2500");
+  // Face
+  rect(c,11,5,10,9,skin);
+  // Eyes — devoted
+  rect(c,13,9,2,2,"#4B2E1A");rect(c,17,9,2,2,"#4B2E1A");rect(c,13,9,1,1,"#fff");rect(c,17,9,1,1,"#fff");
+  rect(c,14,12,4,1,sd);rect(c,14,14,4,3,skin);
+  // Robe — deep rose
+  rect(c,7,18,18,12,"#AA2255");rect(c,10,19,12,9,shade("#AA2255",20));
+  rect(c,7,18,18,1,"#881144");
+  // Arms
+  rect(c,3,18,6,9,"#AA2255");rect(c,23,18,6,9,"#AA2255");
+  rect(c,4,24,4,3,skin);rect(c,24,24,4,3,skin);
+  // Alabaster jar in hands
+  rect(c,24,20,4,6,"#F5F0E8");rect(c,25,19,2,2,shade("#F5F0E8",-10));rect(c,25,21,2,4,"#DEB887");
+  // Anointing oil drops — gold
+  rect(c,26,26,1,1,"#FFD700");rect(c,28,25,1,1,"#FFD700");
+  // Skirt hem
+  rect(c,7,29,18,2,shade("#AA2255",-15));
+}
+function drawElisha(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const sd=shade(skin,-30);
+  // Bald head
+  rect(c,11,3,10,9,skin);rect(c,10,8,2,5,"#BBBBBB");rect(c,20,8,2,5,"#BBBBBB");
+  // Eyes — prophetic
+  rect(c,13,7,2,2,"#FF4500");rect(c,17,7,2,2,"#FF4500");rect(c,13,7,1,1,"#FFD700");rect(c,17,7,1,1,"#FFD700");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Beard
+  rect(c,12,11,8,4,"#BBBBBB");rect(c,13,12,6,3,shade("#BBBBBB",-10));
+  rect(c,14,14,4,3,skin);
+  // Mantle — Elijah's mantle (fiery)
+  rect(c,7,17,18,13,"#FF7F50");rect(c,10,18,12,9,shade("#FF7F50",15));
+  rect(c,7,17,18,1,"#CC5533");
+  // Fire trim at bottom
+  for(let i=0;i<6;i++){rect(c,7+i*3,28,2,3,i%2?"#FF4500":"#FFD700");}
+  // Arms
+  rect(c,3,17,5,10,"#FF7F50");rect(c,24,17,5,10,"#FF7F50");
+  rect(c,4,23,4,3,skin);rect(c,24,23,4,3,skin);
+  // Staff — double portion
+  rect(c,2,6,2,24,"#8B6914");rect(c,1,6,4,2,"#FFD700");rect(c,2,4,2,3,"#FF4500");
+  // Feet
+  rect(c,8,30,6,2,"#8B6914");rect(c,18,30,6,2,"#8B6914");
+}
+function drawJob(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const sd=shade(skin,-30);
+  // Head — patient, worn
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,"#AAAAAA");rect(c,10,4,2,6,"#AAAAAA");rect(c,20,4,2,6,"#AAAAAA");
+  // Eyes — enduring
+  rect(c,13,7,2,2,"#5C4A1A");rect(c,17,7,2,2,"#5C4A1A");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Long white beard
+  rect(c,11,11,10,6,"#CCCCCC");rect(c,12,12,8,6,"#DDDDDD");rect(c,13,15,6,4,shade("#DDDDDD",-10));
+  rect(c,14,14,4,3,skin);
+  // Torn robe — suffering but dignified
+  rect(c,7,19,18,11,"#DAA520");rect(c,10,20,12,8,shade("#DAA520",10));
+  rect(c,7,19,18,1,"#B8860B");
+  // Torn patches
+  rect(c,8,22,3,3,shade("#DAA520",-20));rect(c,20,24,3,2,shade("#DAA520",-20));
+  // Arms
+  rect(c,3,19,5,8,"#DAA520");rect(c,24,19,5,8,"#DAA520");
+  rect(c,4,24,4,3,skin);rect(c,24,24,4,3,skin);
+  // Halo of perseverance — subtle gold
+  c.strokeStyle="rgba(218,165,32,0.25)";c.lineWidth=1;
+  c.beginPath();c.arc(16,8,10,0,Math.PI*2);c.stroke();
+  // Feet
+  rect(c,8,30,6,2,"#8B6914");rect(c,18,30,6,2,"#8B6914");
+}
+function drawSamuel(c,sk,hr,ot){
+  const skin=SKINS[sk]||SKINS[0];const hair=HAIRS[hr]||HAIRS[1];const sd=shade(skin,-30);
+  // Head
+  rect(c,11,3,10,9,skin);rect(c,11,3,10,3,hair);rect(c,10,4,2,5,hair);rect(c,20,4,2,5,hair);
+  // Eyes — wise, prophetic
+  rect(c,13,7,2,2,"#3a2a5a");rect(c,17,7,2,2,"#3a2a5a");rect(c,13,7,1,1,"#fff");rect(c,17,7,1,1,"#fff");
+  rect(c,15,10,2,1,sd);rect(c,14,11,4,1,sd);
+  // Short beard
+  rect(c,12,11,8,3,hair);rect(c,13,12,6,2,shade(hair,-10));
+  rect(c,14,13,4,3,skin);
+  // Priestly robe — purple/white
+  rect(c,7,16,18,14,"#9B7ED8");rect(c,10,17,12,10,shade("#9B7ED8",15));
+  rect(c,7,16,18,1,"#7B5EB8");
+  // Ephod overlay
+  rect(c,10,18,12,6,"#FFFFFF");rect(c,12,19,8,4,"#FFFFF0");
+  // Belt
+  rect(c,7,24,18,2,"#7B5EB8");rect(c,14,24,4,2,"#FFD700");
+  // Arms
+  rect(c,3,16,5,10,"#9B7ED8");rect(c,24,16,5,10,"#9B7ED8");
+  rect(c,4,22,4,3,skin);rect(c,24,22,4,3,skin);
+  // Horn of anointing oil in right hand
+  rect(c,25,14,3,5,"#C4A35A");rect(c,26,13,2,3,shade("#C4A35A",20));rect(c,27,12,1,3,"#DAA520");
+  // Oil drop
+  rect(c,26,19,1,1,"#FFD700");
+  // Feet
+  rect(c,8,30,6,2,"#5C3317");rect(c,18,30,6,2,"#5C3317");
+}
+function drawMichael(c){
+  // Archangel Michael — heavenly warrior, divine armor, flaming sword
+  // Divine glow
+  c.fillStyle="rgba(255,255,255,0.06)";c.beginPath();c.arc(16,14,15,0,Math.PI*2);c.fill();
+  c.fillStyle="rgba(255,215,0,0.04)";c.beginPath();c.arc(16,14,12,0,Math.PI*2);c.fill();
+  // Wings — large angelic
+  rect(c,0,6,8,14,"#FFFFFF");rect(c,1,7,6,12,"#FFFFF0");rect(c,2,9,4,8,shade("#FFFFFF",-5));
+  rect(c,24,6,8,14,"#FFFFFF");rect(c,25,7,6,12,"#FFFFF0");rect(c,26,9,4,8,shade("#FFFFFF",-5));
+  // Wing tips
+  rect(c,0,5,3,3,"#FFFFF0");rect(c,29,5,3,3,"#FFFFF0");
+  // Head — radiant
+  rect(c,11,2,10,8,"#F5DEB3");
+  // Golden helm
+  rect(c,10,1,12,4,"#FFD700");rect(c,14,0,4,3,shade("#FFD700",20));
+  // Eyes — blazing
+  rect(c,13,6,2,2,"#FFD700");rect(c,17,6,2,2,"#FFD700");rect(c,13,6,1,1,"#FFFFFF");rect(c,17,6,1,1,"#FFFFFF");
+  // Chin
+  rect(c,14,9,4,2,"#F5DEB3");
+  // Divine armor — silver and gold
+  rect(c,8,11,16,14,"#C0C0C0");rect(c,10,12,12,10,shade("#C0C0C0",20));
+  // Chest cross emblem
+  rect(c,15,13,2,6,"#FFD700");rect(c,13,15,6,2,"#FFD700");
+  // Belt
+  rect(c,8,22,16,2,"#FFD700");
+  // Armored skirt
+  rect(c,9,24,14,5,"#C0C0C0");for(let i=0;i<5;i++){rect(c,9+i*3,24,2,5,shade("#C0C0C0",-10));}
+  // Flaming sword — right hand
+  rect(c,26,2,2,16,"#C0C0C0");rect(c,25,2,4,2,"#FFD700");rect(c,26,0,2,3,"#FF4500");rect(c,27,1,1,2,"#FFD700");
+  rect(c,25,4,1,4,"#FF450066");rect(c,28,6,1,3,"#FF450066");
+  // Shield — left arm
+  rect(c,1,14,6,8,"#FFD700");rect(c,2,15,4,6,"#FFFFFF");rect(c,3,17,2,2,"#FF0000");
+  // Boots
+  rect(c,10,29,4,3,"#FFD700");rect(c,18,29,4,3,"#FFD700");
+  // Divine rays
+  c.strokeStyle="rgba(255,215,0,0.2)";c.lineWidth=1;
+  for(var i=0;i<8;i++){var a=i*Math.PI/4;c.beginPath();c.moveTo(16+Math.cos(a)*14,10+Math.sin(a)*14);c.lineTo(16+Math.cos(a)*19,10+Math.sin(a)*19);c.stroke();}
+}
+
+const DRAW_FN={shepherd:drawShepherd,david:drawDavid,esther:drawEsther,samson:drawSamson,deborah:drawDeborah,elijah:drawElijah,ruth:drawRuth,joshua:drawJoshua,daniel:drawDaniel,moses:drawMoses,solomon:drawSolomon,jesus:drawJesus,abraham:drawAbraham,jacob:drawJacob,joseph:drawJoseph,noah:drawNoah,peter:drawPeter,paul:drawPaul,gideon:drawGideon,isaiah:drawIsaiah,godfather:drawGodFather,holyspirit:drawHolySpirit,goliath:drawGoliath,philistine:drawPhilistine,false_prophet:drawFalseProphet,legion:drawLegion,king_saul:drawKingSaul,pharaoh:drawPharaoh,miriam:drawMiriam,timothy:drawTimothy,caleb:drawCaleb,nehemiah:drawNehemiah,jonathan:drawJonathan,jeremiah:drawJeremiah,ezekiel:drawEzekiel,marymagd:drawMaryMagd,elisha:drawElisha,job:drawJob,samuel:drawSamuel,michael:drawMichael};
 ["egyptian_guard","philistine_scout","armor_bearer","egyptian_captain","conspirator"].forEach(k=>DRAW_FN[k]=drawPhilistine);
 ["royal_sorcerer","jezebel"].forEach(k=>DRAW_FN[k]=drawFalseProphet);
 DRAW_FN.lions=drawLegion;DRAW_FN.storm=drawLegion;DRAW_FN.great_fish=drawGoliath;
@@ -526,6 +828,18 @@ const ALL_CHARS=[
   {id:"isaiah",  sprId:"isaiah",  name:"Isaiah",        title:"The Prophet",     rarity:"epic",     color:"#3a3a7a",bg:"#0a0a1a",str:7, faith:13,hp:118,abilityName:"Burning Coal",      abilityDmg:[28,52], unlockHow:"Complete 6 missions"},
   {id:"godfather",sprId:"godfather",name:"God the Father",title:"The Almighty",  rarity:"divine",   color:"#FFFFFF",bg:"#1a1a00",str:18,faith:25,hp:250,abilityName:"Let There Be Light",abilityDmg:[90,140],unlockHow:"Reach Level 20 with all missions"},
   {id:"holyspirit",sprId:"holyspirit",name:"Holy Spirit",title:"The Comforter",  rarity:"divine",   color:"#64C8FF",bg:"#001a2a",str:14,faith:22,hp:220,abilityName:"Tongues of Fire",  abilityDmg:[85,130],unlockHow:"Baptize 5 NPCs & Level 15"},
+  {id:"miriam",  sprId:"miriam",  name:"Miriam",       title:"The Prophetess",  rarity:"uncommon",color:"#B8E0D2",bg:"#001a14",str:6, faith:9, hp:100,abilityName:"Song of the Sea",   abilityDmg:[13,25], unlockHow:"Win 3 arena battles"},
+  {id:"timothy", sprId:"timothy", name:"Timothy",      title:"Young Disciple",  rarity:"uncommon",color:"#A8D8EA",bg:"#001018",str:7, faith:8, hp:98, abilityName:"Youthful Zeal",     abilityDmg:[12,24], unlockHow:"Reach Level 3"},
+  {id:"caleb",   sprId:"caleb",   name:"Caleb",        title:"The Faithful Spy",rarity:"rare",    color:"#5C9E31",bg:"#0a1a00",str:9, faith:9, hp:112,abilityName:"Giant Slayer",       abilityDmg:[26,44], unlockHow:"Win 8 PvP battles"},
+  {id:"nehemiah",sprId:"nehemiah",name:"Nehemiah",     title:"The Rebuilder",   rarity:"rare",    color:"#C0C0C0",bg:"#0d0d10",str:8, faith:10,hp:114,abilityName:"Wall of Stone",      abilityDmg:[20,42], unlockHow:"Complete 2 missions"},
+  {id:"jonathan",sprId:"jonathan",name:"Jonathan",     title:"Loyal Prince",    rarity:"rare",    color:"#E6B422",bg:"#1a1200",str:8, faith:9, hp:110,abilityName:"Arrow Volley",       abilityDmg:[24,44], unlockHow:"Win 25 arena battles"},
+  {id:"jeremiah",sprId:"jeremiah",name:"Jeremiah",     title:"Weeping Prophet", rarity:"epic",    color:"#6B8E8E",bg:"#0a1414",str:8, faith:13,hp:120,abilityName:"Tears of Justice",   abilityDmg:[30,54], unlockHow:"15 church check-ins"},
+  {id:"ezekiel", sprId:"ezekiel", name:"Ezekiel",      title:"Valley of Bones",rarity:"epic",    color:"#B0C4DE",bg:"#0d0d1a",str:9, faith:12,hp:124,abilityName:"Dry Bones Rising",   abilityDmg:[34,58], unlockHow:"Win 10 PvP battles"},
+  {id:"marymagd",sprId:"marymagd",name:"Mary Magdalene",title:"Devoted Witness",rarity:"epic",    color:"#E8A0BF",bg:"#1a0014",str:7, faith:14,hp:116,abilityName:"Anointing Oil",      abilityDmg:[25,50], unlockHow:"Reach Level 8"},
+  {id:"elisha",  sprId:"elisha",  name:"Elisha",       title:"Double Portion", rarity:"legendary",color:"#FF7F50",bg:"#1a0800",str:10,faith:13,hp:136,abilityName:"Mantle of Power",   abilityDmg:[46,76], unlockHow:"Win 15 PvP battles"},
+  {id:"job",     sprId:"job",     name:"Job",          title:"The Patient One",rarity:"legendary",color:"#DAA520",bg:"#1a1200",str:8, faith:15,hp:145,abilityName:"Enduring Faith",    abilityDmg:[42,70], unlockHow:"Reach Level 15"},
+  {id:"samuel",  sprId:"samuel",  name:"Samuel",       title:"The Anointer",   rarity:"rare",    color:"#9B7ED8",bg:"#0d0a1a",str:7, faith:11,hp:108,abilityName:"Anointing Horn",    abilityDmg:[22,42], unlockHow:"Win 7 arena battles"},
+  {id:"michael", sprId:"michael", name:"Archangel Michael",title:"Heaven's General",rarity:"divine",color:"#FFFFFF",bg:"#0a0a1a",str:16,faith:21,hp:230,abilityName:"Holy Smite",        abilityDmg:[88,135],unlockHow:"All missions + Lv18 + 10 PvP"},
 ];
 const MISSIONS=[
   // Mission 1: TD
@@ -1842,7 +2156,7 @@ function animHit(elId,val,crit,col){if(SFX){if(elId==="eHit"&&crit)SFX.crit();el
 function battleParticleBurst(anchorEl,count,col,big){var rect=anchorEl.getBoundingClientRect();var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;for(var i=0;i<count;i++){var p=document.createElement("div");p.style.cssText="position:fixed;pointer-events:none;z-index:999;border-radius:50%;width:"+(big?8:5)+"px;height:"+(big?8:5)+"px;background:"+col+";box-shadow:0 0 "+(big?8:4)+"px "+col+";left:"+cx+"px;top:"+cy+"px;opacity:1;transition:all .6s cubic-bezier(.2,.8,.3,1);";document.body.appendChild(p);var angle=Math.PI*2*i/count;var dist=30+Math.random()*40;setTimeout((function(pp,a,d){return function(){pp.style.left=(cx+Math.cos(a)*d)+"px";pp.style.top=(cy+Math.sin(a)*d-20)+"px";pp.style.opacity="0";pp.style.transform="scale(0.2)";setTimeout(function(){pp.remove();},650);};})(p,angle,dist),10);}}
 function victoryParticleBurst(){var cols=["#FFD700","#FFA500","#FF6347","#4ade80","#60a5fa","#c084fc"];var vw=window.innerWidth,vh=window.innerHeight;for(var w=0;w<3;w++){setTimeout((function(wave){return function(){for(var i=0;i<10;i++){var p=document.createElement("div");var c=cols[Math.floor(Math.random()*cols.length)];var sz=4+Math.random()*6;var sx=Math.random()*vw;p.style.cssText="position:fixed;pointer-events:none;z-index:9999;border-radius:"+(Math.random()>.5?"50%":"2px")+";width:"+sz+"px;height:"+sz+"px;background:"+c+";box-shadow:0 0 6px "+c+";left:"+sx+"px;top:"+vh+"px;opacity:1;transition:all 1.2s cubic-bezier(.15,.8,.3,1);";document.body.appendChild(p);setTimeout((function(pp,x){return function(){pp.style.top=(vh*0.1+Math.random()*vh*0.5)+"px";pp.style.left=(x+(Math.random()-.5)*80)+"px";pp.style.opacity="0";pp.style.transform="scale(0.1) rotate("+Math.floor(Math.random()*360)+"deg)";setTimeout(function(){pp.remove();},1300);};})(p,sx),20);}};})(w),w*300);}}
 function animEl(elId,anim){const el=document.getElementById(elId);if(!el)return;el.style.animation="none";void el.offsetWidth;el.style.animation=anim;}
-function checkUnlocks(){var _ulBefore=G.unlocked.length;const w=G.pd.wins;const pW=G.pd.pvpWins;const lv=glv();const ci=G.pd.checkIns||0;if(w>=1&&!G.unlocked.includes("ruth")){G.unlocked.push("ruth");toast("🎉 UNLOCKED: Ruth (Uncommon)!");}if(w>=5&&!G.unlocked.includes("jacob")){G.unlocked.push("jacob");toast("🎉 UNLOCKED: Jacob (Uncommon)!");}if(w>=10&&!G.unlocked.includes("deborah")){G.unlocked.push("deborah");toast("🎉 UNLOCKED: Deborah (Rare)!");}if(w>=15&&!G.unlocked.includes("joshua")){G.unlocked.push("joshua");toast("🎉 UNLOCKED: Joshua (Rare)!");}if(w>=20&&!G.unlocked.includes("peter")){G.unlocked.push("peter");toast("🪨 UNLOCKED: Peter (Epic)!");}if(pW>=3&&!G.unlocked.includes("gideon")){G.unlocked.push("gideon");toast("🔥 UNLOCKED: Gideon (Rare)!");}if(pW>=5&&!G.unlocked.includes("elijah")){G.unlocked.push("elijah");toast("🔥 UNLOCKED: Elijah (Epic)!");}if(lv>=5&&!G.unlocked.includes("joseph")){G.unlocked.push("joseph");toast("🌈 UNLOCKED: Joseph (Rare)!");}if(ci>=10&&!G.unlocked.includes("abraham")){G.unlocked.push("abraham");toast("⭐ UNLOCKED: Abraham (Epic)!");}if(G.completedMissions.includes("noah_s")&&!G.unlocked.includes("noah")){G.unlocked.push("noah");toast("🚢 UNLOCKED: Noah (Uncommon)!");}if(G.completedMissions.length>=4&&!G.unlocked.includes("samson")){G.unlocked.push("samson");toast("💪 UNLOCKED: Samson (Epic)!");}if(G.completedMissions.includes("moses_m")&&!G.unlocked.includes("daniel")){G.unlocked.push("daniel");toast("🦁 UNLOCKED: Daniel (Epic)!");}if(G.completedMissions.includes("david_m")&&!G.unlocked.includes("david")){G.unlocked.push("david");toast("👑 UNLOCKED: David (Rare)!");}if(G.completedMissions.length>=6&&!G.unlocked.includes("isaiah")){G.unlocked.push("isaiah");toast("🔥 UNLOCKED: Isaiah (Epic)!");}if(lv>=10&&!G.unlocked.includes("solomon")){G.unlocked.push("solomon");toast("👑 UNLOCKED: Solomon (Legendary)!");}if(lv>=12&&pW>=5&&!G.unlocked.includes("paul")){G.unlocked.push("paul");toast("⚔️ UNLOCKED: Paul (Legendary)!");}if(G.completedMissions.length>=8&&!G.unlocked.includes("moses")){G.unlocked.push("moses");toast("⚡ UNLOCKED: Moses (Legendary)!");}if(G.completedMissions.length>=10&&lv>=15&&!G.unlocked.includes("jesus")){G.unlocked.push("jesus");toast("✨ DIVINE UNLOCK: Jesus! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1200);}if((G.pd.baptized||[]).length>=5&&lv>=15&&!G.unlocked.includes("holyspirit")){G.unlocked.push("holyspirit");toast("🕊️ DIVINE UNLOCK: Holy Spirit! ★★★★★★ Divine tier!");doFlash("#64C8FF99",1200);}if(G.completedMissions.length>=10&&lv>=20&&!G.unlocked.includes("godfather")){G.unlocked.push("godfather");toast("✨ DIVINE UNLOCK: God the Father! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1500);}if(G.unlocked.length>_ulBefore&&SFX)SFX.unlock();}
+function checkUnlocks(){var _ulBefore=G.unlocked.length;const w=G.pd.wins;const pW=G.pd.pvpWins;const lv=glv();const ci=G.pd.checkIns||0;if(w>=1&&!G.unlocked.includes("ruth")){G.unlocked.push("ruth");toast("🎉 UNLOCKED: Ruth (Uncommon)!");}if(w>=5&&!G.unlocked.includes("jacob")){G.unlocked.push("jacob");toast("🎉 UNLOCKED: Jacob (Uncommon)!");}if(w>=10&&!G.unlocked.includes("deborah")){G.unlocked.push("deborah");toast("🎉 UNLOCKED: Deborah (Rare)!");}if(w>=15&&!G.unlocked.includes("joshua")){G.unlocked.push("joshua");toast("🎉 UNLOCKED: Joshua (Rare)!");}if(w>=20&&!G.unlocked.includes("peter")){G.unlocked.push("peter");toast("🪨 UNLOCKED: Peter (Epic)!");}if(pW>=3&&!G.unlocked.includes("gideon")){G.unlocked.push("gideon");toast("🔥 UNLOCKED: Gideon (Rare)!");}if(pW>=5&&!G.unlocked.includes("elijah")){G.unlocked.push("elijah");toast("🔥 UNLOCKED: Elijah (Epic)!");}if(lv>=5&&!G.unlocked.includes("joseph")){G.unlocked.push("joseph");toast("🌈 UNLOCKED: Joseph (Rare)!");}if(ci>=10&&!G.unlocked.includes("abraham")){G.unlocked.push("abraham");toast("⭐ UNLOCKED: Abraham (Epic)!");}if(G.completedMissions.includes("noah_s")&&!G.unlocked.includes("noah")){G.unlocked.push("noah");toast("🚢 UNLOCKED: Noah (Uncommon)!");}if(G.completedMissions.length>=4&&!G.unlocked.includes("samson")){G.unlocked.push("samson");toast("💪 UNLOCKED: Samson (Epic)!");}if(G.completedMissions.includes("moses_m")&&!G.unlocked.includes("daniel")){G.unlocked.push("daniel");toast("🦁 UNLOCKED: Daniel (Epic)!");}if(G.completedMissions.includes("david_m")&&!G.unlocked.includes("david")){G.unlocked.push("david");toast("👑 UNLOCKED: David (Rare)!");}if(G.completedMissions.length>=6&&!G.unlocked.includes("isaiah")){G.unlocked.push("isaiah");toast("🔥 UNLOCKED: Isaiah (Epic)!");}if(lv>=10&&!G.unlocked.includes("solomon")){G.unlocked.push("solomon");toast("👑 UNLOCKED: Solomon (Legendary)!");}if(lv>=12&&pW>=5&&!G.unlocked.includes("paul")){G.unlocked.push("paul");toast("⚔️ UNLOCKED: Paul (Legendary)!");}if(G.completedMissions.length>=8&&!G.unlocked.includes("moses")){G.unlocked.push("moses");toast("⚡ UNLOCKED: Moses (Legendary)!");}if(G.completedMissions.length>=10&&lv>=15&&!G.unlocked.includes("jesus")){G.unlocked.push("jesus");toast("✨ DIVINE UNLOCK: Jesus! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1200);}if((G.pd.baptized||[]).length>=5&&lv>=15&&!G.unlocked.includes("holyspirit")){G.unlocked.push("holyspirit");toast("🕊️ DIVINE UNLOCK: Holy Spirit! ★★★★★★ Divine tier!");doFlash("#64C8FF99",1200);}if(G.completedMissions.length>=10&&lv>=20&&!G.unlocked.includes("godfather")){G.unlocked.push("godfather");toast("✨ DIVINE UNLOCK: God the Father! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1500);}if(w>=3&&!G.unlocked.includes("miriam")){G.unlocked.push("miriam");toast("🎶 UNLOCKED: Miriam (Uncommon)!");}if(lv>=3&&!G.unlocked.includes("timothy")){G.unlocked.push("timothy");toast("📖 UNLOCKED: Timothy (Uncommon)!");}if(pW>=8&&!G.unlocked.includes("caleb")){G.unlocked.push("caleb");toast("🗡️ UNLOCKED: Caleb (Rare)!");}if(G.completedMissions.length>=2&&!G.unlocked.includes("nehemiah")){G.unlocked.push("nehemiah");toast("🧱 UNLOCKED: Nehemiah (Rare)!");}if(w>=25&&!G.unlocked.includes("jonathan")){G.unlocked.push("jonathan");toast("🏹 UNLOCKED: Jonathan (Rare)!");}if(w>=7&&!G.unlocked.includes("samuel")){G.unlocked.push("samuel");toast("🔮 UNLOCKED: Samuel (Rare)!");}if(ci>=15&&!G.unlocked.includes("jeremiah")){G.unlocked.push("jeremiah");toast("💧 UNLOCKED: Jeremiah (Epic)!");}if(pW>=10&&!G.unlocked.includes("ezekiel")){G.unlocked.push("ezekiel");toast("💀 UNLOCKED: Ezekiel (Epic)!");}if(lv>=8&&!G.unlocked.includes("marymagd")){G.unlocked.push("marymagd");toast("🌹 UNLOCKED: Mary Magdalene (Epic)!");}if(pW>=15&&!G.unlocked.includes("elisha")){G.unlocked.push("elisha");toast("🔥 UNLOCKED: Elisha (Legendary)!");}if(lv>=15&&!G.unlocked.includes("job")){G.unlocked.push("job");toast("⭐ UNLOCKED: Job (Legendary)!");}if(G.completedMissions.length>=10&&lv>=18&&pW>=10&&!G.unlocked.includes("michael")){G.unlocked.push("michael");toast("⚔️ DIVINE UNLOCK: Archangel Michael! ★★★★★★ Divine tier!");doFlash("#FFFFFF99",1200);}if(G.unlocked.length>_ulBefore&&SFX)SFX.unlock();}
 
 
 // ═══════════════════════════════════════════
@@ -1859,7 +2173,7 @@ var TT={FLOOR:0,WALL:1,PEW:2,ALTAR:3,STAGE:4,CARPET:5,DOOR:6,TABLE:7,CROSS:8,WIN
 
 // ── Map: 30 cols × 38 rows ────────────────────────────
 // Center aisle cols 9–20 open through all pew rows
-var CW_W=30,CW_H=40;
+var CW_W=30,CW_H=48;
 var CW_MAPSTR=[
   "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 0
   "WWVWWWWWWWWWWWWWWWWWWWWWWWWVWW", // 1 windows
@@ -1899,12 +2213,20 @@ var CW_MAPSTR=[
   "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 35 cafe seating
   "WWFFFFTTTFFFFFFFFFFFFFFFFTTTFFWW",// 36 cafe tables
   "WWFFFFFFFFFFFFFFFFFFFFFFFFFFFF W",// 37 cafe floor
-  "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 38
-  "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", // 39
+  "WWWWWWWWWWWWWDDDDDWWWWWWWWWWWW", // 38 wall + door to parking
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", // 39 parking lot
+  "LLQQLLLLQQLLLLLLLLQQLLLLQQLLLL", // 40 parked cars row 1
+  "LLQQLLLLQQLLLLLLLLQQLLLLQQLLLL", // 41 parked cars row 1
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", // 42 driving lane
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", // 43 driving lane
+  "LLQQLLLLQQLLLLLLLLQQLLLLQQLLLL", // 44 parked cars row 2
+  "LLQQLLLLQQLLLLLLLLQQLLLLQQLLLL", // 45 parked cars row 2
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", // 46 parking lot edge
+  "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL", // 47 parking lot edge
 ];
 
 function cw_charToTile(ch){
-  return{'W':1,'R':13,'P':2,'S':4,'A':3,'X':8,'V':9,'T':7,'O':12,'D':6,'F':11,'C':10,'K':14,'B':15,' ':11}[ch]||0;
+  return{'W':1,'R':13,'P':2,'S':4,'A':3,'X':8,'V':9,'T':7,'O':12,'D':6,'F':11,'C':10,'K':14,'B':15,'L':16,'Q':17,' ':11}[ch]||0;
 }
 var CW_MAP=[];
 (function(){for(var r of CW_MAPSTR){var row=[];for(var i=0;i<CW_W;i++)row.push(cw_charToTile(r[i]||'W'));CW_MAP.push(row);}})();
@@ -1912,7 +2234,7 @@ var CW_MAP=[];
 function cw_walkable(tx,ty){
   if(tx<0||ty<0||tx>=CW_W||ty>=CW_H) return false;
   var t=(CW_MAP[ty]||[])[tx];
-  return t!==1&&t!==7&&t!==8&&t!==9&&t!==14&&t!==15;
+  return t!==1&&t!==7&&t!==8&&t!==9&&t!==14&&t!==15&&t!==17;
 }
 
 // ── NPC definitions with wander bounds ───────────────
@@ -2160,6 +2482,7 @@ var CW_ZONES=[
   {id:"cafe",    x:7, y:35, w:9, h:2,label:"☕ Order Coffee",icon:"☕",type:"cafe"},
   {id:"baptism", x:2, y:28, w:3, h:3,label:"Baptism Pool",  icon:"🌊",type:"baptism"},
   {id:"devotional",x:20,y:28,w:6, h:2,label:"Daily Devotional",icon:"📖",type:"devotional"},
+  {id:"parkinglot",x:10,y:42,w:10,h:3,label:"Drive Home 🚗",icon:"🅿️",type:"parkinglot"},
 ];
 var CW_CAFE_MENU=[
   {name:"Holy Grounds Latte",    emoji:"☕",price:0,desc:"A warm latte to start your Sunday",          xp:15,buff:"faith",buffAmt:2},
@@ -2356,7 +2679,7 @@ function cw_buildTileCache(ts){
   CW_TILE_CACHE_KEY=key;
   CW_TILE_CACHE={};
   // Cache static tiles (types that don't animate or vary by position)
-  var staticTypes=[0,2,3,4,5,6,7,10,13,14];
+  var staticTypes=[0,2,3,4,5,6,7,10,13,14,16];
   for(var si=0;si<staticTypes.length;si++){
     var tt=staticTypes[si];
     var oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
@@ -2890,6 +3213,44 @@ function cw_drawTile(ctx,t,px,py,ts){
     ctx.fillStyle=_ornate?'rgba(80,200,255,0.18)':'rgba(80,200,255,0.1)';
     ctx.beginPath();ctx.arc(px+ts/2,py+ts/2,ts*0.25,0,Math.PI*2);ctx.fill();
   }
+  else if(t===16){ // PARKING LOT — asphalt
+    ctx.fillStyle='#3A3A40';ctx.fillRect(px,py,ts,ts);
+    // Asphalt texture speckle
+    ctx.fillStyle='rgba(255,255,255,0.03)';
+    for(var si=0;si<3;si++){
+      var sx2=px+(si*11+3)%ts,sy2=py+(si*7+5)%ts;
+      ctx.fillRect(sx2,sy2,2,2);
+    }
+    // Parking line (vertical dashes at intervals)
+    if(Math.floor(px/ts)%6===0){
+      ctx.fillStyle='rgba(255,255,0,0.35)';ctx.fillRect(px+ts-2,py,2,ts);
+    }
+  }
+  else if(t===17){ // PARKED CAR — 3D vehicle on asphalt
+    // Asphalt base
+    ctx.fillStyle='#3A3A40';ctx.fillRect(px,py,ts,ts);
+    // Car body — pick color based on position
+    var carCols=['#CC3333','#3366CC','#33AA55','#888888','#CC8822','#FFFFFF'][Math.floor((px/ts+py/ts))%6];
+    var carD='#00000033';
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.beginPath();ctx.ellipse(px+ts/2,py+ts*0.75,ts*0.4,ts*0.1,0,0,Math.PI*2);ctx.fill();
+    // Car body (top-down view)
+    ctx.fillStyle=carCols;
+    ctx.beginPath();ctx.roundRect(px+ts*0.12,py+ts*0.1,ts*0.76,ts*0.75,4);ctx.fill();
+    // Roof section (darker center)
+    ctx.fillStyle='rgba(0,0,0,0.15)';
+    ctx.beginPath();ctx.roundRect(px+ts*0.22,py+ts*0.28,ts*0.56,ts*0.38,3);ctx.fill();
+    // Windshield
+    ctx.fillStyle='rgba(150,200,255,0.4)';
+    ctx.beginPath();ctx.roundRect(px+ts*0.22,py+ts*0.15,ts*0.56,ts*0.18,2);ctx.fill();
+    // Rear window
+    ctx.fillStyle='rgba(150,200,255,0.3)';
+    ctx.beginPath();ctx.roundRect(px+ts*0.25,py+ts*0.62,ts*0.5,ts*0.12,2);ctx.fill();
+    // Highlight
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    ctx.fillRect(px+ts*0.15,py+ts*0.12,ts*0.3,ts*0.08);
+  }
 }
 
 // ── ROBLOX-STYLE 3D CHARACTER RENDERER ────────────────
@@ -3300,7 +3661,11 @@ function cw_renderActivity(){
   if(a.type==='baptism')  html=cw_htmlBaptism(a);
   if(a.type==='devotional')html=cw_htmlDevotional(a);
   if(a.type==='upgrades') html=cw_htmlUpgrades(a);
+  if(a.type==='parkinglot')html=cw_htmlDriveHome(a);
   if(html) cw_showActivityOverlay(html);
+  if(a.type==='parkinglot'&&a.phase==='arrived'){
+    setTimeout(function(){cw_drawNapScene(G.cos?G.cos.sk:0,G.cos?G.cos.ot:0);},30);
+  }
 }
 
 // ── PEW ACTIVITY HTML ─────────────────────────────────
@@ -3757,6 +4122,382 @@ function cw_skipDevotional(){
   a.t0=0;cw_renderActivity();
 }
 
+// ── DRIVE HOME MINI-GAME ───────────────────────────────
+var CW_DRIVE={active:false,rafId:null,x:0,y:0,speed:0,lane:1,score:0,dist:0,maxDist:2000,crashed:false,obstacles:[],trees:[],keys:{},lastSpawn:0,napXp:40};
+function cw_htmlDriveHome(a){
+  if(a.phase==='confirm'){
+    return'<div style="background:linear-gradient(135deg,#0d0d18,#0a0a12);border:1px solid #7EB8F755;border-radius:16px;padding:28px 22px;max-width:360px;width:100%;margin:auto;text-align:center">'
+      +'<div style="font-size:52px;margin-bottom:10px">🚗</div>'
+      +'<div style="font-size:20px;font-weight:bold;color:#7EB8F7;margin-bottom:6px">Drive Home</div>'
+      +'<div style="font-size:15px;color:#888;margin-bottom:14px;line-height:1.5">Church was great, but you are so sleepy!<br>Drive home safely to take a well-deserved nap. 😴</div>'
+      +'<div style="background:#111;border:1px solid #333;border-radius:10px;padding:12px;margin-bottom:18px;text-align:left;font-size:14px;color:#aaa;line-height:1.6">'
+      +'🕹️ <strong style="color:#fff">Controls:</strong><br>'
+      +'← → Arrow keys or swipe to steer<br>'
+      +'Dodge traffic &amp; reach home!<br>'
+      +'<span style="color:#FFD700">Reward: +'+CW_DRIVE.napXp+' XP · 😴 Nap Buff</span></div>'
+      +'<button onclick="cw_driveStart()" style="width:100%;background:linear-gradient(135deg,#1a3a6a,#0d2040);border:2px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:10px;font-size:18px;font-weight:bold;margin-bottom:8px">🚗 Start Driving!</button>'
+      +'<button onclick="cw_driveCancel()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:10px;border-radius:10px;font-size:15px">Nevermind</button>'
+      +'</div>';
+  }
+  if(a.phase==='playing'){
+    var pct=Math.min(100,Math.floor(CW_DRIVE.dist/CW_DRIVE.maxDist*100));
+    return'<div style="background:#000;border-radius:16px;overflow:hidden;max-width:380px;width:100%;margin:auto">'
+      +'<div style="padding:6px 14px;background:#111;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333">'
+      +'<span style="color:#7EB8F7;font-weight:bold;font-size:14px">🚗 Drive Home</span>'
+      +'<span style="color:#888;font-size:13px">'+pct+'% · Score: <span style="color:#FFD700">'+CW_DRIVE.score+'</span></span></div>'
+      +'<div style="height:6px;background:#1a1a1a"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#7EB8F7,#4ade80);transition:width 0.3s"></div></div>'
+      +'<canvas id="driveCanvas" width="360" height="480" style="display:block;width:100%;touch-action:none"></canvas>'
+      +'</div>';
+  }
+  if(a.phase==='arrived'){
+    var _sk=G.cos?G.cos.sk:0,_ot=G.cos?G.cos.ot:0;
+    return'<div style="background:linear-gradient(135deg,#0d1a0d,#0a120a);border:1px solid #4ade8055;border-radius:16px;padding:28px 22px;max-width:360px;width:100%;margin:auto;text-align:center">'
+      +'<div style="font-size:22px;font-weight:bold;color:#4ade80;margin-bottom:6px">Home Sweet Home!</div>'
+      +'<div style="font-size:15px;color:#888;margin-bottom:10px">You made it home safely. Time for a nap! 😴</div>'
+      +'<canvas id="napCanvas" width="320" height="200" style="display:block;margin:0 auto 14px;border-radius:12px;background:#0a0a14"></canvas>'
+      +'<div style="background:#111;border-radius:10px;padding:12px;margin-bottom:16px">'
+      +'<div style="font-size:16px;color:#FFD700;font-weight:bold;margin-bottom:4px">Score: '+CW_DRIVE.score+' · +'+a.xp+' XP</div>'
+      +'<div style="font-size:14px;color:#4ade80">😴 Nap Buff: +20% XP for 10 minutes!</div></div>'
+      +'<button onclick="cw_driveFinish()" style="width:100%;background:linear-gradient(135deg,#166534,#14532d);border:2px solid #4ade80;color:#4ade80;padding:14px;border-radius:10px;font-size:18px;font-weight:bold">😴 Take a Nap (+'+a.xp+' XP)</button>'
+      +'</div>';
+  }
+  if(a.phase==='crashed'){
+    return'<div style="background:linear-gradient(135deg,#1a0d0d,#120a0a);border:1px solid #ef444455;border-radius:16px;padding:28px 22px;max-width:360px;width:100%;margin:auto;text-align:center">'
+      +'<div style="font-size:52px;margin-bottom:8px">💥</div>'
+      +'<div style="font-size:22px;font-weight:bold;color:#ef4444;margin-bottom:6px">Fender Bender!</div>'
+      +'<div style="font-size:15px;color:#888;margin-bottom:14px">You bumped into another car. Careful next time!</div>'
+      +'<div style="background:#111;border-radius:10px;padding:12px;margin-bottom:16px">'
+      +'<div style="font-size:16px;color:#FFD700;font-weight:bold">Distance: '+Math.floor(CW_DRIVE.dist)+' / '+CW_DRIVE.maxDist+'</div>'
+      +'<div style="font-size:14px;color:#888;margin-top:4px">Score: '+CW_DRIVE.score+' · +'+Math.floor(a.xp/4)+' XP for trying</div></div>'
+      +'<button onclick="cw_driveStart()" style="width:100%;background:linear-gradient(135deg,#1a3a6a,#0d2040);border:2px solid #7EB8F7;color:#7EB8F7;padding:14px;border-radius:10px;font-size:18px;font-weight:bold;margin-bottom:8px">🔄 Try Again</button>'
+      +'<button onclick="cw_driveCancel()" style="width:100%;background:#111;border:1px solid #333;color:#555;padding:10px;border-radius:10px;font-size:15px">Give Up</button>'
+      +'</div>';
+  }
+  return'';
+}
+function cw_drawNapScene(skinIdx,outIdx){
+  var c=document.getElementById('napCanvas');if(!c)return;
+  var ctx=c.getContext('2d');
+  var W=c.width,H=c.height;
+  var skin=['#FDDBB4','#E8B88A','#C68642','#8D5524','#4A2912'][skinIdx]||'#FDDBB4';
+  var skinD=['#DDAA88','#C89060','#A06020','#6D3A0A','#2A0D04'][skinIdx]||'#DDAA88';
+  var outC=['#3366CC','#CC3333','#33AA55','#8844CC','#CC8822','#22AABB'][outIdx]||'#3366CC';
+  var zees=[];
+  var _napRaf;
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    // Dark bedroom background
+    var bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#0a0a18');bg.addColorStop(1,'#0d0d22');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    // Window with moonlight
+    ctx.fillStyle='#1a1a30';ctx.fillRect(220,12,80,55);
+    ctx.fillStyle='#222244';ctx.fillRect(224,16,72,47);
+    var moon=ctx.createRadialGradient(275,30,2,275,30,16);
+    moon.addColorStop(0,'#FFFFEE');moon.addColorStop(0.4,'#EEEEBB');moon.addColorStop(1,'rgba(200,200,150,0)');
+    ctx.fillStyle=moon;ctx.beginPath();ctx.arc(275,30,16,0,Math.PI*2);ctx.fill();
+    // Stars
+    ctx.fillStyle='#fff';
+    [[235,22],[250,38],[290,20],[260,50],[240,45]].forEach(function(s){
+      ctx.globalAlpha=0.3+0.3*Math.sin(Date.now()/600+s[0]);
+      ctx.beginPath();ctx.arc(s[0],s[1],1,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    // Moonbeam on floor
+    ctx.fillStyle='rgba(200,200,255,0.03)';
+    ctx.beginPath();ctx.moveTo(224,63);ctx.lineTo(300,63);ctx.lineTo(320,H);ctx.lineTo(200,H);ctx.fill();
+    // Bed frame
+    ctx.fillStyle='#5C3317';
+    ctx.beginPath();ctx.roundRect(30,90,220,95,6);ctx.fill();
+    ctx.fillStyle='#4A2610';
+    ctx.fillRect(30,90,220,8);
+    // Headboard
+    ctx.fillStyle='#6B3F1F';
+    ctx.beginPath();ctx.roundRect(28,60,16,105,4);ctx.fill();
+    ctx.fillStyle='#7B4F2E';ctx.fillRect(30,65,12,20);
+    // Mattress
+    ctx.fillStyle='#E8E0D0';
+    ctx.beginPath();ctx.roundRect(44,98,200,70,4);ctx.fill();
+    ctx.fillStyle='#D8D0C0';ctx.fillRect(44,98,200,6);
+    // Blanket covering body
+    var blanket=ctx.createLinearGradient(60,110,60,165);
+    blanket.addColorStop(0,'#2244AA');blanket.addColorStop(1,'#1a3388');
+    ctx.fillStyle=blanket;
+    ctx.beginPath();ctx.roundRect(60,115,175,50,5);ctx.fill();
+    // Blanket fold line
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(65,130);ctx.lineTo(230,130);ctx.stroke();
+    // Blanket pattern (subtle stripes)
+    ctx.fillStyle='rgba(100,150,255,0.08)';
+    for(var i=0;i<5;i++){ctx.fillRect(60,120+i*10,175,3);}
+    // Pillow
+    ctx.fillStyle='#F5F0E8';
+    ctx.beginPath();ctx.ellipse(68,118,22,14,-.15,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#EAE4D8';
+    ctx.beginPath();ctx.ellipse(68,118,18,10,-.15,0,Math.PI*2);ctx.fill();
+    // Head on pillow (lying sideways)
+    var hx=72,hy=112;
+    ctx.fillStyle=skinD;ctx.beginPath();ctx.ellipse(hx,hy,14,12,0.15,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=skin;ctx.beginPath();ctx.ellipse(hx,hy,13,11,0.15,0,Math.PI*2);ctx.fill();
+    // Hair
+    ctx.fillStyle='#2A1A08';
+    ctx.beginPath();ctx.ellipse(hx-2,hy-6,14,7,0.15,Math.PI,Math.PI*2);ctx.fill();
+    // Closed eyes (peaceful sleeping)
+    ctx.strokeStyle='#1a0a00';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(hx+3,hy-1,3,0,Math.PI);ctx.stroke();
+    ctx.beginPath();ctx.arc(hx+10,hy,3,0,Math.PI);ctx.stroke();
+    // Slight smile
+    ctx.strokeStyle=skinD;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(hx+7,hy+4,4,0.1,Math.PI-0.1);ctx.stroke();
+    // Blush
+    ctx.fillStyle='rgba(255,150,150,0.2)';
+    ctx.beginPath();ctx.ellipse(hx+1,hy+3,4,2.5,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(hx+13,hy+3,4,2.5,0,0,Math.PI*2);ctx.fill();
+    // Outfit color on visible shoulder above blanket
+    ctx.fillStyle=outC;
+    ctx.beginPath();ctx.ellipse(90,115,8,6,0.2,0,Math.PI*2);ctx.fill();
+    // Nightstand
+    ctx.fillStyle='#5C3317';ctx.beginPath();ctx.roundRect(255,105,50,60,3);ctx.fill();
+    ctx.fillStyle='#6B3F1F';ctx.fillRect(255,105,50,5);
+    // Lamp on nightstand
+    ctx.fillStyle='#888';ctx.fillRect(273,80,8,25);
+    ctx.fillStyle='#DDCC88';ctx.beginPath();ctx.moveTo(262,80);ctx.lineTo(292,80);ctx.lineTo(285,60);ctx.lineTo(269,60);ctx.closePath();ctx.fill();
+    // Warm lamp glow
+    var glow=ctx.createRadialGradient(277,70,2,277,70,40);
+    glow.addColorStop(0,'rgba(255,220,140,0.15)');glow.addColorStop(1,'rgba(255,220,140,0)');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(277,70,40,0,Math.PI*2);ctx.fill();
+    // Floating Z's animation
+    var now=Date.now();
+    if(zees.length<4||(zees.length<8&&now-zees[zees.length-1].born>700)){
+      zees.push({x:85,y:100,born:now,size:14+Math.random()*6});
+    }
+    ctx.font='bold serif';
+    for(var i=zees.length-1;i>=0;i--){
+      var z=zees[i],age=(now-z.born)/1000;
+      if(age>3){zees.splice(i,1);continue;}
+      var zy=z.y-age*22;
+      var zx=z.x+Math.sin(age*2.5)*12+i*8;
+      var za=Math.max(0,1-age/3);
+      var zs=z.size+age*4;
+      ctx.save();
+      ctx.globalAlpha=za*0.7;
+      ctx.font='bold '+Math.floor(zs)+'px serif';
+      ctx.fillStyle='#7EB8F7';
+      ctx.shadowColor='#7EB8F7';ctx.shadowBlur=8;
+      ctx.textAlign='center';
+      ctx.translate(zx,zy);
+      ctx.rotate(Math.sin(age*3+i)*0.2);
+      ctx.fillText('Z',0,0);
+      ctx.restore();
+    }
+    // "Sweet dreams" text
+    ctx.save();ctx.globalAlpha=0.4+0.15*Math.sin(now/1200);
+    ctx.font='italic 13px Georgia';ctx.textAlign='center';ctx.fillStyle='#8888CC';
+    ctx.fillText('Sweet dreams…',W/2,H-10);
+    ctx.restore();
+    _napRaf=requestAnimationFrame(frame);
+  }
+  frame();
+  // Stop when canvas is removed from DOM
+  var _napCheck=setInterval(function(){
+    if(!document.getElementById('napCanvas')){
+      cancelAnimationFrame(_napRaf);clearInterval(_napCheck);
+    }
+  },500);
+}
+function cw_driveStart(){
+  var a=CWS.activity;if(!a||a.type!=='parkinglot')return;
+  a.phase='playing';
+  CW_DRIVE.active=true;CW_DRIVE.x=180;CW_DRIVE.y=380;CW_DRIVE.speed=3;CW_DRIVE.lane=1;
+  CW_DRIVE.score=0;CW_DRIVE.dist=0;CW_DRIVE.crashed=false;CW_DRIVE.obstacles=[];CW_DRIVE.trees=[];
+  CW_DRIVE.lastSpawn=0;CW_DRIVE.keys={};CW_DRIVE.touchStartX=null;
+  // Pre-fill trees on both sides
+  for(var i=0;i<20;i++){
+    CW_DRIVE.trees.push({x:10+Math.random()*60,y:i*50-200,side:'l'});
+    CW_DRIVE.trees.push({x:300+Math.random()*50,y:i*50-180,side:'r'});
+  }
+  cw_renderActivity();
+  // Wait for canvas to appear, then start game loop
+  setTimeout(function(){
+    var c=document.getElementById('driveCanvas');
+    if(!c)return;
+    CW_DRIVE.canvas=c;CW_DRIVE.ctx=c.getContext('2d');
+    // Touch controls
+    c.addEventListener('touchstart',cw_driveTouchStart,{passive:false});
+    c.addEventListener('touchmove',cw_driveTouchMove,{passive:false});
+    c.addEventListener('touchend',cw_driveTouchEnd,{passive:false});
+    // Keyboard controls
+    CW_DRIVE._kd=function(e){CW_DRIVE.keys[e.key]=true;if(['ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();};
+    CW_DRIVE._ku=function(e){delete CW_DRIVE.keys[e.key];};
+    document.addEventListener('keydown',CW_DRIVE._kd);
+    document.addEventListener('keyup',CW_DRIVE._ku);
+    CW_DRIVE.rafId=requestAnimationFrame(cw_driveLoop);
+  },50);
+}
+function cw_driveTouchStart(e){e.preventDefault();if(e.touches.length>0)CW_DRIVE.touchStartX=e.touches[0].clientX;}
+function cw_driveTouchMove(e){
+  e.preventDefault();
+  if(CW_DRIVE.touchStartX==null||!e.touches.length)return;
+  var dx=e.touches[0].clientX-CW_DRIVE.touchStartX;
+  if(Math.abs(dx)>8){
+    CW_DRIVE.x+=(dx>0?4:-4);CW_DRIVE.touchStartX=e.touches[0].clientX;
+  }
+}
+function cw_driveTouchEnd(e){e.preventDefault();CW_DRIVE.touchStartX=null;}
+function cw_driveLoop(){
+  if(!CW_DRIVE.active)return;
+  var d=CW_DRIVE,ctx=d.ctx,c=d.canvas;
+  if(!ctx||!c){CW_DRIVE.active=false;return;}
+  var W=c.width,H=c.height;
+  // Update
+  d.speed=Math.min(6,3+d.dist/800);
+  d.dist+=d.speed;
+  d.score=Math.floor(d.dist/10);
+  // Keyboard steering
+  if(d.keys['ArrowLeft']||d.keys['a']||d.keys['A'])d.x-=3.5;
+  if(d.keys['ArrowRight']||d.keys['d']||d.keys['D'])d.x+=3.5;
+  // Clamp player to road
+  var roadL=80,roadR=280;
+  d.x=Math.max(roadL+15,Math.min(roadR-15,d.x));
+  // Spawn obstacles (oncoming cars)
+  d.lastSpawn+=d.speed;
+  if(d.lastSpawn>120+Math.random()*80){
+    d.lastSpawn=0;
+    var olane=roadL+20+Math.random()*(roadR-roadL-40);
+    var oColors=['#CC3333','#3366CC','#33AA55','#CCCC22','#CC6622','#FFFFFF'];
+    d.obstacles.push({x:olane,y:-60,w:28,h:50,color:oColors[Math.floor(Math.random()*oColors.length)]});
+  }
+  // Move obstacles
+  for(var i=d.obstacles.length-1;i>=0;i--){
+    d.obstacles[i].y+=d.speed+1.5;
+    if(d.obstacles[i].y>H+60)d.obstacles.splice(i,1);
+  }
+  // Move trees
+  for(var i=0;i<d.trees.length;i++){
+    d.trees[i].y+=d.speed;
+    if(d.trees[i].y>H+40)d.trees[i].y=-40-Math.random()*60;
+  }
+  // Collision check (player car ~28x50 centered at d.x, d.y)
+  var px1=d.x-14,px2=d.x+14,py1=d.y-25,py2=d.y+25;
+  for(var i=0;i<d.obstacles.length;i++){
+    var o=d.obstacles[i];
+    var ox1=o.x-o.w/2,ox2=o.x+o.w/2,oy1=o.y-o.h/2,oy2=o.y+o.h/2;
+    if(px1<ox2&&px2>ox1&&py1<oy2&&py2>oy1){
+      d.crashed=true;d.active=false;
+      if(SFX&&SFX.worshipMiss)SFX.worshipMiss();
+      var a=CWS.activity;if(a)a.phase='crashed';
+      cw_driveCleanup();
+      cw_renderActivity();
+      return;
+    }
+  }
+  // Check if arrived
+  if(d.dist>=d.maxDist){
+    d.active=false;
+    if(SFX&&SFX.correct)SFX.correct();
+    var a=CWS.activity;if(a)a.phase='arrived';
+    cw_driveCleanup();
+    cw_renderActivity();
+    return;
+  }
+
+  // ── RENDER ──
+  // Sky
+  ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,W,H);
+  // Grass
+  ctx.fillStyle='#3A8C3F';ctx.fillRect(0,0,roadL,H);ctx.fillRect(roadR,0,W-roadR,H);
+  // Road
+  ctx.fillStyle='#3A3A40';ctx.fillRect(roadL,0,roadR-roadL,H);
+  // Road edges (white lines)
+  ctx.fillStyle='#fff';ctx.fillRect(roadL,0,3,H);ctx.fillRect(roadR-3,0,3,H);
+  // Center dashes (animated)
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  var mid=(roadL+roadR)/2;
+  var dashOff=(d.dist*2)%40;
+  for(var dy=-40+dashOff;dy<H;dy+=40){ctx.fillRect(mid-1.5,dy,3,20);}
+  // Trees
+  for(var i=0;i<d.trees.length;i++){
+    var t=d.trees[i];
+    ctx.fillStyle='#5C3317';ctx.fillRect(t.x-3,t.y,6,14);
+    ctx.fillStyle='#2D8A3E';ctx.beginPath();ctx.arc(t.x,t.y-4,10,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#1E6B2E';ctx.beginPath();ctx.arc(t.x-3,t.y-2,7,0,Math.PI*2);ctx.fill();
+  }
+  // Obstacles (other cars — top-down)
+  for(var i=0;i<d.obstacles.length;i++){
+    var o=d.obstacles[i];
+    ctx.fillStyle='rgba(0,0,0,0.25)';ctx.beginPath();ctx.ellipse(o.x,o.y+o.h/2+4,o.w/2+2,6,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=o.color;ctx.beginPath();ctx.roundRect(o.x-o.w/2,o.y-o.h/2,o.w,o.h,5);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,0.15)';ctx.beginPath();ctx.roundRect(o.x-o.w/2+4,o.y-o.h/2+8,o.w-8,o.h*0.35,3);ctx.fill();
+    ctx.fillStyle='rgba(150,200,255,0.35)';ctx.beginPath();ctx.roundRect(o.x-o.w/2+4,o.y+o.h/2-16,o.w-8,10,2);ctx.fill();
+    // Headlights
+    ctx.fillStyle='rgba(255,255,100,0.6)';ctx.beginPath();ctx.arc(o.x-o.w/3,o.y+o.h/2-2,3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(o.x+o.w/3,o.y+o.h/2-2,3,0,Math.PI*2);ctx.fill();
+  }
+  // Player car
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(d.x,d.y+30,18,6,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2288DD';ctx.beginPath();ctx.roundRect(d.x-14,d.y-25,28,50,5);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.12)';ctx.beginPath();ctx.roundRect(d.x-10,d.y-15,20,18,3);ctx.fill();
+  ctx.fillStyle='rgba(150,200,255,0.4)';ctx.beginPath();ctx.roundRect(d.x-10,d.y-22,20,10,2);ctx.fill();
+  ctx.fillStyle='rgba(150,200,255,0.3)';ctx.beginPath();ctx.roundRect(d.x-9,d.y+12,18,8,2);ctx.fill();
+  // Taillights
+  ctx.fillStyle='rgba(255,50,50,0.7)';ctx.beginPath();ctx.arc(d.x-10,d.y+23,3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(d.x+10,d.y+23,3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(d.x-12,d.y-24,8,4);
+  ctx.restore();
+  // Home indicator when close
+  if(d.dist>d.maxDist*0.75){
+    var homeAlpha=0.5+0.3*Math.sin(Date.now()/300);
+    ctx.save();ctx.globalAlpha=homeAlpha;ctx.font='bold 32px serif';ctx.textAlign='center';
+    ctx.fillText('🏠',mid,-10+Math.max(0,30-((d.maxDist-d.dist)/d.maxDist)*30));
+    ctx.restore();
+    ctx.fillStyle='rgba(74,222,128,0.15)';ctx.fillRect(roadL,0,roadR-roadL,Math.max(0,10-((d.maxDist-d.dist)/20)));
+  }
+  // Progress bar at bottom
+  var pct=Math.min(1,d.dist/d.maxDist);
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(10,H-16,W-20,8);
+  ctx.fillStyle='#4ade80';ctx.fillRect(10,H-16,(W-20)*pct,8);
+  ctx.fillStyle='#fff';ctx.font='bold 11px monospace';ctx.textAlign='center';
+  ctx.fillText(Math.floor(pct*100)+'%',W/2,H-8);
+  // Update activity overlay progress bar
+  var progEl=document.querySelector('#cwActivity [style*="transition:width 0.3s"]');
+  if(progEl)progEl.style.width=Math.floor(pct*100)+'%';
+  var scoreEl=document.querySelector('#cwActivity [style*="color:#FFD700"]');
+  if(scoreEl&&scoreEl.textContent.match(/^\d/))scoreEl.textContent=d.score;
+
+  d.rafId=requestAnimationFrame(cw_driveLoop);
+}
+function cw_driveCleanup(){
+  if(CW_DRIVE.rafId){cancelAnimationFrame(CW_DRIVE.rafId);CW_DRIVE.rafId=null;}
+  if(CW_DRIVE._kd)document.removeEventListener('keydown',CW_DRIVE._kd);
+  if(CW_DRIVE._ku)document.removeEventListener('keyup',CW_DRIVE._ku);
+  CW_DRIVE._kd=null;CW_DRIVE._ku=null;
+  CW_DRIVE.active=false;
+  var c=CW_DRIVE.canvas;
+  if(c){
+    c.removeEventListener('touchstart',cw_driveTouchStart);
+    c.removeEventListener('touchmove',cw_driveTouchMove);
+    c.removeEventListener('touchend',cw_driveTouchEnd);
+  }
+  CW_DRIVE.canvas=null;CW_DRIVE.ctx=null;
+}
+function cw_driveFinish(){
+  var a=CWS.activity;if(!a||a.type!=='parkinglot')return;
+  G.pd.xp=(G.pd.xp||0)+a.xp;
+  G.pd.coins=(G.pd.coins||0)+8;
+  // Apply nap buff — 20% XP bonus for 10 minutes
+  G.pd._napBuff={expires:Date.now()+600000,mult:1.2};
+  persistPlayer();
+  if(SFX&&SFX.correct)SFX.correct();
+  toast('😴 Nap buff active! +20% XP for 10 min · +'+a.xp+' XP');
+  CWS.done[a.zoneId]=true;
+  CWS.activity=null;cw_hideActivityOverlay();CWS._lastActivityRender=0;
+}
+function cw_driveCancel(){
+  cw_driveCleanup();
+  CWS.activity=null;cw_hideActivityOverlay();CWS._lastActivityRender=0;
+}
+
 // ── CHURCH UPGRADES ACTIVITY ───────────────────────────
 function cw_showUpgrades(){
   if(CWS.activity) return;
@@ -3906,7 +4647,7 @@ function cw_loop(){
     if(tt===1) _cacheKey='t1_r'+(ty%2);
     else if(tt===9) _cacheKey='t9_v'+(tx2%3);
     else if(tt===11) _cacheKey='t11_v'+((tx2+ty)%2);
-    else if(tt===8||tt===12||tt===15) _cacheKey=null; // animated tiles — always redraw
+    else if(tt===8||tt===12||tt===15||tt===17) _cacheKey=null; // animated/positional tiles — always redraw
     else _cacheKey='t'+tt;
     var _cached=_cacheKey?CW_TILE_CACHE[_cacheKey]:null;
     if(_cached){
@@ -4012,7 +4753,7 @@ function cw_loop(){
 
   // Update HTML activity overlay every 500ms (for timers) or on state change
   // Skip re-render for static activities (café menu, baptism select, upgrades) to preserve scroll position
-  var _skipRerender=s.activity&&((s.activity.type==='cafe'&&s.activity.phase==='menu')||(s.activity.type==='baptism'&&s.activity.phase==='select')||s.activity.type==='upgrades');
+  var _skipRerender=s.activity&&((s.activity.type==='cafe'&&s.activity.phase==='menu')||(s.activity.type==='baptism'&&s.activity.phase==='select')||s.activity.type==='upgrades'||(s.activity.type==='parkinglot'&&(s.activity.phase==='playing'||s.activity.phase==='arrived')));
   if(!_skipRerender&&(!s._lastActivityRender||(s.activity&&Date.now()-s._lastActivityRender>500))){
     s._lastActivityRender=Date.now();
     cw_renderActivity();
@@ -4050,6 +4791,9 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
       return;// button-driven, not A-key driven
     }
     if(a.type==='baptism'||a.type==='upgrades'){
+      return;// button-driven
+    }
+    if(a.type==='parkinglot'){
       return;// button-driven
     }
     if(a.type==='devotional'){
@@ -4118,7 +4862,7 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
     var zone=CW_ZONES.find(function(x){return x.id===s.nearZone;});
     if(!zone) return;
     if(zone.type==='exit'){if(s.onExit)s.onExit();return;}
-    if(s.done[zone.id]&&zone.type!=='worship'){
+    if(s.done[zone.id]&&zone.type!=='worship'&&zone.type!=='parkinglot'){
       s.dialog={speaker:"",emoji:"💭",text:"You've already done this today. Come back next Sunday!",xp:0};return;
     }
     if(zone.type==='pew'){
@@ -4153,6 +4897,8 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
       var dayIdx=new Date().getDate()-1;
       var dev=CW_DEVOTIONALS[dayIdx%CW_DEVOTIONALS.length];
       s.activity={type:'devotional',phase:'read',dev:dev,t0:Date.now(),xp:35,zoneId:zone.id};
+    } else if(zone.type==='parkinglot'){
+      s.activity={type:'parkinglot',phase:'confirm',xp:40,zoneId:zone.id};
     }
     cw_renderActivity();
   }
