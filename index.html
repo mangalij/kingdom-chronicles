@@ -6099,6 +6099,20 @@ function brawl_startCoop(role,roomId,peerData){
     // Host spawns waves and syncs enemy state
     brawl_spawnWave();
     brawl_coopSyncEnemies();
+    brawl_coopSyncWave();
+    // Listen for guest bullet hits
+    var guestHitRef=roomRef.child('guest_hits');
+    var guestHitListener=guestHitRef.on('child_added',function(snap){
+      var hit=snap.val();
+      if(hit&&B.enemies[hit.idx]&&B.enemies[hit.idx].hp>0){
+        B.enemies[hit.idx].hp-=hit.dmg;
+        B.enemies[hit.idx].flash=8;
+        brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,3,B.enemies[hit.idx].color);
+        if(B.enemies[hit.idx].hp<=0){brawl_onKill(B.enemies[hit.idx]);brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,15,B.enemies[hit.idx].color);}
+      }
+      snap.ref.remove();
+    });
+    B._coopListeners.push(function(){guestHitRef.off('child_added',guestHitListener);});
   } else {
     // Guest reads config from host
     roomRef.child('config').once('value',function(snap){
@@ -6110,6 +6124,7 @@ function brawl_startCoop(role,roomId,peerData){
       }
     });
     roomRef.child('guest').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
+    B.wave=-1; // so wave listener triggers on wave 0
   }
   // Listen for ally position updates
   var allyKey=role==='host'?'guest':'host';
@@ -6129,6 +6144,10 @@ function brawl_startCoop(role,roomId,peerData){
       if(!d) return;
       // Merge enemy positions from host
       if(Array.isArray(d)){
+        // If enemy count mismatch, re-spawn wave to create matching enemy objects
+        if(d.length>0&&B.enemies.length!==d.length){
+          brawl_spawnWave();
+        }
         for(var i=0;i<d.length&&i<B.enemies.length;i++){
           if(d[i]){
             B.enemies[i].x=d[i].x;B.enemies[i].y=d[i].y;
@@ -6144,6 +6163,15 @@ function brawl_startCoop(role,roomId,peerData){
     var waveListener=waveRef.on('value',function(snap){
       var w=snap.val();
       if(w!==null&&w!==undefined&&w!==B.wave){
+        // Heal between waves (same as host wave_clear)
+        if(B.wave>=0){
+          var healPct=0.2;
+          var _hst=brawl_getCharStats();
+          if(_hst.starPower&&_hst.starPower.effect==='healBoost') healPct=0.4;
+          B.pHp=Math.min(B.pMaxHp,B.pHp+Math.round(B.pMaxHp*healPct));
+          // Award score/XP for wave clear
+          B.score+=100*(w);B.xpEarned+=30+w*15;B.coinsEarned+=5+w*3;
+        }
         B.wave=w;
         brawl_spawnWave();
       }
@@ -6608,6 +6636,9 @@ function brawl_update(dt){
     if(e.flash>0) e.flash-=spd;
     var dx=B.px-e.x,dy=B.py-e.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
 
+    // Guest: skip movement AI + boss phases (host is authoritative)
+    var _isGuest=B.coopMode&&B.coopRole==='guest';
+    if(!_isGuest){
     // Boss phase management
     if(e.isBoss&&e.phases&&e.phases.length){
       var hpPct=e.hp/e.maxHp;
@@ -6630,6 +6661,7 @@ function brawl_update(dt){
     }
     e.x=Math.max(e.radius,Math.min(B.arenaW-e.radius,e.x));
     e.y=Math.max(e.radius,Math.min(B.arenaH-e.radius,e.y));
+    } // end !_isGuest
 
     // Ranged attack
     if(e.shootCd>0&&e.shootRange>0&&dist<e.shootRange){
@@ -6685,6 +6717,10 @@ function brawl_update(dt){
           brawl_dmgNum(en.x,en.y-en.radius,bdmg,en.isBoss?'#FFD700':'#fff',en.isBoss);
           brawl_particles(b.x,b.y,3,en.color);SFX&&SFX.whit&&SFX.whit();
           if(en.hp<=0){brawl_onKill(en);brawl_particles(en.x,en.y,15,en.color);}
+          // Guest: send hit to host so host applies damage too
+          if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
+            B._coopRoomRef.child('guest_hits').push({idx:ej,dmg:bdmg});
+          }
           B.bullets.splice(bi,1);break;
         }
       }
@@ -6717,8 +6753,8 @@ function brawl_update(dt){
 
   if(B.camShake>0){B.camShake*=0.85;if(B.camShake<0.5)B.camShake=0;}
 
-  // Wave progression
-  if(alive===0&&B.enemies.length>0){
+  // Wave progression (host only in co-op — guest receives via listener)
+  if(alive===0&&B.enemies.length>0&&!(B.coopMode&&B.coopRole==='guest')){
     B.wave++;B.score+=100*B.wave;B.xpEarned+=30+B.wave*15;B.coinsEarned+=5+B.wave*3;
     if(B.wave>=B.campaign.waves.length){B.state='victory';SFX&&SFX.victory&&SFX.victory();}
     else{B.waveTimer=90;B.state='wave_clear';}
@@ -6768,6 +6804,10 @@ function brawl_useAbility(){
     var edist=Math.sqrt((B.px-e2.x)*(B.px-e2.x)+(B.py-e2.y)*(B.py-e2.y));
     if(edist<range+e2.radius){
       e2.hp-=dmg;e2.flash=12;brawl_particles(e2.x,e2.y,6,c.color);
+      // Guest: send ability hit to host
+      if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
+        B._coopRoomRef.child('guest_hits').push({idx:i,dmg:dmg});
+      }
       // Star Power: knockback
       if(st.starPower&&st.starPower.effect==='knockback'&&edist>0){
         var kx=(e2.x-B.px)/edist*60,ky=(e2.y-B.py)/edist*60;
