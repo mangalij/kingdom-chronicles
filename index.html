@@ -5280,7 +5280,25 @@ var BRAWL={
   arenaW:900,arenaH:700,_lastTime:0,dt:0,_frameCount:0,
   _shootCdTimer:0,_keys:{},_joyCleanup:[],_endClickBound:false,
   coopMode:false,coopPeers:[],coopRoomId:null,coopRole:null,
+  pWeapon:null,pWeaponTimer:0,
 };
+
+// ── Weapon Pickup Definitions ──────────────────────────
+var BRAWL_WEAPONS={
+  multishot:{name:'Multi-Shot',icon:'\u2726',color:'#FF6B35',desc:'3 bullets in a spread',duration:600,
+    shoot:function(B,ax,ay,dmg,col){var angles=[-0.2,0,0.2];angles.forEach(function(off){var a=Math.atan2(ay,ax)+off;var dx=Math.cos(a),dy=Math.sin(a);B.bullets.push({x:B.px+dx*B.pRadius,y:B.py+dy*B.pRadius,vx:dx*7.5,vy:dy*7.5,dmg:Math.round(dmg*0.7),radius:4,color:col,owner:'player',life:50});});}},
+  rapidfire:{name:'Rapid Fire',icon:'\u2689',color:'#ef4444',desc:'Shoot 2x faster',duration:500,
+    shootCdMult:0.5,shoot:null},
+  piercing:{name:'Piercing Shot',icon:'\u2794',color:'#7EB8F7',desc:'Bullets pass through enemies',duration:500,
+    shoot:function(B,ax,ay,dmg,col){B.bullets.push({x:B.px+ax*B.pRadius,y:B.py+ay*B.pRadius,vx:ax*8,vy:ay*8,dmg:dmg,radius:6,color:col,owner:'player',life:60,pierce:true});}},
+  fireball:{name:'Fireball',icon:'\uD83D\uDD25',color:'#FF8C00',desc:'Explosive shots deal area damage',duration:450,
+    shoot:function(B,ax,ay,dmg,col){B.bullets.push({x:B.px+ax*B.pRadius,y:B.py+ay*B.pRadius,vx:ax*6,vy:ay*6,dmg:Math.round(dmg*1.5),radius:8,color:'#FF8C00',owner:'player',life:45,explosive:true});}},
+  boomerang:{name:'Boomerang',icon:'\u27B0',color:'#4ade80',desc:'Shots return to you',duration:500,
+    shoot:function(B,ax,ay,dmg,col){B.bullets.push({x:B.px+ax*B.pRadius,y:B.py+ay*B.pRadius,vx:ax*8,vy:ay*8,dmg:dmg,radius:5,color:'#4ade80',owner:'player',life:70,boomerang:true,_origVx:ax*8,_origVy:ay*8,_age:0,_px:B.px,_py:B.py});}},
+  lightning:{name:'Chain Lightning',icon:'\u26A1',color:'#FFD700',desc:'Shots chain to nearby enemies',duration:450,
+    shoot:function(B,ax,ay,dmg,col){B.bullets.push({x:B.px+ax*B.pRadius,y:B.py+ay*B.pRadius,vx:ax*7.5,vy:ay*7.5,dmg:dmg,radius:5,color:'#FFD700',owner:'player',life:55,chain:2});}},
+};
+var BRAWL_WEAPON_KEYS=Object.keys(BRAWL_WEAPONS);
 
 // ── Army definitions with visual properties ────
 var BRAWL_ARMIES={
@@ -6014,6 +6032,7 @@ function brawl_startCampaign(campId){
   B.moveJoyX=0;B.moveJoyY=0;B.aimJoyX=0;B.aimJoyY=0;B.aimActive=false;
   B._shootCdTimer=0;B.pAbilityCd=0;B.pSuperCharge=0;
   B._keys={};B._joyCleanup=[];B._endClickBound=false;B._reviveUsed=false;
+  B.pWeapon=null;B.pWeaponTimer=0;
   _brawlDmgNums=[];
   B.active=true;
   brawl_spawnObstacles();
@@ -6044,8 +6063,8 @@ function brawl_spawnObstacles(){
 // ── Co-op Brawl — start a shared arena with a peer ───
 function brawl_startCoop(role,roomId,peerData){
   var db=MP.getDb();var uid=MP.getUid();
-  if(!db||!uid) return;
-  // Pick a random campaign for co-op (harder: +30% enemy HP)
+  if(!db||!uid){console.error('[COOP] No db or uid!',!!db,uid);toast('Co-op failed: not connected to Firebase','err');return;}
+  console.log('[COOP] Starting co-op as',role,'room:',roomId);
   var campIdx=Math.floor(Math.random()*BRAWL_CAMPAIGNS.length);
   var camp=BRAWL_CAMPAIGNS[campIdx];
   var B=BRAWL;
@@ -6053,7 +6072,7 @@ function brawl_startCoop(role,roomId,peerData){
   B.enemies=[];B.bullets=[];B.particles=[];B.pickups=[];B.obstacles=[];
   B.enemiesKilled=0;B.waveTimer=0;B.camShake=0;B._frameCount=0;B._lastTime=0;
   B.arenaW=900;B.arenaH=700;
-  // Player 1 bottom-left, Player 2 bottom-right
+  B.pWeapon=null;B.pWeaponTimer=0;
   B.px=(role==='host')?B.arenaW*0.35:B.arenaW*0.65;
   B.py=B.arenaH-80;
   var stats=brawl_getCharStats();
@@ -6063,13 +6082,14 @@ function brawl_startCoop(role,roomId,peerData){
   B._shootCdTimer=0;B.pAbilityCd=0;B.pSuperCharge=0;
   B._keys={};B._joyCleanup=[];B._endClickBound=false;B._reviveUsed=false;
   _brawlDmgNums=[];
-  // Co-op state
   B.coopMode=true;
   B.coopRoomId=roomId;
   B.coopRole=role;
   B.coopPeerData=peerData;
+  B._coopConnected=false;
+  B._coopWriteErrShown=false;
+  B._coopGuestReady=(role==='host');
   B.coopAlly={x:(role==='host')?B.arenaW*0.65:B.arenaW*0.35,y:B.arenaH-80,hp:100,maxHp:100,dir:0,charId:peerData.charId,username:peerData.username,alive:true,animFrame:0};
-  // Set ally stats from their character
   var allyChar=ALL_CHARS.find(function(c){return c.id===peerData.charId;})||ALL_CHARS[0];
   var allyLv=peerData.lv||1;
   B.coopAlly.maxHp=(allyChar.hp||100)+allyChar.str*2+allyLv*8;
@@ -6079,7 +6099,6 @@ function brawl_startCoop(role,roomId,peerData){
   B._coopSyncTimer=0;
   B._coopListeners=[];
   B.active=true;
-  // Use seeded obstacles (host sends seed, guest uses same)
   if(role==='host'){
     B._coopSeed=Math.floor(Math.random()*999999);
     brawl_spawnObstaclesSeeded(B._coopSeed);
@@ -6088,19 +6107,24 @@ function brawl_startCoop(role,roomId,peerData){
   document.getElementById('app').innerHTML=rBrawlScreen();
   brawl_initCanvas();
   pvp_hideOverlay();
-  // Set up Firebase sync
   var roomRef=db.ref('kc/brawl_coop/'+roomId);
   B._coopRoomRef=roomRef;
-  roomRef.onDisconnect().update({disconnected:uid,t:Date.now()});
+  roomRef.child('dc/'+uid).onDisconnect().set(Date.now());
   if(role==='host'){
-    // Host writes initial state
-    roomRef.child('config').set({campId:camp.id,seed:B._coopSeed,t:Date.now()});
-    roomRef.child('host').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
-    // Host spawns waves and syncs enemy state
-    brawl_spawnWave();
-    brawl_coopSyncEnemies();
-    brawl_coopSyncWave();
-    // Listen for guest bullet hits
+    // Host clears stale room and writes fresh state
+    roomRef.set(null).then(function(){
+      console.log('[COOP] Room cleared, writing host state');
+      roomRef.child('config').set({campId:camp.id,seed:B._coopSeed,t:Date.now()});
+      roomRef.child('host').set({x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),dir:Math.round(B.pDir*100)/100,alive:true,shoot:0,t:Date.now()});
+      brawl_spawnWave();
+      brawl_coopSyncEnemies();
+      brawl_coopSyncWave();
+      B._coopConnected=true;
+      console.log('[COOP] Host state written');
+    }).catch(function(err){
+      console.error('[COOP] Host room write FAILED:',err.message);
+      toast('\u26A0 Co-op: Firebase write denied! Check DB rules for kc/brawl_coop','err');
+    });
     var guestHitRef=roomRef.child('guest_hits');
     var guestHitListener=guestHitRef.on('child_added',function(snap){
       var hit=snap.val();
@@ -6114,36 +6138,35 @@ function brawl_startCoop(role,roomId,peerData){
     },function(err){console.error('[COOP] Guest hits listener ERROR',err.message);});
     B._coopListeners.push(function(){guestHitRef.off('child_added',guestHitListener);});
   } else {
-    // Guest reads config from host
-    roomRef.child('config').once('value',function(snap){
+    // Guest: use .on('value') to wait for config (host may not have written it yet)
+    var _cfgOff=roomRef.child('config').on('value',function(snap){
       var cfg=snap.val();
-      if(cfg){
-        var trueCamp=BRAWL_CAMPAIGNS.find(function(c){return c.id===cfg.campId;});
-        if(trueCamp) B.campaign=trueCamp;
-        brawl_spawnObstaclesSeeded(cfg.seed||0);
-      }
-    });
-    roomRef.child('guest').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
-    B.wave=-1; // so wave listener triggers on wave 0
+      if(!cfg){console.log('[COOP] Waiting for host config...');return;}
+      roomRef.child('config').off('value',_cfgOff);
+      console.log('[COOP] Guest got config:',cfg.campId,'seed:',cfg.seed);
+      var trueCamp=BRAWL_CAMPAIGNS.find(function(c){return c.id===cfg.campId;});
+      if(trueCamp) B.campaign=trueCamp;
+      brawl_spawnObstaclesSeeded(cfg.seed||0);
+      var wl=document.getElementById('brawlWaveLabel');
+      if(wl&&B.campaign) wl.textContent='Wave 1/'+B.campaign.waves.length;
+      roomRef.child('guest').set({x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),dir:Math.round(B.pDir*100)/100,alive:true,shoot:0,t:Date.now()});
+      B._coopGuestReady=true;
+      B._coopConnected=true;
+      console.log('[COOP] Guest ready');
+    },function(err){console.error('[COOP] Config listener ERROR',err.message);});
+    B.wave=-1;
   }
-  // Connection verification — test write+read to confirm Firebase rules allow this path
-  var testRef=roomRef.child('_test_'+uid);
-  testRef.set({t:Date.now()}).then(function(){
-    console.log('[COOP] Firebase write OK for room',roomId);
-    testRef.remove();
-    B._coopConnected=true;
-  }).catch(function(err){
-    console.error('[COOP] Firebase WRITE DENIED for brawl_coop path!',err.message);
-    toast('\u26A0 Co-op sync error — Firebase rules may block kc/brawl_coop. Check DB rules.','err');
-  });
   // Listen for ally position updates
   var allyKey=role==='host'?'guest':'host';
   var allyRef=roomRef.child(allyKey);
   B._coopAllyShootState=0;
+  B._coopAllyLastT=0;
   var allyListener=allyRef.on('value',function(snap){
     var d=snap.val();
-    if(!d) return;
-    if(!B._coopConnected){B._coopConnected=true;console.log('[COOP] Receiving ally data OK');}
+    if(!d||typeof d!=='object') return;
+    if(d.t&&d.t<B._coopAllyLastT) return;
+    B._coopAllyLastT=d.t||0;
+    if(!B._coopConnected){B._coopConnected=true;console.log('[COOP] Receiving ally data');}
     B.coopAlly.x=d.x;B.coopAlly.y=d.y;B.coopAlly.hp=d.hp;B.coopAlly.dir=d.dir;
     B.coopAlly.alive=d.alive!==false;
     // Ally shooting — spawn cosmetic bullet when ally fires
@@ -6154,49 +6177,51 @@ function brawl_startCoop(role,roomId,peerData){
     }
     B._coopAllyShootState=d.shoot||0;
   },function(err){
-    console.error('[COOP] Ally listener ERROR — Firebase read denied?',err.message);
-    toast('\u26A0 Co-op read error — check Firebase rules for kc/brawl_coop','err');
+    console.error('[COOP] Ally listener ERROR:',err.code,err.message);
+    toast('\u26A0 Co-op read error \u2014 check Firebase rules for kc/brawl_coop','err');
   });
   B._coopListeners.push(function(){allyRef.off('value',allyListener);});
-  // Listen for enemy sync (guest only — host is authoritative)
+  // Listen for enemy sync (guest only \u2014 host is authoritative)
   if(role==='guest'){
     var enemyRef=roomRef.child('enemies');
     var enemyListener=enemyRef.on('value',function(snap){
-      var d=snap.val();
-      if(!d) return;
-      // Merge enemy positions from host
-      if(Array.isArray(d)){
-        // If enemy count mismatch, re-spawn wave to create matching enemy objects
-        if(d.length>0&&B.enemies.length!==d.length){
-          brawl_spawnWave();
-        }
-        for(var i=0;i<d.length&&i<B.enemies.length;i++){
-          if(d[i]){
-            B.enemies[i].x=d[i].x;B.enemies[i].y=d[i].y;
-            B.enemies[i].hp=d[i].hp;
-            if(d[i].dead) B.enemies[i].hp=0;
-          }
+      var raw=snap.val();
+      if(!raw) return;
+      // Firebase may return object {0:{},1:{}} instead of array \u2014 normalize
+      var d;
+      if(Array.isArray(raw)){d=raw;}
+      else if(typeof raw==='object'){d=[];var keys=Object.keys(raw);for(var ki=0;ki<keys.length;ki++){d[parseInt(keys[ki])]=raw[keys[ki]];}}
+      else return;
+      if(!B._coopGuestReady) return;
+      var dLen=0;for(var ci=0;ci<d.length;ci++){if(d[ci])dLen++;}
+      if(dLen>0&&B.enemies.length!==dLen){
+        brawl_spawnWave();
+      }
+      for(var i=0;i<d.length&&i<B.enemies.length;i++){
+        if(d[i]){
+          B.enemies[i].x=d[i].x;B.enemies[i].y=d[i].y;
+          B.enemies[i].hp=d[i].hp;
+          if(d[i].dead) B.enemies[i].hp=0;
         }
       }
-    },function(err){console.error('[COOP] Enemy listener ERROR',err.message);});
+    },function(err){console.error('[COOP] Enemy listener ERROR',err.code,err.message);});
     B._coopListeners.push(function(){enemyRef.off('value',enemyListener);});
     // Listen for wave spawns
     var waveRef=roomRef.child('wave');
     var waveListener=waveRef.on('value',function(snap){
       var w=snap.val();
-      if(w!==null&&w!==undefined&&w!==B.wave){
-        // Heal between waves (same as host wave_clear)
-        if(B.wave>=0){
-          var healPct=0.2;
-          var _hst=brawl_getCharStats();
-          if(_hst.starPower&&_hst.starPower.effect==='healBoost') healPct=0.4;
-          B.pHp=Math.min(B.pMaxHp,B.pHp+Math.round(B.pMaxHp*healPct));
-          // Award score/XP for wave clear
-          B.score+=100*(w);B.xpEarned+=30+w*15;B.coinsEarned+=5+w*3;
-        }
-        B.wave=w;
-        brawl_spawnWave();
+      if(w===null||w===undefined||w===B.wave) return;
+      if(!B._coopGuestReady) return;
+      console.log('[COOP] Guest wave update:',B.wave,'->',w);
+      if(B.wave>=0){
+        var healPct=0.2;
+        var _hst=brawl_getCharStats();
+        if(_hst.starPower&&_hst.starPower.effect==='healBoost') healPct=0.4;
+        B.pHp=Math.min(B.pMaxHp,B.pHp+Math.round(B.pMaxHp*healPct));
+        B.score+=100*(w);B.xpEarned+=30+w*15;B.coinsEarned+=5+w*3;
       }
+      B.wave=w;
+      brawl_spawnWave();
     },function(err){console.error('[COOP] Wave listener ERROR',err.message);});
     B._coopListeners.push(function(){waveRef.off('value',waveListener);});
     // Listen for host bullet hits so guest sees damage applied
@@ -6212,15 +6237,15 @@ function brawl_startCoop(role,roomId,peerData){
     B._coopListeners.push(function(){hostHitRef.off('child_added',hostHitListener);});
   }
   // Listen for disconnect
-  var dcRef=roomRef.child('disconnected');
-  var dcListener=dcRef.on('value',function(snap){
-    var val=snap.val();
-    if(val&&val!==uid&&B.active&&B.coopMode){
+  var dcRef=roomRef.child('dc');
+  var dcListener=dcRef.on('child_added',function(snap){
+    var key=snap.key;
+    if(key&&key!==uid&&B.active&&B.coopMode){
       toast('\u26A1 Ally disconnected!','err');
       B.coopAlly.alive=false;
     }
-  },function(err){console.error('[COOP] Disconnect listener ERROR',err.message);});
-  B._coopListeners.push(function(){dcRef.off('value',dcListener);});
+  },function(err){console.error('[COOP] DC listener ERROR',err.message);});
+  B._coopListeners.push(function(){dcRef.off('child_added',dcListener);});
   // Go fullscreen
   setTimeout(brawl_requestFullscreen,100);
 }
@@ -6261,14 +6286,18 @@ function brawl_coopSyncEnemies(){
 // Co-op sync: send my position to Firebase (called from game loop)
 function brawl_coopSyncSelf(){
   var B=BRAWL;
-  if(!B.coopMode||!B._coopRoomRef) return;
+  if(!B.coopMode||!B._coopRoomRef||!B._coopConnected) return;
   var myKey=B.coopRole==='host'?'host':'guest';
+  if(B.coopRole==='guest'&&!B._coopGuestReady) return;
   var shooting=B.aimActive||B._keys['j']||B._keys['J']||B._keys['l']||B._keys['L']||B._keys['i']||B._keys['I']||B._keys['k']||B._keys['K'];
   B._coopRoomRef.child(myKey).set({
     x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),
     dir:Math.round((B.aimActive?Math.atan2(B.aimJoyY,B.aimJoyX):B.pDir)*100)/100,
-    alive:B.pHp>0,shoot:shooting?1:0
+    alive:B.pHp>0,shoot:shooting?1:0,t:Date.now()
   }).catch(function(err){
+    if(!B._coopWriteErrShown){B._coopWriteErrShown=true;console.error('[COOP] Write DENIED:',err.message);}
+  });
+}
     if(!B._coopWriteErrShown){B._coopWriteErrShown=true;console.error('[COOP] Write DENIED:',err.message);toast('\u26A0 Co-op sync failed — check Firebase rules','err');}
   });
 }
@@ -6284,8 +6313,9 @@ function brawl_coopSyncWave(){
 function brawl_coopCleanup(){
   var B=BRAWL;
   if(B._coopListeners){B._coopListeners.forEach(function(fn){try{fn();}catch(e){}});B._coopListeners=[];}
-  if(B._coopRoomRef){try{B._coopRoomRef.child('disconnected').set(MP.getUid());}catch(e){}B._coopRoomRef=null;}
+  if(B._coopRoomRef){try{B._coopRoomRef.child('dc/'+(MP.getUid()||'unknown')).set(Date.now());}catch(e){}B._coopRoomRef=null;}
   B.coopMode=false;B.coopPeers=[];B.coopRoomId=null;B.coopRole=null;B.coopAlly=null;B.coopPeerData=null;
+  B._coopConnected=false;B._coopGuestReady=false;
   pvp_cleanup();
 }
 
@@ -6660,9 +6690,17 @@ function brawl_update(dt){
   if(B.pInvuln>0) B.pInvuln-=spd;
   if(B.pAbilityCd>0) B.pAbilityCd-=dt;
 
+  // Weapon pickup timer
+  if(B.pWeaponTimer>0){B.pWeaponTimer-=spd;if(B.pWeaponTimer<=0){B.pWeapon=null;B.pWeaponTimer=0;}}
+
+  // Compute shoot cooldown (weapon modifiers)
+  var _baseShootCd=brawl_getCharStats().shootCd/60;
+  var _weapCdMult=(B.pWeapon&&BRAWL_WEAPONS[B.pWeapon]&&BRAWL_WEAPONS[B.pWeapon].shootCdMult)?BRAWL_WEAPONS[B.pWeapon].shootCdMult:1;
+  var _shootCd=_baseShootCd*_weapCdMult;
+
   // Continuous fire while aiming
   if(B.aimActive){
-    if(B._shootCdTimer<=0){brawl_shoot();B._shootCdTimer=brawl_getCharStats().shootCd/60;}
+    if(B._shootCdTimer<=0){brawl_shoot();B._shootCdTimer=_shootCd;}
   }
   // Keyboard aim (IJKL keys)
   if(!B.aimActive){
@@ -6670,7 +6708,7 @@ function brawl_update(dt){
     if(B._keys['j']||B._keys['J'])kax=-1;if(B._keys['l']||B._keys['L'])kax=1;
     if(B._keys['i']||B._keys['I'])kay=-1;if(B._keys['k']||B._keys['K'])kay=1;
     if(kax||kay){B.aimJoyX=kax;B.aimJoyY=kay;
-      if(B._shootCdTimer<=0){brawl_shoot();B._shootCdTimer=brawl_getCharStats().shootCd/60;}}
+      if(B._shootCdTimer<=0){brawl_shoot();B._shootCdTimer=_shootCd;}}
   }
   if(B._shootCdTimer>0)B._shootCdTimer-=dt;
 
@@ -6746,9 +6784,28 @@ function brawl_update(dt){
   // Bullets
   for(var bi=B.bullets.length-1;bi>=0;bi--){
     var b=B.bullets[bi];
+    // Boomerang: reverse direction after half life
+    if(b.boomerang){
+      b._age=(b._age||0)+spd;
+      if(b._age>25&&b._age<26){b.vx=-b._origVx*0.8;b.vy=-b._origVy*0.8;}
+    }
     b.x+=b.vx*spd;b.y+=b.vy*spd;b.life-=spd;
     var obs=brawl_collideObstacle(b.x,b.y,b.radius);
-    if(b.life<=0||b.x<-30||b.x>B.arenaW+30||b.y<-30||b.y>B.arenaH+30||obs){
+    if(b.life<=0||b.x<-30||b.x>B.arenaW+30||b.y<-30||b.y>B.arenaH+30||(obs&&!b.pierce)){
+      // Explosive: area damage on impact
+      if(b.explosive&&b.owner==='player'){
+        brawl_particles(b.x,b.y,12,'#FF8C00');B.camShake=Math.max(B.camShake,4);
+        for(var exi=0;exi<B.enemies.length;exi++){
+          var exen=B.enemies[exi];if(exen.hp<=0)continue;
+          var exd=Math.sqrt((b.x-exen.x)*(b.x-exen.x)+(b.y-exen.y)*(b.y-exen.y));
+          if(exd<60){var exdmg=Math.round(b.dmg*0.6*(1-exd/60));exen.hp-=exdmg;exen.flash=8;
+            brawl_dmgNum(exen.x,exen.y-exen.radius,exdmg,'#FF8C00',false);
+            if(exen.hp<=0){brawl_onKill(exen);brawl_particles(exen.x,exen.y,10,exen.color);}
+            if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef) B._coopRoomRef.child('guest_hits').push({idx:exi,dmg:exdmg});
+            if(B.coopMode&&B.coopRole==='host'&&B._coopRoomRef) B._coopRoomRef.child('host_hits').push({idx:exi,dmg:exdmg});
+          }
+        }
+      }
       if(obs) brawl_particles(b.x,b.y,2,'#888');
       B.bullets.splice(bi,1);continue;
     }
@@ -6757,24 +6814,38 @@ function brawl_update(dt){
     } else if(b.owner==='player'){
       for(var ej=0;ej<B.enemies.length;ej++){
         var en=B.enemies[ej];if(en.hp<=0)continue;
+        if(en._justHitBy===bi) continue; // piercing: skip already-hit enemies this frame
         if(Math.sqrt((b.x-en.x)*(b.x-en.x)+(b.y-en.y)*(b.y-en.y))<en.radius+b.radius){
           var bdmg=b.dmg;
-          // Star Power: bossHunter (+40% dmg to bosses)
           var _bst=brawl_getCharStats();
           if(en.isBoss&&_bst.starPower&&_bst.starPower.effect==='bossHunter') bdmg=Math.round(bdmg*1.4);
           en.hp-=bdmg;en.flash=8;B.pSuperCharge=Math.min(100,B.pSuperCharge+5);
           brawl_dmgNum(en.x,en.y-en.radius,bdmg,en.isBoss?'#FFD700':'#fff',en.isBoss);
           brawl_particles(b.x,b.y,3,en.color);SFX&&SFX.whit&&SFX.whit();
           if(en.hp<=0){brawl_onKill(en);brawl_particles(en.x,en.y,15,en.color);}
-          // Guest: send hit to host so host applies damage too
           if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
             B._coopRoomRef.child('guest_hits').push({idx:ej,dmg:bdmg});
           }
-          // Host: notify guest of hit for visual feedback
           if(B.coopMode&&B.coopRole==='host'&&B._coopRoomRef){
             B._coopRoomRef.child('host_hits').push({idx:ej,dmg:bdmg});
           }
-          B.bullets.splice(bi,1);break;
+          // Chain lightning: spawn chain bullet toward nearest other enemy
+          if(b.chain&&b.chain>0){
+            var closestChain=null,closestChainDist=200;
+            for(var chi=0;chi<B.enemies.length;chi++){
+              if(chi===ej||B.enemies[chi].hp<=0) continue;
+              var chd=Math.sqrt((en.x-B.enemies[chi].x)*(en.x-B.enemies[chi].x)+(en.y-B.enemies[chi].y)*(en.y-B.enemies[chi].y));
+              if(chd<closestChainDist){closestChainDist=chd;closestChain=chi;}
+            }
+            if(closestChain!==null){
+              var ctx2=B.enemies[closestChain].x-en.x,cty2=B.enemies[closestChain].y-en.y;
+              var ctm=Math.sqrt(ctx2*ctx2+cty2*cty2)||1;
+              B.bullets.push({x:en.x,y:en.y,vx:ctx2/ctm*8,vy:cty2/ctm*8,dmg:Math.round(bdmg*0.6),radius:4,color:'#FFD700',owner:'player',life:30,chain:b.chain-1});
+            }
+          }
+          // Piercing: don't remove bullet, just mark enemy as hit
+          if(b.pierce){en._justHitBy=bi;b.dmg=Math.round(b.dmg*0.7);}
+          else{B.bullets.splice(bi,1);break;}
         }
       }
     } else {
@@ -6788,6 +6859,9 @@ function brawl_update(dt){
     }
   }
 
+  // Clear piercing hit markers
+  for(var _ec=0;_ec<B.enemies.length;_ec++){delete B.enemies[_ec]._justHitBy;}
+
   // Particles
   for(var pi2=B.particles.length-1;pi2>=0;pi2--){
     var p=B.particles[pi2];p.x+=p.vx*spd;p.y+=p.vy*spd;p.life-=spd;
@@ -6799,7 +6873,15 @@ function brawl_update(dt){
     if(pu.life<=0){B.pickups.splice(pk,1);continue;}
     if(Math.sqrt((B.px-pu.x)*(B.px-pu.x)+(B.py-pu.y)*(B.py-pu.y))<B.pRadius+12){
       if(pu.type==='heal'){B.pHp=Math.min(B.pMaxHp,B.pHp+Math.round(B.pMaxHp*0.25));SFX&&SFX.heal&&SFX.heal();}
-      if(pu.type==='super'){B.pSuperCharge=100;SFX&&SFX.unlock&&SFX.unlock();}
+      else if(pu.type==='super'){B.pSuperCharge=100;SFX&&SFX.unlock&&SFX.unlock();}
+      else if(pu.type==='weapon'&&pu.weaponId){
+        B.pWeapon=pu.weaponId;
+        var _wd=BRAWL_WEAPONS[pu.weaponId];
+        B.pWeaponTimer=_wd?_wd.duration:500;
+        brawl_particles(B.px,B.py,10,_wd?_wd.color:'#FFD700');
+        SFX&&SFX.unlock&&SFX.unlock();
+        toast((_wd?_wd.icon+' ':'')+(_wd?_wd.name:'Weapon')+'!');
+      }
       B.pickups.splice(pk,1);
     }
   }
@@ -6822,8 +6904,10 @@ function brawl_shoot(){
   if(am<0.1){ax=Math.cos(B.pDir);ay=Math.sin(B.pDir);}else{ax/=am;ay/=am;}
   var st=brawl_getCharStats();
   var col=gch().color;
-  // Star Power: spreadShot — fire 3 bullets in a spread
-  if(st.starPower&&st.starPower.effect==='spreadShot'){
+  // Weapon pickup overrides normal shooting
+  if(B.pWeapon&&BRAWL_WEAPONS[B.pWeapon]&&BRAWL_WEAPONS[B.pWeapon].shoot){
+    BRAWL_WEAPONS[B.pWeapon].shoot(B,ax,ay,st.dmg,col);
+  } else if(st.starPower&&st.starPower.effect==='spreadShot'){
     for(var si=-1;si<=1;si++){
       var ang=Math.atan2(ay,ax)+si*0.18;
       var sax=Math.cos(ang),say=Math.sin(ang);
@@ -6878,16 +6962,19 @@ function brawl_onKill(e){
   var st=brawl_getCharStats();
   BRAWL.enemiesKilled++;BRAWL.score+=e.isBoss?500:50;
   BRAWL.xpEarned+=e.isBoss?50:8;BRAWL.coinsEarned+=e.isBoss?15:2;
-  // Star Power: coinBoost (+25% coins)
   if(st.starPower&&st.starPower.effect==='coinBoost'){
     BRAWL.coinsEarned+=e.isBoss?4:1;
   }
-  // Star Power: bossHunter is applied in bullet damage check
   var healChance=e.isBoss?0.9:0.15;
-  // Star Power: healDrop (50% more heal pickups)
   if(st.starPower&&st.starPower.effect==='healDrop') healChance=e.isBoss?0.95:0.22;
   if(Math.random()<healChance){
     BRAWL.pickups.push({x:e.x,y:e.y,type:Math.random()<0.7?'heal':'super',life:420});
+  }
+  // Weapon drop chance: 12% for normal enemies, 80% for bosses
+  var weapChance=e.isBoss?0.8:0.12;
+  if(Math.random()<weapChance){
+    var wid=BRAWL_WEAPON_KEYS[Math.floor(Math.random()*BRAWL_WEAPON_KEYS.length)];
+    BRAWL.pickups.push({x:e.x+(Math.random()-0.5)*20,y:e.y+(Math.random()-0.5)*20,type:'weapon',weaponId:wid,life:600});
   }
 }
 
@@ -7005,12 +7092,25 @@ function brawl_render(){
     var pu2=B.pickups[pki];
     var pp=0.6+0.4*Math.sin(B._frameCount*0.08+pki);
     ctx.globalAlpha=pp;
-    ctx.fillStyle=pu2.type==='heal'?'#4ade80':'#CC00FF';
-    ctx.shadowColor=pu2.type==='heal'?'#4ade80':'#CC00FF';ctx.shadowBlur=8;
-    ctx.beginPath();ctx.arc(pu2.x,pu2.y,9,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.fillStyle='#fff';ctx.font='bold 11px monospace';ctx.textAlign='center';
-    ctx.fillText(pu2.type==='heal'?'\u2665':'\u2605',pu2.x,pu2.y+4);
+    if(pu2.type==='weapon'&&pu2.weaponId){
+      var _wd2=BRAWL_WEAPONS[pu2.weaponId];
+      var wcol=_wd2?_wd2.color:'#FFD700';
+      // Weapon pickup: pulsing hexagon with glow
+      ctx.fillStyle=wcol;ctx.shadowColor=wcol;ctx.shadowBlur=12;
+      ctx.beginPath();
+      for(var hi=0;hi<6;hi++){var ha=hi*Math.PI/3+B._frameCount*0.02;ctx.lineTo(pu2.x+Math.cos(ha)*12,pu2.y+Math.sin(ha)*12);}
+      ctx.closePath();ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.fillStyle='#000';ctx.font='bold 10px monospace';ctx.textAlign='center';
+      ctx.fillText(_wd2?_wd2.icon:'\u2726',pu2.x,pu2.y+4);
+    } else {
+      ctx.fillStyle=pu2.type==='heal'?'#4ade80':'#CC00FF';
+      ctx.shadowColor=pu2.type==='heal'?'#4ade80':'#CC00FF';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.arc(pu2.x,pu2.y,9,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.fillStyle='#fff';ctx.font='bold 11px monospace';ctx.textAlign='center';
+      ctx.fillText(pu2.type==='heal'?'\u2665':'\u2605',pu2.x,pu2.y+4);
+    }
     ctx.globalAlpha=1;
   }
 
@@ -7040,6 +7140,17 @@ function brawl_render(){
   brawl_drawHero(ctx,B.px,B.py,B.pRadius,ch,
     B.aimActive?Math.atan2(B.aimJoyY,B.aimJoyX):B.pDir,
     B._frameCount,B.pInvuln);
+  // Active weapon indicator above player
+  if(B.pWeapon&&BRAWL_WEAPONS[B.pWeapon]){
+    var _wdi=BRAWL_WEAPONS[B.pWeapon];
+    ctx.fillStyle=_wdi.color;ctx.font='bold 9px Georgia';ctx.textAlign='center';
+    ctx.fillText(_wdi.icon+' '+_wdi.name,B.px,B.py-B.pRadius-18);
+    // Timer bar
+    var wbW=30,wbH=3,wPct=B.pWeaponTimer/(_wdi.duration||500);
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(B.px-wbW/2,B.py-B.pRadius-13,wbW,wbH);
+    ctx.fillStyle=_wdi.color;ctx.fillRect(B.px-wbW/2,B.py-B.pRadius-13,wbW*wPct,wbH);
+    ctx.textAlign='left';
+  }
 
   // Co-op ally
   if(B.coopMode&&B.coopAlly&&B.coopAlly.alive){
@@ -7157,7 +7268,16 @@ function brawl_updateHUD(){
   var ab=document.getElementById('brawlAbilityBtn');
   var al=document.getElementById('brawlAbilityLbl');
   if(ab){var rdy=B.pAbilityCd<=0;ab.style.opacity=rdy?1:0.4;ab.style.borderColor=rdy?'#CC00FF':'#333';}
-  if(al){al.textContent=B.pAbilityCd>0?Math.ceil(B.pAbilityCd)+'s':brawl_getCharStats().abilityName;}
+  if(al){
+    if(B.pWeapon&&BRAWL_WEAPONS[B.pWeapon]){
+      var _wd3=BRAWL_WEAPONS[B.pWeapon];
+      al.textContent=_wd3.icon+' '+_wd3.name+' '+Math.ceil(B.pWeaponTimer/60)+'s';
+      al.style.color=_wd3.color;
+    } else {
+      al.textContent=B.pAbilityCd>0?Math.ceil(B.pAbilityCd)+'s':brawl_getCharStats().abilityName;
+      al.style.color='#CC00FF';
+    }
+  }
 }
 
 function brawl_cleanup(){
