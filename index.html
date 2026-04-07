@@ -6298,9 +6298,6 @@ function brawl_coopSyncSelf(){
     if(!B._coopWriteErrShown){B._coopWriteErrShown=true;console.error('[COOP] Write DENIED:',err.message);}
   });
 }
-    if(!B._coopWriteErrShown){B._coopWriteErrShown=true;console.error('[COOP] Write DENIED:',err.message);toast('\u26A0 Co-op sync failed — check Firebase rules','err');}
-  });
-}
 
 // Co-op: sync wave number from host
 function brawl_coopSyncWave(){
