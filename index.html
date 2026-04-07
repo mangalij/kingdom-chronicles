@@ -6111,7 +6111,7 @@ function brawl_startCoop(role,roomId,peerData){
         if(B.enemies[hit.idx].hp<=0){brawl_onKill(B.enemies[hit.idx]);brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,15,B.enemies[hit.idx].color);}
       }
       snap.ref.remove();
-    });
+    },function(err){console.error('[COOP] Guest hits listener ERROR',err.message);});
     B._coopListeners.push(function(){guestHitRef.off('child_added',guestHitListener);});
   } else {
     // Guest reads config from host
@@ -6126,14 +6126,36 @@ function brawl_startCoop(role,roomId,peerData){
     roomRef.child('guest').set({x:B.px,y:B.py,hp:B.pHp,dir:B.pDir,alive:true});
     B.wave=-1; // so wave listener triggers on wave 0
   }
+  // Connection verification — test write+read to confirm Firebase rules allow this path
+  var testRef=roomRef.child('_test_'+uid);
+  testRef.set({t:Date.now()}).then(function(){
+    console.log('[COOP] Firebase write OK for room',roomId);
+    testRef.remove();
+    B._coopConnected=true;
+  }).catch(function(err){
+    console.error('[COOP] Firebase WRITE DENIED for brawl_coop path!',err.message);
+    toast('\u26A0 Co-op sync error — Firebase rules may block kc/brawl_coop. Check DB rules.','err');
+  });
   // Listen for ally position updates
   var allyKey=role==='host'?'guest':'host';
   var allyRef=roomRef.child(allyKey);
+  B._coopAllyShootState=0;
   var allyListener=allyRef.on('value',function(snap){
     var d=snap.val();
     if(!d) return;
+    if(!B._coopConnected){B._coopConnected=true;console.log('[COOP] Receiving ally data OK');}
     B.coopAlly.x=d.x;B.coopAlly.y=d.y;B.coopAlly.hp=d.hp;B.coopAlly.dir=d.dir;
     B.coopAlly.alive=d.alive!==false;
+    // Ally shooting — spawn cosmetic bullet when ally fires
+    if(d.shoot&&!B._coopAllyShootState){
+      var aDx=Math.cos(d.dir),aDy=Math.sin(d.dir);
+      B.bullets.push({x:d.x+aDx*B.pRadius,y:d.y+aDy*B.pRadius,vx:aDx*7.5,vy:aDy*7.5,
+        dmg:0,radius:4,color:B.coopAlly.color||'#4ade80',owner:'ally',life:50});
+    }
+    B._coopAllyShootState=d.shoot||0;
+  },function(err){
+    console.error('[COOP] Ally listener ERROR — Firebase read denied?',err.message);
+    toast('\u26A0 Co-op read error — check Firebase rules for kc/brawl_coop','err');
   });
   B._coopListeners.push(function(){allyRef.off('value',allyListener);});
   // Listen for enemy sync (guest only — host is authoritative)
@@ -6156,7 +6178,7 @@ function brawl_startCoop(role,roomId,peerData){
           }
         }
       }
-    });
+    },function(err){console.error('[COOP] Enemy listener ERROR',err.message);});
     B._coopListeners.push(function(){enemyRef.off('value',enemyListener);});
     // Listen for wave spawns
     var waveRef=roomRef.child('wave');
@@ -6175,8 +6197,19 @@ function brawl_startCoop(role,roomId,peerData){
         B.wave=w;
         brawl_spawnWave();
       }
-    });
+    },function(err){console.error('[COOP] Wave listener ERROR',err.message);});
     B._coopListeners.push(function(){waveRef.off('value',waveListener);});
+    // Listen for host bullet hits so guest sees damage applied
+    var hostHitRef=roomRef.child('host_hits');
+    var hostHitListener=hostHitRef.on('child_added',function(snap){
+      var hit=snap.val();
+      if(hit&&B.enemies[hit.idx]&&B.enemies[hit.idx].hp>0){
+        B.enemies[hit.idx].flash=8;
+        brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,3,B.enemies[hit.idx].color);
+      }
+      snap.ref.remove();
+    },function(err){console.error('[COOP] Host hits listener ERROR',err.message);});
+    B._coopListeners.push(function(){hostHitRef.off('child_added',hostHitListener);});
   }
   // Listen for disconnect
   var dcRef=roomRef.child('disconnected');
@@ -6186,7 +6219,7 @@ function brawl_startCoop(role,roomId,peerData){
       toast('\u26A1 Ally disconnected!','err');
       B.coopAlly.alive=false;
     }
-  });
+  },function(err){console.error('[COOP] Disconnect listener ERROR',err.message);});
   B._coopListeners.push(function(){dcRef.off('value',dcListener);});
   // Go fullscreen
   setTimeout(brawl_requestFullscreen,100);
@@ -6225,13 +6258,18 @@ function brawl_coopSyncEnemies(){
   B._coopRoomRef.child('enemies').set(enemyData);
 }
 
-// Co-op sync: send my position to Firebase (called from update loop)
+// Co-op sync: send my position to Firebase (called from game loop)
 function brawl_coopSyncSelf(){
   var B=BRAWL;
   if(!B.coopMode||!B._coopRoomRef) return;
   var myKey=B.coopRole==='host'?'host':'guest';
+  var shooting=B.aimActive||B._keys['j']||B._keys['J']||B._keys['l']||B._keys['L']||B._keys['i']||B._keys['I']||B._keys['k']||B._keys['K'];
   B._coopRoomRef.child(myKey).set({
-    x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),dir:Math.round(B.pDir*100)/100,alive:B.pHp>0
+    x:Math.round(B.px),y:Math.round(B.py),hp:Math.round(B.pHp),
+    dir:Math.round((B.aimActive?Math.atan2(B.aimJoyY,B.aimJoyX):B.pDir)*100)/100,
+    alive:B.pHp>0,shoot:shooting?1:0
+  }).catch(function(err){
+    if(!B._coopWriteErrShown){B._coopWriteErrShown=true;console.error('[COOP] Write DENIED:',err.message);toast('\u26A0 Co-op sync failed — check Firebase rules','err');}
   });
 }
 
@@ -6576,6 +6614,15 @@ function brawl_loop(ts){
       B.state='playing';brawl_spawnWave();
     }
   }
+  // Co-op sync runs in brawl_loop (not brawl_update) so it works in ALL states
+  if(B.coopMode&&B.active){
+    B._coopSyncTimer=(B._coopSyncTimer||0)+1;
+    if(B._coopSyncTimer>=3){
+      B._coopSyncTimer=0;
+      brawl_coopSyncSelf();
+      if(B.coopRole==='host') brawl_coopSyncEnemies();
+    }
+  }
   brawl_render();
   brawl_updateHUD();
   B.rafId=requestAnimationFrame(brawl_loop);
@@ -6705,7 +6752,9 @@ function brawl_update(dt){
       if(obs) brawl_particles(b.x,b.y,2,'#888');
       B.bullets.splice(bi,1);continue;
     }
-    if(b.owner==='player'){
+    if(b.owner==='ally'){
+      // Cosmetic ally bullet — no collision, just visual
+    } else if(b.owner==='player'){
       for(var ej=0;ej<B.enemies.length;ej++){
         var en=B.enemies[ej];if(en.hp<=0)continue;
         if(Math.sqrt((b.x-en.x)*(b.x-en.x)+(b.y-en.y)*(b.y-en.y))<en.radius+b.radius){
@@ -6720,6 +6769,10 @@ function brawl_update(dt){
           // Guest: send hit to host so host applies damage too
           if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
             B._coopRoomRef.child('guest_hits').push({idx:ej,dmg:bdmg});
+          }
+          // Host: notify guest of hit for visual feedback
+          if(B.coopMode&&B.coopRole==='host'&&B._coopRoomRef){
+            B._coopRoomRef.child('host_hits').push({idx:ej,dmg:bdmg});
           }
           B.bullets.splice(bi,1);break;
         }
@@ -6759,15 +6812,6 @@ function brawl_update(dt){
     if(B.wave>=B.campaign.waves.length){B.state='victory';SFX&&SFX.victory&&SFX.victory();}
     else{B.waveTimer=90;B.state='wave_clear';}
     if(B.coopMode&&B.coopRole==='host') brawl_coopSyncWave();
-  }
-  // Co-op sync (every 3 frames to reduce Firebase writes)
-  if(B.coopMode){
-    B._coopSyncTimer=(B._coopSyncTimer||0)+1;
-    if(B._coopSyncTimer>=3){
-      B._coopSyncTimer=0;
-      brawl_coopSyncSelf();
-      if(B.coopRole==='host') brawl_coopSyncEnemies();
-    }
   }
 }
 
