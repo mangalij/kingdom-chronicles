@@ -363,6 +363,47 @@ var KC_AUTH = (function(){
       .catch(function(err){if(cb)cb(err.message,null);});
   }
 
+  // ── Leaderboard: push player stats ──
+  function pushLeaderboard(cb){
+    if(!_user || !_db){if(cb)cb('Not ready');return;}
+    var now=Date.now();
+    var d=new Date();
+    var weekKey=d.getFullYear()+'W'+String(Math.ceil(((d-new Date(d.getFullYear(),0,1))/86400000+new Date(d.getFullYear(),0,1).getDay()+1)/7)).padStart(2,'0');
+    var entry={
+      username:G.username||'Anonymous',
+      charId:G.charId,
+      checkIns:G.pd.checkIns||0,
+      xp:G.pd.xp||0,
+      wins:(G.pd.wins||0)+(G.pd.pvpWins||0),
+      badges:(G.pd.badges||[]).length,
+      level:Math.floor((G.pd.xp||0)/200)+1,
+      t:now
+    };
+    var uid=_user.uid;
+    var updates={};
+    updates['kc/leaderboard/alltime/'+uid]=entry;
+    updates['kc/leaderboard/weekly/'+weekKey+'/'+uid]=entry;
+    _db.ref().update(updates)
+      .then(function(){if(cb)cb(null);})
+      .catch(function(err){if(cb)cb(err.message);});
+  }
+
+  // ── Leaderboard: read top players ──
+  function readLeaderboard(period,cb){
+    if(!_db){cb('Firebase not ready',[]);return;}
+    var d=new Date();
+    var weekKey=d.getFullYear()+'W'+String(Math.ceil(((d-new Date(d.getFullYear(),0,1))/86400000+new Date(d.getFullYear(),0,1).getDay()+1)/7)).padStart(2,'0');
+    var path=period==='weekly'?'kc/leaderboard/weekly/'+weekKey:'kc/leaderboard/alltime';
+    _db.ref(path).orderByChild('checkIns').limitToLast(20).once('value')
+      .then(function(snap){
+        var arr=[];
+        snap.forEach(function(child){arr.push(child.val());});
+        arr.sort(function(a,b){return(b.checkIns||0)-(a.checkIns||0);});
+        cb(null,arr);
+      })
+      .catch(function(err){cb(err.message,[]);});
+  }
+
   return {
     signUp: signUp,
     logIn: logIn,
@@ -375,6 +416,8 @@ var KC_AUTH = (function(){
     cloudLoadCFG: cloudLoadCFG,
     claimUsername: claimUsername,
     checkUsernameTaken: checkUsernameTaken,
+    pushLeaderboard: pushLeaderboard,
+    readLeaderboard: readLeaderboard,
     ensureReady: ensureReady,
     getUser: function(){return _user;},
     isSignedIn: function(){return !!_user;}
@@ -1109,13 +1152,39 @@ const PUPS=[{id:"armor",name:"Armor of God",emoji:"🛡️",effect:"defense"},{i
 const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const XP_LVL=200;
 
+// ── Check-In Badges ─────────────────────────
+const CHECKIN_BADGES=[
+  {id:"first_step",name:"First Step",emoji:"👣",desc:"Check in for the first time",req:1,xp:20},
+  {id:"faithful_5",name:"Faithful Five",emoji:"🙏",desc:"Check in 5 times",req:5,xp:50},
+  {id:"devoted_10",name:"Devoted",emoji:"⛪",desc:"Check in 10 times",req:10,xp:80},
+  {id:"pillar_25",name:"Pillar of Faith",emoji:"🏛️",desc:"Check in 25 times",req:25,xp:120},
+  {id:"cornerstone_50",name:"Cornerstone",emoji:"🪨",desc:"Check in 50 times",req:50,xp:200},
+  {id:"temple_100",name:"Living Temple",emoji:"🏰",desc:"Check in 100 times",req:100,xp:350},
+  {id:"covenant_200",name:"Covenant Keeper",emoji:"📜",desc:"Check in 200 times",req:200,xp:500},
+  {id:"eternal_365",name:"Eternal Flame",emoji:"🔥",desc:"Check in 365 times",req:365,xp:1000},
+];
+function checkBadges(){
+  const ci=G.pd.checkIns||0;
+  if(!G.pd.badges)G.pd.badges=[];
+  let awarded=false;
+  CHECKIN_BADGES.forEach(b=>{
+    if(ci>=b.req&&!G.pd.badges.includes(b.id)){
+      G.pd.badges.push(b.id);
+      G.pd.xp+=b.xp;
+      toast(`🏅 BADGE: ${b.emoji} ${b.name}! +${b.xp} XP`);
+      awarded=true;
+    }
+  });
+  if(awarded)persistPlayer();
+}
+
 // ── State ────────────────────────────────────
 const G={
   screen:"boot", // boot → signup OR title
   tab:"home",wardTab:"skin",
   charId:"shepherd",cos:{sk:0,hr:1,ot:0},
   username:null, // set during signup
-  pd:{xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],playerId:Math.random().toString(36).slice(2,10)},
+  pd:{xp:0,wins:0,losses:0,pvpWins:0,pvpLosses:0,checkIns:0,powerups:[],badges:[],playerId:Math.random().toString(36).slice(2,10)},
   unlocked:["shepherd"],completedMissions:[],
   bs:null,log:[],
   battleType:"arena",activeMission:null,missionStage:0,
@@ -1154,6 +1223,7 @@ function restorePlayer(d){
   G.pd.baptized=G.pd.baptized||[];
   G.pd.brawlPower=G.pd.brawlPower||{};
   G.pd.brawlPoints=G.pd.brawlPoints||{};
+  G.pd.badges=G.pd.badges||[];
   if(!G.pd.displayName && G.pd.displayName !== null) G.pd.displayName = null;
   if(!G.pd.playerId) G.pd.playerId = "player_" + Date.now();
   G.unlocked=d.unlocked||["shepherd"];
@@ -1665,7 +1735,9 @@ function rAdmin(){
     "users":{"$uid":{".read":"auth!=null&&auth.uid==$uid",".write":"auth!=null&&auth.uid==$uid"}},
     "usernames":{".read":true,".write":"auth!=null"},
     "church":{".read":true,".write":"auth!=null||true"},
-    "tcg":{".read":true,".write":true}
+    "tcg":{".read":true,".write":true},
+    "adminCfg":{".read":true,".write":"auth!=null"},
+    "leaderboard":{".read":true,".write":"auth!=null"}
   }
 }}</pre>
       </div>
@@ -1852,7 +1924,8 @@ function _processCheckInPosition(pos){
       if(pu&&G.pd.powerups.length<6)G.pd.powerups.push(pu);
       if(G.pd.checkIns>=5&&!G.unlocked.includes("esther")){G.unlocked.push("esther");toast("🎉 UNLOCKED: Esther (Uncommon)!");}
       else toast(`⛪ Checked in! +${xp} XP +15 🪙${pu?" + "+pu.emoji:""}  `);
-      checkUnlocks();persistPlayer();G.checkInState="ok";
+      checkBadges();checkUnlocks();persistPlayer();G.checkInState="ok";
+      if(KC_AUTH.isSignedIn())KC_AUTH.pushLeaderboard();
     } else G.checkInState="far";
     render();setTimeout(()=>{G.checkInState="idle";render();},6000);
 }
@@ -1866,7 +1939,8 @@ function doCheckIn(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.checkIn&&SFX.checkIn
     if(pu&&G.pd.powerups.length<6)G.pd.powerups.push(pu);
     if(G.pd.checkIns>=5&&!G.unlocked.includes("esther")){G.unlocked.push("esther");toast("🎉 UNLOCKED: Esther (Uncommon)!");}
     else toast(`⛪ Checked in! +${xp} XP +15 🪙${pu?" + "+pu.emoji:""}  `);
-    checkUnlocks();persistPlayer();G.checkInState="ok";render();
+    checkBadges();checkUnlocks();persistPlayer();G.checkInState="ok";render();
+    if(KC_AUTH.isSignedIn())KC_AUTH.pushLeaderboard();
     setTimeout(()=>{G.checkInState="idle";render();},4000);
     return;
   }
@@ -1888,6 +1962,15 @@ function doCheckIn(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.checkIn&&SFX.checkIn
     },
     {enableHighAccuracy:true,timeout:15000,maximumAge:0}
   );
+}
+
+function loadLeaderboard(period){
+  G._lbPeriod=period;G._lbLoading=true;G._lbData=null;render();
+  KC_AUTH.readLeaderboard(period,function(err,data){
+    G._lbLoading=false;
+    G._lbData=err?[]:data;
+    render();
+  });
 }
 
 function rStatsTab(){
@@ -1982,10 +2065,56 @@ function rStatsTab(){
   </div>
 
   <!-- Completed Mission Badges -->
-  ${G.completedMissions.length>0?`<div class="section-card" style="border-color:#4ade8033">
+  ${G.completedMissions.length>0?`<div class="section-card" style="border-color:#4ade8033;margin-bottom:10px">
     <div style="font-size:17px;font-weight:bold;color:#4ade80;margin-bottom:8px">🏅 MISSION BADGES</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px">${G.completedMissions.map(mid=>{const m=MISSIONS.find(x=>x.id===mid);return m?`<div style="background:linear-gradient(135deg,${m.bgCol},#111);border:1px solid ${m.accent}44;border-radius:10px;padding:8px 12px;text-align:center"><div style="font-size:22px">${m.badge}</div><div style="font-size:16px;color:${m.accent};font-weight:bold">${m.badgeName}</div></div>`:'';}).join('')}</div>
   </div>`:''}
+
+  <!-- Check-In Badges -->
+  <div class="section-card" style="border-color:#C4A35A33;margin-bottom:10px">
+    <div style="font-size:17px;font-weight:bold;color:#C4A35A;margin-bottom:4px">⛪ CHECK-IN BADGES</div>
+    <div style="font-size:16px;color:#555;margin-bottom:10px">${(G.pd.badges||[]).length}/${CHECKIN_BADGES.length} earned · ${G.pd.checkIns||0} total check-ins</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${CHECKIN_BADGES.map(b=>{
+      const earned=(G.pd.badges||[]).includes(b.id);
+      const ci=G.pd.checkIns||0;
+      const pct=Math.min(100,Math.round(ci/b.req*100));
+      return`<div style="background:${earned?"linear-gradient(135deg,#1a1500,#111)":"#0d0d0d"};border:1px solid ${earned?"#C4A35A44":"#1a1a1a"};border-radius:10px;padding:10px;text-align:center;opacity:${earned?1:0.6}">
+        <div style="font-size:24px;${earned?"":"filter:grayscale(1)"}">${b.emoji}</div>
+        <div style="font-size:16px;font-weight:bold;color:${earned?"#C4A35A":"#555"};margin-top:3px">${b.name}</div>
+        <div style="font-size:16px;color:#444;margin-top:2px">${b.desc}</div>
+        ${earned?`<div style="font-size:16px;color:#4ade80;margin-top:4px">✓ Earned</div>`
+          :`<div style="margin-top:4px"><div style="height:4px;background:#111;border-radius:2px;overflow:hidden;border:1px solid #222"><div style="width:${pct}%;height:100%;background:#C4A35A55;border-radius:2px"></div></div><div style="font-size:16px;color:#444;margin-top:2px">${ci}/${b.req}</div></div>`}
+      </div>`;}).join('')}</div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="section-card" style="border-color:#7EB8F733">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:17px;font-weight:bold;color:#7EB8F7">🏆 LEADERBOARD</div>
+      <div style="display:flex;gap:4px">
+        <button onclick="loadLeaderboard('weekly')" style="padding:4px 10px;border-radius:6px;font-size:16px;font-weight:bold;border:1px solid ${G._lbPeriod==='weekly'?'#7EB8F7':'#333'};background:${G._lbPeriod==='weekly'?'#7EB8F722':'transparent'};color:${G._lbPeriod==='weekly'?'#7EB8F7':'#555'}">Weekly</button>
+        <button onclick="loadLeaderboard('alltime')" style="padding:4px 10px;border-radius:6px;font-size:16px;font-weight:bold;border:1px solid ${G._lbPeriod!=='weekly'?'#FFD700':'#333'};background:${G._lbPeriod!=='weekly'?'#FFD70022':'transparent'};color:${G._lbPeriod!=='weekly'?'#FFD700':'#555'}">All Time</button>
+      </div>
+    </div>
+    <div id="leaderboardList" style="min-height:60px">
+      ${G._lbData?G._lbData.map((p,i)=>{
+        const isMe=G.username&&p.username===G.username;
+        const medals=['🥇','🥈','🥉'];
+        const medal=i<3?medals[i]:`<span style="color:#555">#${i+1}</span>`;
+        return`<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${isMe?'#7EB8F711':'transparent'};border:1px solid ${isMe?'#7EB8F733':'transparent'};border-radius:8px;margin-bottom:4px">
+          <div style="font-size:18px;min-width:28px;text-align:center">${medal}</div>
+          <div style="flex:1">
+            <div style="font-size:16px;font-weight:bold;color:${isMe?'#7EB8F7':'#ccc'}">${p.username}${isMe?' (You)':''}</div>
+            <div style="font-size:16px;color:#555">Lv ${p.level||1} · ${p.wins||0} wins · ${p.badges||0} badges</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:bold;color:#C4A35A">${p.checkIns||0}</div>
+            <div style="font-size:16px;color:#555">check-ins</div>
+          </div>
+        </div>`;}).join('')
+        :`<div style="text-align:center;padding:16px;color:#555;font-size:16px">${G._lbLoading?'<div style="display:inline-block;width:14px;height:14px;border:2px solid #7EB8F7;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite"></div> Loading...':'Tap Weekly or All Time to load'}</div>`}
+    </div>
+  </div>
 `;
 }
 
