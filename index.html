@@ -8658,6 +8658,7 @@ function brawl_startCoop(role,roomId,peerData){
       if(hit&&B.enemies[hit.idx]&&B.enemies[hit.idx].hp>0){
         B.enemies[hit.idx].hp-=hit.dmg;
         B.enemies[hit.idx].flash=8;
+        brawl_dmgNum(B.enemies[hit.idx].x,B.enemies[hit.idx].y-B.enemies[hit.idx].radius,hit.dmg,'#4ade80',false);
         brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,3,B.enemies[hit.idx].color);
         if(B.enemies[hit.idx].hp<=0){brawl_onKill(B.enemies[hit.idx]);brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,15,B.enemies[hit.idx].color);}
       }
@@ -8771,12 +8772,13 @@ function brawl_startCoop(role,roomId,peerData){
       brawl_spawnWave();
     },function(err){console.error('[COOP] Wave listener ERROR',err.message);});
     B._coopListeners.push(function(){waveRef.off('value',waveListener);});
-    // Listen for host bullet hits so guest sees damage applied
+    // Listen for host bullet hits so guest sees damage visuals
     var hostHitRef=roomRef.child('host_hits');
     var hostHitListener=hostHitRef.on('child_added',function(snap){
       var hit=snap.val();
-      if(hit&&B.enemies[hit.idx]&&B.enemies[hit.idx].hp>0){
+      if(hit&&B.enemies[hit.idx]){
         B.enemies[hit.idx].flash=8;
+        brawl_dmgNum(B.enemies[hit.idx].x,B.enemies[hit.idx].y-(B.enemies[hit.idx].radius||12),hit.dmg,'#7EB8F7',false);
         brawl_particles(B.enemies[hit.idx].x,B.enemies[hit.idx].y,3,B.enemies[hit.idx].color);
       }
       snap.ref.remove();
@@ -9192,12 +9194,8 @@ function brawl_loop(ts){
   }
   // Co-op sync runs in brawl_loop (not brawl_update) so it works in ALL states
   if(B.coopMode&&B.active){
-    B._coopSyncTimer=(B._coopSyncTimer||0)+1;
-    if(B._coopSyncTimer>=2){
-      B._coopSyncTimer=0;
-      brawl_coopSyncSelf();
-      if(B.coopRole==='host') brawl_coopSyncEnemies();
-    }
+    brawl_coopSyncSelf();
+    if(B.coopRole==='host') brawl_coopSyncEnemies();
   }
   brawl_render();
   brawl_updateHUD();
@@ -9350,11 +9348,18 @@ function brawl_update(dt){
         for(var exi=0;exi<B.enemies.length;exi++){
           var exen=B.enemies[exi];if(exen.hp<=0)continue;
           var exd=Math.sqrt((b.x-exen.x)*(b.x-exen.x)+(b.y-exen.y)*(b.y-exen.y));
-          if(exd<60){var exdmg=Math.round(b.dmg*0.6*(1-exd/60));exen.hp-=exdmg;exen.flash=8;
-            brawl_dmgNum(exen.x,exen.y-exen.radius,exdmg,'#FF8C00',false);
-            if(exen.hp<=0){brawl_onKill(exen);brawl_particles(exen.x,exen.y,10,exen.color);}
-            if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef) B._coopRoomRef.child('guest_hits').push({idx:exi,dmg:exdmg});
-            if(B.coopMode&&B.coopRole==='host'&&B._coopRoomRef) B._coopRoomRef.child('host_hits').push({idx:exi,dmg:exdmg});
+          if(exd<60){var exdmg=Math.round(b.dmg*0.6*(1-exd/60));
+            // Guest: send hit to host, don't apply locally (host is authoritative)
+            if(B.coopMode&&B.coopRole==='guest'){
+              exen.flash=8;brawl_dmgNum(exen.x,exen.y-exen.radius,exdmg,'#FF8C00',false);
+              brawl_particles(exen.x,exen.y,3,exen.color);
+              if(B._coopRoomRef) B._coopRoomRef.child('guest_hits').push({idx:exi,dmg:exdmg});
+            } else {
+              exen.hp-=exdmg;exen.flash=8;
+              brawl_dmgNum(exen.x,exen.y-exen.radius,exdmg,'#FF8C00',false);
+              if(exen.hp<=0){brawl_onKill(exen);brawl_particles(exen.x,exen.y,10,exen.color);}
+              if(B.coopMode&&B._coopRoomRef) B._coopRoomRef.child('host_hits').push({idx:exi,dmg:exdmg});
+            }
           }
         }
       }
@@ -9371,15 +9376,18 @@ function brawl_update(dt){
           var bdmg=b.dmg;
           var _bst=brawl_getCharStats();
           if(en.isBoss&&_bst.starPower&&_bst.starPower.effect==='bossHunter') bdmg=Math.round(bdmg*1.4);
-          en.hp-=bdmg;en.flash=8;B.pSuperCharge=Math.min(100,B.pSuperCharge+5);
-          brawl_dmgNum(en.x,en.y-en.radius,bdmg,en.isBoss?'#FFD700':'#fff',en.isBoss);
-          brawl_particles(b.x,b.y,3,en.color);SFX&&SFX.whit&&SFX.whit();
-          if(en.hp<=0){brawl_onKill(en);brawl_particles(en.x,en.y,15,en.color);}
-          if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
-            B._coopRoomRef.child('guest_hits').push({idx:ej,dmg:bdmg});
-          }
-          if(B.coopMode&&B.coopRole==='host'&&B._coopRoomRef){
-            B._coopRoomRef.child('host_hits').push({idx:ej,dmg:bdmg});
+          // Guest: send hit to host, only show visual effects locally (host is authoritative for HP)
+          if(B.coopMode&&B.coopRole==='guest'){
+            en.flash=8;B.pSuperCharge=Math.min(100,B.pSuperCharge+5);
+            brawl_dmgNum(en.x,en.y-en.radius,bdmg,en.isBoss?'#FFD700':'#fff',en.isBoss);
+            brawl_particles(b.x,b.y,3,en.color);SFX&&SFX.whit&&SFX.whit();
+            if(B._coopRoomRef) B._coopRoomRef.child('guest_hits').push({idx:ej,dmg:bdmg});
+          } else {
+            en.hp-=bdmg;en.flash=8;B.pSuperCharge=Math.min(100,B.pSuperCharge+5);
+            brawl_dmgNum(en.x,en.y-en.radius,bdmg,en.isBoss?'#FFD700':'#fff',en.isBoss);
+            brawl_particles(b.x,b.y,3,en.color);SFX&&SFX.whit&&SFX.whit();
+            if(en.hp<=0){brawl_onKill(en);brawl_particles(en.x,en.y,15,en.color);}
+            if(B.coopMode&&B._coopRoomRef) B._coopRoomRef.child('host_hits').push({idx:ej,dmg:bdmg});
           }
           // Chain lightning: spawn chain bullet toward nearest other enemy
           if(b.chain&&b.chain>0){
@@ -9483,10 +9491,14 @@ function brawl_useAbility(){
     var e2=B.enemies[i];if(e2.hp<=0)continue;
     var edist=Math.sqrt((B.px-e2.x)*(B.px-e2.x)+(B.py-e2.y)*(B.py-e2.y));
     if(edist<range+e2.radius){
-      e2.hp-=dmg;e2.flash=12;brawl_particles(e2.x,e2.y,6,c.color);
-      // Guest: send ability hit to host
-      if(B.coopMode&&B.coopRole==='guest'&&B._coopRoomRef){
-        B._coopRoomRef.child('guest_hits').push({idx:i,dmg:dmg});
+      // Co-op: guest sends hit to host (host is authoritative); host applies locally and notifies guest
+      if(B.coopMode&&B.coopRole==='guest'){
+        e2.flash=12;brawl_particles(e2.x,e2.y,6,c.color);
+        brawl_dmgNum(e2.x,e2.y-e2.radius,dmg,c.color,false);
+        if(B._coopRoomRef) B._coopRoomRef.child('guest_hits').push({idx:i,dmg:dmg});
+      } else {
+        e2.hp-=dmg;e2.flash=12;brawl_particles(e2.x,e2.y,6,c.color);
+        if(B.coopMode&&B._coopRoomRef) B._coopRoomRef.child('host_hits').push({idx:i,dmg:dmg});
       }
       // Star Power: knockback
       if(st.starPower&&st.starPower.effect==='knockback'&&edist>0){
