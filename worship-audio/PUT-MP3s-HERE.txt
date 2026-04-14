@@ -1,0 +1,19 @@
+WORSHIP BAND — Audio Files
+==========================
+
+Drop your MP3 files here with these exact names:
+
+  fire-on-the-altar.mp3       (Up-tempo shouting music)
+  victory-in-jesus.mp3        (Classic southern gospel)
+  holy-ghost-power.mp3        (High energy organ shout)
+  down-by-the-riverside.mp3   (Swing gospel, clap-along)
+  precious-lord.mp3           (Slow altar call testimony)
+  i-got-the-joy.mp3           (Fast handclap gospel)
+
+If a file is present, the game will play it with real audio.
+If not, it will use the synthesized organ version.
+
+You can also upload MP3s directly from the in-game song picker
+using the upload button next to each track.
+
+Supported formats: MP3, OGG, WAV, M4A

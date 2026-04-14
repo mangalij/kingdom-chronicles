@@ -943,13 +943,8 @@ const ALL_CHARS=[
   {id:"michael", sprId:"michael", name:"Archangel Michael",title:"Heaven's General",rarity:"divine",color:"#FFFFFF",bg:"#0a0a1a",str:16,faith:21,hp:230,abilityName:"Holy Smite",        abilityDmg:[88,135],unlockHow:"All missions + Lv18 + 10 PvP"},
 ];
 const MISSIONS=[
-  // Mission 1: TD
-  {id:"moses_m",type:"td",title:"Let My People Go",heroEmoji:"🪄",accent:"#FFD700",bgCol:"#1a0d00",desc:"Face Pharaoh's armies, survive the plagues, and part the Red Sea!",unlocked:true,xpReward:500,badge:"🏺",badgeName:"Staff of Moses",reward:{name:"Staff of Moses",emoji:"🪄",effect:"heal"},unlockCharId:"daniel",stages:[
-    {title:"Stage 1 — Egyptian Guard",  story:"Pharaoh's soldiers block the gates!",        enemy:{name:"Egyptian Guard",  sprId:"egyptian_guard",  hp:50, atk:12,def:5, color:"#CC8800",emoji:"🏛️"},xp:80},
-    {title:"Stage 2 — Royal Sorcerer",  story:"The sorcerer fights with dark magic!",       enemy:{name:"Royal Sorcerer",  sprId:"royal_sorcerer",  hp:65, atk:16,def:7, color:"#9900AA",emoji:"🔮"},xp:100,special:"plague",specialDesc:"⚠️ Plague adds +8 dmg every 2 turns!"},
-    {title:"Stage 3 — Cross the Red Sea",story:"Survive 5 rounds — the sea will part!",    enemy:{name:"Egyptian Captain",sprId:"egyptian_captain",hp:75, atk:18,def:9, color:"#CC6600",emoji:"⚔️"},xp:120,special:"survival",survRounds:5,specialDesc:"🌊 Survive 5 rounds!"},
-    {title:"Stage 4 — PART THE SEA!",   story:"Moses raises his staff! TAP as fast as you can to hold the waters apart!",stageType:"redsea",xp:150},
-    {title:"Stage 5 — PHARAOH BOSS",    story:"Pharaoh steps forward, heart hardened!",    enemy:{name:"Pharaoh",         sprId:"pharaoh",         hp:120,atk:22,def:12,color:"#FFD700",emoji:"👑"},xp:200,isBoss:true}]},
+  // Mission 1: RPG — Moses: Let My People Go
+  {id:"moses_m",type:"rpg",title:"Let My People Go",heroEmoji:"🪄",accent:"#FFD700",bgCol:"#1a0d00",desc:"Wander the Midian desert, witness the Burning Bush, travel to Egypt and perform God's miracles to soften Pharaoh's heart!",unlocked:true,xpReward:500,badge:"🏺",badgeName:"Staff of Moses",reward:{name:"Staff of Moses",emoji:"🪄",effect:"heal"},unlockCharId:"daniel"},
   // Mission 2: STORY — Noah's Ark
   {id:"noah_s",type:"story",title:"Noah's Really Bad Day",heroEmoji:"🚢",accent:"#44BBFF",bgCol:"#000d1a",desc:"God tells Noah to build an ark. His neighbors think he's lost it. Choose wisely!",unlocked:true,xpReward:350,badge:"🌈",badgeName:"Rainbow Promise",reward:{name:"Rainbow Shield",emoji:"🌈",effect:"defense"},unlockCharId:null,scenes:{
     start:{text:"God speaks to Noah: 'Build an ark — a great flood is coming.' Your neighbor Greg walks over with a latte.",emoji:"⛅",bg:"sky",choices:[
@@ -1238,6 +1233,7 @@ function go(s){
     else if(s==='fight_arena') SFX.playBattle();
     else if(s==='battle'){ if(G.battleType==='pvp')SFX.playPvp(); else if(G.battleType==='mission')SFX.playMission(); else SFX.playBattle(); }
     else if(s==='story') SFX.playMission();
+    else if(s==='moses_rpg') SFX.playMission();
     else if(s==='church') SFX.playChurch();
     else if(s==='pvp_lobby') SFX.playPvp();
     else if(s==='game'||s==='wardrobe'||s==='brawl_lobby') SFX.playTitle();
@@ -1245,6 +1241,7 @@ function go(s){
   }
   if(s==="church"){G.screen="church";initChurchWorld();return;}
   if(G.screen==="church") cw_destroy();
+  if(G.screen==="moses_rpg"&&MRPG&&MRPG.active) mrpg_stop();
   if(G.screen==="brawl"&&BRAWL.active){brawl_cleanup();brawl_exitFullscreen();}
   if(G.screen==="fight_arena"&&FA.active) fa_stop();
   G.screen=s;render();
@@ -1265,12 +1262,14 @@ function render(){
     s==="pvp_result"?rPvpResult():
     s==="mission_complete"?rMissionComplete():
     s==="story"?rStory():
+    s==="moses_rpg"?rMosesRPG():
     s==="admin_login"?rAdminLogin():
     s==="admin"?rAdmin():
     s==="brawl_lobby"?rBrawlLobby():
     s==="fight_arena"?fa_render():"";
   setTimeout(attachSprites,8);
   if(s==='story')setTimeout(story_startAnim,20);
+  if(s==='moses_rpg')setTimeout(mrpg_initCanvas,20);
 }
 function toast(msg,tp="ok"){SFX&&SFX.click&&SFX.click();
   const nl=document.getElementById("notifLayer");
@@ -1852,7 +1851,7 @@ function resetAllData(){
 // ── MAIN GAME HUD ─────────────────────────────
 function rGame(){
   const c=gch();const r=RARITY[c.rarity];const lv=glv();const xpP=G.pd.xp%XP_LVL;const t=G.tab;
-  const TABS=[["home","⛺","Home"],["stats","📊","Stats"],["missions","📜","Missions"],["pvp","⚔️","Fury"],["heroes","🃏","Heroes"],["items","🎒","Items"]];
+  const TABS=[["home","⛺","Home"],["stats","📊","Stats"],["missions","📜","Missions"],["pvp","⚔️","Ancient"],["heroes","🃏","Heroes"],["items","🎒","Items"]];
   return`<div style="min-height:100vh;background:${c.bg};font-family:Georgia,serif"><div style="max-width:480px;margin:0 auto;padding-bottom:80px">
   <div style="background:linear-gradient(135deg,${c.bg},#0a0a0a);border-bottom:1px solid ${r.color}22;padding:16px 14px 12px">
     <div style="display:flex;align-items:center;gap:12px">
@@ -2136,20 +2135,21 @@ function rMissionsTab(){
   return`<div style="font-size:16px;color:#888;margin-bottom:10px;letter-spacing:1px">${G.completedMissions.length}/${MISSIONS.length} MISSIONS COMPLETE</div>`+MISSIONS.map(m=>{
     const done=G.completedMissions.includes(m.id);const isAvail=avail.has(m.id);const locked=!isAvail&&!done;
     const isStory=m.type==='story';
-    const typeLabel=isStory?'📖 Story Adventure':'⚔️ Tower Defense';
-    const stageCount=isStory?Object.values(m.scenes).filter(s=>s.ending).length+' endings':m.stages.length+' stages';
+    const isRpg=m.type==='rpg';
+    const typeLabel=isStory?'📖 Story Adventure':isRpg?'🗺️ RPG Adventure':'⚔️ Tower Defense';
+    const stageCount=isStory?Object.values(m.scenes).filter(s=>s.ending).length+' endings':isRpg?'10 plagues':m.stages.length+' stages';
     return`<div style="background:${locked?"#0d0d0d":`linear-gradient(135deg,${m.bgCol},#0a0a0a)`};border:1px solid ${done?"#4ade8044":locked?"#1a1a1a":m.accent+"44"};border-radius:12px;padding:12px;margin-bottom:8px;opacity:${locked?.5:1}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:22px">${m.heroEmoji}</div><div style="flex:1"><div style="font-weight:bold;color:${done?"#4ade80":locked?"#444":m.accent};font-size:17px">${m.title}${done?" ✅":locked?" 🔒":""}</div><div style="font-size:17px;color:#666">${typeLabel} · ${stageCount} · +${m.xpReward} XP · ${m.reward.emoji} ${m.badgeName}</div></div><div style="font-size:18px">${m.badge}</div></div>
       <p style="color:#666;font-size:17px;line-height:1.4;margin-bottom:6px">${m.desc}</p>
       ${locked?`<div style="font-size:17px;color:#555;font-style:italic;margin-bottom:6px">🔒 ${m.unlockReq}</div>`:""}
-      ${!isStory?`<div style="display:flex;gap:2px;align-items:center;margin-bottom:7px">${m.stages.map((_,si)=>`<div style="display:flex;align-items:center;gap:2px"><div style="width:15px;height:15px;border-radius:50%;background:${done?"#4ade80":"#1a1a1a"};border:1px solid ${done?"#4ade80":m.accent+"44"};display:flex;align-items:center;justify-content:center;font-size:16px;color:${done?"#000":"#555"};font-weight:bold">${done?"✓":si+1}</div>${si<m.stages.length-1?`<div style="width:8px;height:1px;background:${done?"#4ade80":"#222"}"></div>`:""}</div>`).join("")}${m.stages.some(s=>s.isBoss)?`<span style="font-size:17px;color:#FFD700;margin-left:4px">👑 Boss</span>`:""}</div>`:`<div style="display:flex;gap:4px;align-items:center;margin-bottom:7px;flex-wrap:wrap"><span style="font-size:17px;color:${m.accent}">🔀 Branching paths</span><span style="color:#555;font-size:17px">· Choose your adventure!</span></div>`}
-      ${!done&&isAvail?`<button onclick="beginMission('${m.id}')" style="width:100%;background:linear-gradient(135deg,${m.bgCol},#050505);border:1px solid ${m.accent};color:${m.accent};padding:9px;border-radius:8px;font-size:18px;font-weight:bold">${isStory?'📖 BEGIN STORY':'⚔️ BEGIN MISSION'}</button>`:""}
-      ${done?`<div style="text-align:center;color:#4ade80;font-size:18px;font-weight:bold">🏆 ${m.reward.emoji} ${m.badgeName} earned!</div>`:""}
+      ${!isStory&&!isRpg?`<div style="display:flex;gap:2px;align-items:center;margin-bottom:7px">${m.stages.map((_,si)=>`<div style="display:flex;align-items:center;gap:2px"><div style="width:15px;height:15px;border-radius:50%;background:${done?"#4ade80":"#1a1a1a"};border:1px solid ${done?"#4ade80":m.accent+"44"};display:flex;align-items:center;justify-content:center;font-size:16px;color:${done?"#000":"#555"};font-weight:bold">${done?"✓":si+1}</div>${si<m.stages.length-1?`<div style="width:8px;height:1px;background:${done?"#4ade80":"#222"}"></div>`:""}</div>`).join("")}${m.stages.some(s=>s.isBoss)?`<span style="font-size:17px;color:#FFD700;margin-left:4px">👑 Boss</span>`:""}</div>`:isRpg?`<div style="display:flex;gap:4px;align-items:center;margin-bottom:7px;flex-wrap:wrap"><span style="font-size:17px;color:${m.accent}">🗺️ Open-world RPG</span><span style="color:#555;font-size:17px">· Explore Midian · Burning Bush · 10 Plagues · Red Sea!</span></div>`:`<div style="display:flex;gap:4px;align-items:center;margin-bottom:7px;flex-wrap:wrap"><span style="font-size:17px;color:${m.accent}">🔀 Branching paths</span><span style="color:#555;font-size:17px">· Choose your adventure!</span></div>`}
+      ${!done&&isAvail?`<button onclick="beginMission('${m.id}')" style="width:100%;background:linear-gradient(135deg,${m.bgCol},#050505);border:1px solid ${m.accent};color:${m.accent};padding:9px;border-radius:8px;font-size:18px;font-weight:bold">${isStory?'📖 BEGIN STORY':isRpg?'🗺️ BEGIN ADVENTURE':'⚔️ BEGIN MISSION'}</button>`:""}
+      ${done?`<div style="text-align:center;color:#4ade80;font-size:18px;font-weight:bold;margin-bottom:6px">🏆 ${m.reward.emoji} ${m.badgeName} earned!</div><button onclick="beginMission('${m.id}')" style="width:100%;background:linear-gradient(135deg,#1a1a2e,#050505);border:1px solid #4ade8044;color:#4ade80;padding:9px;border-radius:8px;font-size:18px;font-weight:bold">🔄 REPLAY (no XP)</button>`:""}
     </div>`;}).join("");}
 
 function rPvpTab(){return`
   <div class="section-card" style="border-color:#CC00FF33">
-    <div style="font-size:16px;color:#CC00FF;font-weight:bold;margin-bottom:7px">⚔️ FAITH & FURY</div>
+    <div style="font-size:16px;color:#CC00FF;font-weight:bold;margin-bottom:7px">⚔️ ANCIENT OF DAYS</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;text-align:center;margin-bottom:9px">
       <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">🏆</div><div style="font-size:17px;font-weight:bold;color:#4ade80">${G.pd.pvpWins}</div><div style="font-size:17px;color:#555">Wins</div></div>
       <div style="background:#ffffff08;border-radius:7px;padding:7px"><div style="font-size:16px">💀</div><div style="font-size:17px;font-weight:bold;color:#ef4444">${G.pd.pvpLosses}</div><div style="font-size:17px;color:#555">Losses</div></div>
@@ -2212,7 +2212,7 @@ function rPvpLobby(){
   </div></div>`;}
 
 function openTcgPvP(){
-  window.open('tcg/index.html','_blank','noopener');
+  window.open('pvp-tcg-v3/dist/index.html','_blank','noopener');
 }
 
 function startPvP(name,charId,lv,tag){
@@ -2291,7 +2291,7 @@ function rBattle(){
   </div></div>`;}
 
 // ── BATTLE LOGIC ──────────────────────────────
-function beginMission(id){const m=MISSIONS.find(x=>x.id===id);if(!m)return;if(m.type==='story')beginStoryMission(m);else beginMissionTD(m,0);}
+function beginMission(id){const m=MISSIONS.find(x=>x.id===id);if(!m)return;if(m.type==='story')beginStoryMission(m);else if(m.type==='rpg')beginMissionRPG(m);else beginMissionTD(m,0);}
 function startMissionStage(m,idx,carryHp=null){const st=m.stages[idx];G.bs={e:{...st.enemy,hp:st.enemy.hp},pHp:carryHp||gmhp(),turn:"player",active:true,burn:false,defUp:false,sword:false,special:st.special||null,survLeft:st.survRounds||0,plagueCounter:0,angelCounter:0,isBoss:st.isBoss||false,abilityUsesLeft:getAbilityMax()};G.survRound=0;G.log=[`📖 ${st.title}`,st.story];G.battleType="mission";go("battle");}
 function startArena(){fa_start();}
 function battleFX(type,color,targetId){const arena=document.getElementById("battleArena");if(!arena)return;const fx=document.getElementById("fxLayer");if(!fx)return;
@@ -2349,7 +2349,7 @@ requestAnimationFrame(animProjE);
 function pAtk(type){SFX&&SFX.resume&&SFX.resume();if(type==="ability"&&SFX)SFX.ability();const bs=G.bs;if(!bs||bs.turn!=="player")return;if(type==="ability"&&bs.abilityUsesLeft<=0){addLog("⚠️ No ability uses left!");go("battle");return;}let b={...bs,e:{...bs.e}};const mc=gch();const crit=Math.random()<.15;let dmg=0,msg="";if(type==="basic"){let d=mc.str*2+rand(3,10)+glv()*2;if(b.sword){d*=2;b.sword=false;msg="⚔️ HOLY SWORD! ";}if(crit)d=Math.floor(d*1.8);dmg=Math.max(1,d-Math.floor(b.e.def*.4));msg+=crit?`💥 CRIT! ${dmg} dmg!`:`${mc.name} hits for ${dmg}!`;battleFX("slash","#ffffff","eSpr");}else{b.abilityUsesLeft=Math.max(0,b.abilityUsesLeft-1);doBanner(mc.abilityName,mc.color);doFlash(mc.color+"55",500);let d=rand(...mc.abilityDmg)+glv()*3;if(crit)d=Math.floor(d*1.8);dmg=Math.max(1,d-Math.floor(b.e.def*.2));msg=crit?`💥 CRIT ${mc.abilityName}! ${dmg}!`:`✨ ${mc.abilityName}! ${dmg} (${b.abilityUsesLeft} left)`;battleFX("ability",mc.color,"eSpr");}if(b.special==="plague"){b.plagueCounter=(b.plagueCounter||0)+1;if(b.plagueCounter%2===0){dmg+=8;msg+=" ⚠️+8!";doFlash("#88008855",250);}}b.e.hp=Math.max(0,b.e.hp-dmg);animHit("eHit",dmg,crit,b.e.color||"#FF4444");animEl("eSpr","spShake .35s ease");animEl("pSpr",type==="basic"?"lungL .4s ease":"none");addLog(msg);if(b.burn){b.e.hp=Math.max(0,b.e.hp-5);addLog("🔥 Burn ticks 5!");}if(b.special==="survival"){G.survRound++;b.survLeft=b.survLeft-1;addLog(`🌊 Red Sea: ${b.survLeft} rounds...`);if(b.survLeft<=0){addLog("🌊 THE SEA PARTS!");b.e.hp=0;doFlash("#4488CC88",600);}}if(b.e.hp<=0){handleVic(b);return;}b.turn="enemy";G.bs=b;go("battle");setTimeout(eAtk,950);}
 function usePu(i){const bs=G.bs;if(!bs)return;const pu=G.pd.powerups[i];if(!pu)return;let b={...bs};G.pd.powerups.splice(i,1);if(pu.effect==="heal"){b.pHp=Math.min(gmhp(),b.pHp+30);addLog("✨ +30 HP!");doFlash("#4ade8044",250);}if(pu.effect==="defense"){b.defUp=true;addLog("🛡️ Armor of God!");}if(pu.effect==="sword"){b.sword=true;addLog("⚔️ Sword ready!");}if(pu.effect==="burn"){b.burn=true;addLog("🔥 Holy Fire!");}G.bs=b;go("battle");}
 function eAtk(){const bs=G.bs;if(!bs)return;let nb={...bs,e:{...bs.e}};const crit=Math.random()<.1;let dmg=Math.max(1,Math.floor((nb.e.atk+rand(0,8))*(nb.defUp?.5:1)));if(nb.special==="giant"){nb.plagueCounter=(nb.plagueCounter||0)+1;if(nb.plagueCounter%3===0){dmg*=2;addLog("👹 GOLIATH RAGES! 2x dmg!");doFlash("#FF000055",400);}}if(nb.special==="angel"){nb.angelCounter=(nb.angelCounter||0)+1;if(nb.angelCounter%3===0){addLog("😇 Angel blocks the attack!");doFlash("#FFD70033",300);nb.turn="player";nb.defUp=false;G.bs=nb;go("battle");return;}}if(crit)dmg=Math.floor(dmg*1.6);nb.pHp=Math.max(0,nb.pHp-dmg);addLog(crit?`💥 ${nb.e.name} CRIT! ${dmg}!`:`${nb.e.name} hits for ${dmg}!`);animHit("pHit",dmg,crit,"#FF6B6B");animEl("pSpr","spShake .35s ease");animEl("eSpr","lungR .4s ease");battleFX("impact","#FF6B6B","pSpr");doFlash("#FF000033",220);if(nb.pHp<=0){addLog(`💀 ${gch().name} has fallen...`);G.pd.losses++;if(G.battleType==="pvp"){G.pd.pvpLosses++;G.pvpWon=false;nb.active=false;G.bs=nb;persistPlayer();go("battle");setTimeout(()=>go("pvp_result"),2000);}else{nb.active=false;G.bs=nb;persistPlayer();go("battle");setTimeout(()=>go("game"),2200);}return;}nb.turn="player";nb.defUp=false;G.bs=nb;go("battle");}
-function handleVic(b){SFX&&SFX.victory&&SFX.victory();const xp=G.battleType==="pvp"?rand(80,150):G.battleType==="mission"?(G.activeMission?.stages[G.missionStage]?.xp||100):rand(60,120);addLog(G.battleType==="mission"?`✅ Stage clear! +${xp} XP`:`🏆 Defeated! +${xp} XP`);G.pd.xp+=xp;G.pd.wins++;if(G.battleType==="pvp"){G.pd.pvpWins++;G.pvpWon=true;}b.active=false;G.bs=b;doFlash("#FFD70066",500);victoryParticleBurst();checkUnlocks();persistPlayer();if(G.battleType==="pvp"){go("battle");setTimeout(()=>go("pvp_result"),2000);}else if(G.battleType==="mission"){go("battle");setTimeout(()=>{const m=G.activeMission;const ni=G.missionStage+1;if(ni>=m.stages.length){G.completedMissions.push(m.id);G.pd.xp+=m.xpReward;G.pd.powerups.push({...m.reward});if(m.unlockCharId&&!G.unlocked.includes(m.unlockCharId))G.unlocked.push(m.unlockCharId);checkUnlocks();persistPlayer();go("mission_complete");}else{G.missionStage=ni;startMissionStage(m,ni,Math.min(b.pHp+20,gmhp()));}},2000);}else{go("battle");setTimeout(()=>go("game"),2000);}}
+function handleVic(b){SFX&&SFX.victory&&SFX.victory();const _isReplay=G.battleType==="mission"&&G.completedMissions.includes(G.activeMission?.id);const xp=G.battleType==="pvp"?rand(80,150):G.battleType==="mission"?(_isReplay?0:(G.activeMission?.stages[G.missionStage]?.xp||100)):rand(60,120);addLog(G.battleType==="mission"?(_isReplay?`✅ Stage clear!`:`✅ Stage clear! +${xp} XP`):`🏆 Defeated! +${xp} XP`);if(!_isReplay)G.pd.xp+=xp;G.pd.wins++;if(G.battleType==="pvp"){G.pd.pvpWins++;G.pvpWon=true;}b.active=false;G.bs=b;doFlash("#FFD70066",500);victoryParticleBurst();checkUnlocks();persistPlayer();if(G.battleType==="pvp"){go("battle");setTimeout(()=>go("pvp_result"),2000);}else if(G.battleType==="mission"){go("battle");setTimeout(()=>{const m=G.activeMission;const ni=G.missionStage+1;if(ni>=m.stages.length){if(!G.completedMissions.includes(m.id)){G.completedMissions.push(m.id);G.pd.xp+=m.xpReward;G.pd.powerups.push({...m.reward});if(m.unlockCharId&&!G.unlocked.includes(m.unlockCharId))G.unlocked.push(m.unlockCharId);}checkUnlocks();persistPlayer();go("mission_complete");}else{G.missionStage=ni;startMissionStage(m,ni,Math.min(b.pHp+20,gmhp()));}},2000);}else{go("battle");setTimeout(()=>go("game"),2000);}}
 function flee(){SFX&&SFX.defeat&&SFX.defeat();G.pd.losses++;persistPlayer();if(G.battleType==="pvp"){G.pd.pvpLosses++;G.pvpWon=false;setTimeout(()=>go("pvp_result"),200);}else setTimeout(()=>go("game"),200);}
 function animHit(elId,val,crit,col){if(SFX){if(elId==="eHit"&&crit)SFX.crit();else if(elId==="eHit")SFX.hit();else if(elId==="pHit")SFX.hit();}const el=document.getElementById(elId);if(!el)return;el.textContent=(crit?"💥":"")+val;el.style.color=crit?"#FFD700":col;el.style.display="block";el.style.animation="hitFloat .9s ease-out forwards";setTimeout(()=>{if(el){el.style.display="none";el.style.animation="";}},900);/* screen shake */var sEl=document.getElementById("app");if(sEl){sEl.classList.remove("battle-shake","battle-crit-shake");void sEl.offsetWidth;sEl.classList.add(crit?"battle-crit-shake":"battle-shake");setTimeout(()=>sEl.classList.remove("battle-shake","battle-crit-shake"),crit?450:350);}/* DOM particle burst */battleParticleBurst(el,crit?12:6,col,crit);}
 function battleParticleBurst(anchorEl,count,col,big){var rect=anchorEl.getBoundingClientRect();var cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;for(var i=0;i<count;i++){var p=document.createElement("div");p.style.cssText="position:fixed;pointer-events:none;z-index:999;border-radius:50%;width:"+(big?8:5)+"px;height:"+(big?8:5)+"px;background:"+col+";box-shadow:0 0 "+(big?8:4)+"px "+col+";left:"+cx+"px;top:"+cy+"px;opacity:1;transition:all .6s cubic-bezier(.2,.8,.3,1);";document.body.appendChild(p);var angle=Math.PI*2*i/count;var dist=30+Math.random()*40;setTimeout((function(pp,a,d){return function(){pp.style.left=(cx+Math.cos(a)*d)+"px";pp.style.top=(cy+Math.sin(a)*d-20)+"px";pp.style.opacity="0";pp.style.transform="scale(0.2)";setTimeout(function(){pp.remove();},650);};})(p,angle,dist),10);}}
@@ -3467,6 +3467,14 @@ var CW_NPCS=[
    talk:[{text:'"Sing to the Lord a new song!" — Psalm 96:1',xp:10}]},
   {id:"dre",     x:22,y:3,  wx1:18,wy1:2, wx2:27,wy2:5,  name:"Brother Dre",       emoji:"🥁",color:"#FF6B35",speed:90,
    talk:[{text:'"Make a joyful noise unto the Lord!" — Psalm 100:1',xp:10}]},
+  {id:"wb_keys", x:10,y:2,  wx1:8, wy1:2, wx2:13,wy2:4,  name:"Sister Ruth Ann",   emoji:"🎹",color:"#DA70D6",speed:0,npcType:"worshipband",
+   talk:[{text:'"Honey, the Holy Ghost is MOVIN\' in this place today! You can feel it in the keys!"',xp:15},{text:'"I been playin\' organ since I was twelve years old — ain\'t nothin\' like Sunday mornin\' worship!"',xp:15},{text:'"When the Spirit falls, my fingers just go where the Lord leads \'em. Hallelujah!"',xp:15}]},
+  {id:"wb_bass", x:19,y:2,  wx1:17,wy1:2, wx2:21,wy2:4,  name:"Brother Earl",      emoji:"🎸",color:"#8B4513",speed:0,npcType:"worshipband",
+   talk:[{text:'"That low end is the FOUNDATION, just like the Word of God. Gotta keep it steady!"',xp:15},{text:'"I play every note like it\'s unto the Lord. Bass ain\'t flashy but it holds the whole thing together!"',xp:15},{text:'"You feel that groove? That ain\'t me — that\'s the ANOINTING on these four strings!"',xp:15}]},
+  {id:"wb_guitar",x:25,y:2, wx1:23,wy1:2, wx2:27,wy2:4,  name:"Brother Clyde",     emoji:"🎸",color:"#DAA520",speed:0,npcType:"worshipband",
+   talk:[{text:'"Whew! I tell you what — when the congregation starts clappin\', this old guitar catches FIRE!"',xp:15},{text:'"My grandmama taught me these gospel licks. Every chord is a PRAYER, amen!"',xp:15},{text:'"Some folks play for the crowd, but I play for an audience of ONE — Jesus Christ!"',xp:15}]},
+  {id:"wb_leader",x:14,y:3, wx1:12,wy1:2, wx2:16,wy2:4,  name:"Minister Tanya",    emoji:"🎤",color:"#FF1493",speed:0,npcType:"worshipband",
+   talk:[{text:'"Glory to God! Come on up here and let the worship band bless you with a song!"',xp:10},{text:'"The Bible says praise is a WEAPON — when you worship, the enemy has to FLEE!"',xp:15},{text:'"I feel the presence of the Lord RIGHT HERE! Come let us worship together!"',xp:15}]},
   {id:"marcus",  x:5, y:11, wx1:2, wy1:8, wx2:8, wy2:20, name:"Brother Marcus",    emoji:"🙏",color:"#7EB8F7",speed:70,
    talk:[{text:'"God has been so good to me this week! How is your walk with Him?',xp:10}]},
   {id:"grace",   x:23,y:14, wx1:21,wy1:8, wx2:28,wy2:22, name:"Sister Grace",      emoji:"😊",color:"#90EE90",speed:75,
@@ -4062,6 +4070,26 @@ var CW_NPC_TIERS={
     1:[{text:'"You\'re one of my regulars now! I appreciate your support."',xp:10}],
     2:[{text:'"I\'m trying a new recipe — want to be my taste tester?"',xp:15}],
     3:[{text:'"Running this café is my ministry. Thanks for being part of it."',xp:22}]
+  },
+  wb_keys:{
+    1:[{text:'"Chile, you keep comin\' back and the Lord keeps showin\' UP through these keys!"',xp:20}],
+    2:[{text:'"I\'m gonna play you somethin\' special — this is from the heart, baby. Hallelujah!"',xp:25}],
+    3:[{text:'"You are ANOINTED, hear me? God told me to tell you — your season is NOW!"',xp:35}]
+  },
+  wb_bass:{
+    1:[{text:'"Brother, you got good taste stickin\' around for the music! Ain\'t God good?"',xp:20}],
+    2:[{text:'"I wrote a new bassline this week — the Spirit gave it to me at 3 AM! Listen..."',xp:25}],
+    3:[{text:'"You part of the family now. We don\'t just play music — we MINISTER. You feel me?"',xp:35}]
+  },
+  wb_guitar:{
+    1:[{text:'"Hoo-wee! You\'re back! This guitar was WAITIN\' for somebody who loves worship!"',xp:20}],
+    2:[{text:'"My grandmama used to say — the guitar don\'t lie. It plays what the heart feels!"',xp:25}],
+    3:[{text:'"God told me you got a praise inside you that ain\'t come out yet. Let it GO!"',xp:35}]
+  },
+  wb_leader:{
+    1:[{text:'"Baby, you got the worship BUG now! I can see God all over you!"',xp:20}],
+    2:[{text:'"I been doin\' this thirty years and I still cry when the Spirit moves. That\'s REAL!"',xp:25}],
+    3:[{text:'"The Lord showed me a vision about you — He\'s got a MIGHTY work for your life! Believe it!"',xp:40}]
   }
 };
 
@@ -5249,9 +5277,130 @@ function cw_renderActivity(){
   if(a.type==='biblestudy')html=cw_htmlBibleStudy(a);
   if(a.type==='communion')html=cw_htmlCommunion(a);
   if(a.type==='wolfgame')html=cw_htmlWolfGame(a);
+  if(a.type==='worshipband')html=cw_htmlWorshipBand(a);
   if(html) cw_showActivityOverlay(html);
   if(a.type==='parkinglot'&&a.phase==='arrived'){
     setTimeout(function(){cw_drawNapScene(G.cos?G.cos.sk:0,G.cos?G.cos.ot:0);},30);
+  }
+}
+
+// ── WORSHIP BAND ACTIVITY HTML ────────────────────────
+function cw_htmlWorshipBand(a){
+  if(a.phase==='pick'){
+    var tracks=SFX.getWorshipTracks();
+    var btns='';
+    for(var i=0;i<tracks.length;i++){
+      var hasAudio=SFX.hasWorshipAudio(i);
+      var badge=hasAudio?'<span style="font-size:11px;background:#4ade8033;color:#4ade80;padding:2px 6px;border-radius:4px;margin-left:6px">🎙️ REAL</span>'
+        :'<span style="font-size:11px;background:#FF149322;color:#FF149388;padding:2px 6px;border-radius:4px;margin-left:6px">🎹 SYNTH</span>';
+      btns+='<div style="display:flex;gap:6px;margin-bottom:8px;align-items:stretch">'
+        +'<button onclick="cw_worshipBandPlay('+i+')" style="flex:1;background:linear-gradient(135deg,#1a0008,#0d0004);border:1px solid '+(hasAudio?'#4ade8055':'#FF149366')+';color:'+(hasAudio?'#4ade80':'#FF1493')+';padding:12px 14px;border-radius:10px;font-size:16px;font-weight:bold;text-align:left">'
+        +'<div style="display:flex;align-items:center;gap:6px">'+tracks[i].name+badge+'</div>'
+        +'<div style="font-size:12px;color:#888;margin-top:3px;font-weight:normal">'+tracks[i].desc+'</div>'
+        +'</button>'
+        +'<label style="display:flex;align-items:center;justify-content:center;width:42px;background:#111;border:1px solid #333;border-radius:10px;cursor:pointer;font-size:18px" title="Upload MP3">'
+        +'📁<input type="file" accept="audio/*" onchange="cw_worshipUpload('+i+',this)" style="display:none">'
+        +'</label>'
+        +'</div>';
+    }
+    return'<div style="background:linear-gradient(135deg,#1a0010,#0d0008);border:1px solid #FF149355;border-radius:16px;padding:28px 22px;max-width:420px;width:100%;margin:auto;text-align:center">'
+      +'<div style="font-size:36px;margin-bottom:8px">🎤🎹🥁🎸</div>'
+      +'<div style="font-size:20px;font-weight:bold;color:#FF1493;margin-bottom:4px">Worship Band</div>'
+      +'<div style="font-size:14px;color:#FF149399;margin-bottom:12px">Minister Tanya & the Praise Team</div>'
+      +'<div style="font-size:15px;color:#ccc;margin-bottom:14px;line-height:1.5">"What song y\'all wanna hear?<br>The Spirit is ready to MOVE!"</div>'
+      +'<div style="font-size:12px;color:#666;margin-bottom:14px;background:#0a0a0a;border-radius:8px;padding:8px 12px;text-align:left">'
+      +'🎙️ <span style="color:#4ade80">REAL</span> = actual audio with voice &nbsp;|&nbsp; 🎹 <span style="color:#FF1493">SYNTH</span> = generated music<br>'
+      +'Tap 📁 to upload your own MP3 for any song</div>'
+      +'<div style="max-height:300px;overflow-y:auto;margin-bottom:14px">'+btns+'</div>'
+      +'<button onclick="cw_worshipBandClose()" style="width:100%;background:#111;border:1px solid #333;color:#888;padding:11px;border-radius:10px;font-size:15px">Maybe later</button>'
+      +'</div>';
+  }
+  if(a.phase==='playing'){
+    var songName=SFX.getWorshipSongName()||'';
+    var isReal=a.songIdx!==undefined&&SFX.hasWorshipAudio(a.songIdx);
+    var sourceTag=isReal?'<div style="font-size:12px;color:#4ade80;margin-bottom:6px">🎙️ Playing real audio with voice</div>'
+      :'<div style="font-size:12px;color:#FF149388;margin-bottom:6px">🎹 Playing synthesized worship</div>';
+    var shouts=[
+      '"Hallelujah! Glory to God!"',
+      '"Yes Lord! We praise Your name!"',
+      '"The Holy Ghost is in THIS place!"',
+      '"Come on church, lift your hands!"',
+      '"Won\'t He do it! YES He will!"',
+      '"Thank You Jesus! Thank You Lord!"',
+      '"I feel the fire of the Holy Spirit!"',
+      '"Somebody shout GLORY!"',
+      '"He\'s worthy! He\'s worthy!"',
+      '"Let everything that has breath PRAISE THE LORD!"',
+    ];
+    var shout=shouts[Math.floor(Math.random()*shouts.length)];
+    return'<div style="background:linear-gradient(135deg,#1a0010,#0d0008);border:1px solid #FF149355;border-radius:16px;padding:28px 22px;max-width:380px;width:100%;margin:auto;text-align:center">'
+      +'<div style="font-size:48px;margin-bottom:8px;animation:spBob 1.2s ease-in-out infinite">🎤</div>'
+      +'<div style="font-size:20px;font-weight:bold;color:#FF1493;margin-bottom:4px">♫ Now Playing ♫</div>'
+      +'<div style="font-size:18px;color:#FFD700;margin-bottom:4px;font-weight:bold">'+songName+'</div>'
+      +sourceTag
+      +'<div style="display:flex;justify-content:center;gap:14px;font-size:28px;margin-bottom:16px">'
+      +'<span style="animation:spBob 0.8s ease-in-out infinite">🎹</span>'
+      +'<span style="animation:spBob 0.8s ease-in-out 0.2s infinite">🥁</span>'
+      +'<span style="animation:spBob 0.8s ease-in-out 0.4s infinite">🎸</span>'
+      +'<span style="animation:spBob 0.8s ease-in-out 0.6s infinite">🎸</span>'
+      +'</div>'
+      +'<div style="background:#1a0010;border-left:3px solid #FF1493;border-radius:8px;padding:14px 16px;margin-bottom:18px;text-align:left">'
+      +'<div style="color:#FF69B4;font-weight:bold;font-size:14px;margin-bottom:4px">Minister Tanya shouts:</div>'
+      +'<div style="font-style:italic;color:#F0D0E0;font-size:17px;line-height:1.5">'+shout+'</div>'
+      +'</div>'
+      +'<div style="font-size:13px;color:#FF149366;margin-bottom:14px">+25 XP · The music fills the sanctuary</div>'
+      +'<button onclick="cw_worshipBandPickAnother()" style="width:100%;background:linear-gradient(135deg,#FF1493,#CC0066);border:none;color:#fff;padding:13px;border-radius:10px;font-size:17px;font-weight:bold;margin-bottom:8px">🎵 Pick Another Song</button>'
+      +'<button onclick="cw_worshipBandClose()" style="width:100%;background:#111;border:1px solid #333;color:#888;padding:11px;border-radius:10px;font-size:15px">🙏 Amen — Back to Church</button>'
+      +'</div>';
+  }
+  return'';
+}
+
+function cw_worshipBandPlay(idx){
+  SFX.resume();
+  SFX.playWorshipBand(idx);
+  var s=CWS;
+  if(s.activity&&s.activity.type==='worshipband'){
+    s.activity.phase='playing';
+    s.activity.songIdx=idx;
+    // Grant XP
+    G.pd.xp=(G.pd.xp||0)+25;
+    if(!G.pd.worshipBandPlays)G.pd.worshipBandPlays=0;
+    G.pd.worshipBandPlays++;
+    persistPlayer();
+    cw_renderActivity();
+  }
+}
+
+function cw_worshipBandPickAnother(){
+  var s=CWS;
+  if(s.activity&&s.activity.type==='worshipband'){
+    s.activity.phase='pick';
+    cw_renderActivity();
+  }
+}
+
+function cw_worshipBandClose(){
+  var s=CWS;
+  s.activity=null;
+  cw_hideActivityOverlay();
+  // Resume normal church music
+  SFX.playChurch();
+}
+
+function cw_worshipUpload(idx,input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  // Validate it's an audio file
+  if(!file.type.startsWith('audio/')){
+    alert('Please select an audio file (MP3, OGG, WAV, M4A)');
+    return;
+  }
+  SFX.loadWorshipAudio(idx,file);
+  // Refresh the song picker UI
+  var s=CWS;
+  if(s.activity&&s.activity.type==='worshipband'&&s.activity.phase==='pick'){
+    cw_renderActivity();
   }
 }
 
@@ -6823,6 +6972,184 @@ function cw_loop(){
       ctx.beginPath();ctx.arc(_spkRx+ts*0.45,_spkY+ts*0.4,ts*0.3*_swi,Math.PI*0.3,Math.PI*0.7);ctx.stroke();
     }
   }
+
+  // ── WORSHIP BAND EQUIPMENT ON STAGE ─────────────────
+  // Always visible — the band is set up and ready to play
+  if(!(CW_IS_MOBILE&&_cwSlowFrame)){
+    var _bTs=ts; // tile size shorthand
+    // ── KEYBOARD / ORGAN — stage left (tile col ~9-11, row 2) ──
+    var _kbX=9*_bTs-camOx, _kbY=2*_bTs-camOy;
+    // Keyboard stand (metal legs)
+    ctx.fillStyle='#555';
+    ctx.fillRect(_kbX+_bTs*0.2,_kbY+_bTs*0.7,_bTs*0.08,_bTs*0.5);
+    ctx.fillRect(_kbX+_bTs*1.7,_kbY+_bTs*0.7,_bTs*0.08,_bTs*0.5);
+    ctx.fillRect(_kbX+_bTs*0.1,_kbY+_bTs*1.1,_bTs*0.2,_bTs*0.06);
+    ctx.fillRect(_kbX+_bTs*1.65,_kbY+_bTs*1.1,_bTs*0.2,_bTs*0.06);
+    // Keyboard body (2 tiles wide)
+    ctx.fillStyle='#1a1a1a';
+    ctx.beginPath();ctx.roundRect(_kbX+_bTs*0.05,_kbY+_bTs*0.3,_bTs*1.9,_bTs*0.45,3);ctx.fill();
+    // White keys
+    ctx.fillStyle='#f0ece0';
+    for(var _ki=0;_ki<14;_ki++){
+      ctx.fillRect(_kbX+_bTs*0.12+_ki*(_bTs*0.125),_kbY+_bTs*0.38,_bTs*0.11,_bTs*0.3);
+    }
+    // Black keys
+    ctx.fillStyle='#111';
+    var _bkPattern=[1,1,0,1,1,1,0,1,1,0,1,1,1,0];
+    for(var _bi=0;_bi<13;_bi++){
+      if(_bkPattern[_bi]) ctx.fillRect(_kbX+_bTs*0.19+_bi*(_bTs*0.125),_kbY+_bTs*0.38,_bTs*0.07,_bTs*0.18);
+    }
+    // Control panel (knobs/buttons)
+    ctx.fillStyle='#0a0a0a';
+    ctx.fillRect(_kbX+_bTs*0.1,_kbY+_bTs*0.32,_bTs*1.8,_bTs*0.08);
+    ctx.fillStyle='#FF1493';
+    for(var _kn=0;_kn<5;_kn++){
+      ctx.beginPath();ctx.arc(_kbX+_bTs*0.3+_kn*_bTs*0.34,_kbY+_bTs*0.36,_bTs*0.02,0,Math.PI*2);ctx.fill();
+    }
+    // LED display glow
+    ctx.fillStyle='rgba(0,255,100,0.4)';
+    ctx.fillRect(_kbX+_bTs*0.7,_kbY+_bTs*0.33,_bTs*0.2,_bTs*0.05);
+
+    // ── DRUM KIT — center-right (tile col ~20-22, row 2) ──
+    var _dkX=20*_bTs-camOx, _dkY=2*_bTs-camOy;
+    // Bass drum (large circle)
+    ctx.fillStyle='#2a1a1a';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.0,_dkY+_bTs*0.75,_bTs*0.45,_bTs*0.4,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#C4A35A';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.0,_dkY+_bTs*0.75,_bTs*0.45,_bTs*0.4,0,0,Math.PI*2);ctx.stroke();
+    // Bass drum head detail
+    ctx.strokeStyle='#C4A35A55';ctx.lineWidth=1;
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.0,_dkY+_bTs*0.75,_bTs*0.3,_bTs*0.27,0,0,Math.PI*2);ctx.stroke();
+    // Cross on bass drum
+    ctx.fillStyle='#C4A35A';ctx.font='bold '+Math.floor(_bTs*0.25)+'px serif';ctx.textAlign='center';
+    ctx.fillText('✝',_dkX+_bTs*1.0,_dkY+_bTs*0.82);
+    // Snare drum (left)
+    ctx.fillStyle='#8B7355';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*0.35,_dkY+_bTs*0.55,_bTs*0.22,_bTs*0.12,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#C4A35A33';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*0.35,_dkY+_bTs*0.55,_bTs*0.22,_bTs*0.12,0,0,Math.PI);ctx.fill();
+    ctx.strokeStyle='#aaa';ctx.lineWidth=1;
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*0.35,_dkY+_bTs*0.55,_bTs*0.22,_bTs*0.12,0,0,Math.PI*2);ctx.stroke();
+    // Tom-tom (right)
+    ctx.fillStyle='#6B4423';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.65,_dkY+_bTs*0.5,_bTs*0.2,_bTs*0.1,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#aaa';ctx.lineWidth=1;
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.65,_dkY+_bTs*0.5,_bTs*0.2,_bTs*0.1,0,0,Math.PI*2);ctx.stroke();
+    // Hi-hat (far left)
+    ctx.fillStyle='#C0B040';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*0.0,_dkY+_bTs*0.35,_bTs*0.15,_bTs*0.05,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#B0A030';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*0.0,_dkY+_bTs*0.38,_bTs*0.15,_bTs*0.05,0,0,Math.PI*2);ctx.fill();
+    // Hi-hat stand
+    ctx.fillStyle='#777';ctx.fillRect(_dkX-_bTs*0.02,_dkY+_bTs*0.38,_bTs*0.04,_bTs*0.5);
+    // Crash cymbal (right top)
+    ctx.fillStyle='#D4C060';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.8,_dkY+_bTs*0.25,_bTs*0.18,_bTs*0.06,0.15,0,Math.PI*2);ctx.fill();
+    // Cymbal stand
+    ctx.fillStyle='#777';ctx.fillRect(_dkX+_bTs*1.78,_dkY+_bTs*0.3,_bTs*0.04,_bTs*0.6);
+    // Drum stool
+    ctx.fillStyle='#333';
+    ctx.beginPath();ctx.ellipse(_dkX+_bTs*1.0,_dkY+_bTs*1.1,_bTs*0.2,_bTs*0.08,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#555';ctx.fillRect(_dkX+_bTs*0.97,_dkY+_bTs*1.15,_bTs*0.06,_bTs*0.25);
+
+    // ── GUITAR AMP — stage right (tile col ~24, row 2) ──
+    var _gaX=24*_bTs-camOx, _gaY=2.3*_bTs-camOy;
+    // Amp cabinet
+    ctx.fillStyle='#1a1a1a';
+    ctx.beginPath();ctx.roundRect(_gaX,_gaY+_bTs*0.1,_bTs*0.85,_bTs*0.7,4);ctx.fill();
+    // Speaker grille (cloth texture)
+    ctx.fillStyle='#2a2222';
+    ctx.fillRect(_gaX+_bTs*0.06,_gaY+_bTs*0.25,_bTs*0.73,_bTs*0.45);
+    // Speaker cones
+    ctx.strokeStyle='#444';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(_gaX+_bTs*0.25,_gaY+_bTs*0.38,_bTs*0.1,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(_gaX+_bTs*0.6,_gaY+_bTs*0.38,_bTs*0.1,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(_gaX+_bTs*0.25,_gaY+_bTs*0.58,_bTs*0.1,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(_gaX+_bTs*0.6,_gaY+_bTs*0.58,_bTs*0.1,0,Math.PI*2);ctx.stroke();
+    // Control knobs on top
+    ctx.fillStyle='#C4A35A';
+    for(var _ak=0;_ak<4;_ak++){
+      ctx.beginPath();ctx.arc(_gaX+_bTs*0.15+_ak*_bTs*0.2,_gaY+_bTs*0.16,_bTs*0.03,0,Math.PI*2);ctx.fill();
+    }
+    // Power LED
+    var _ampLed=0.5+0.3*Math.sin(Date.now()/800);
+    ctx.fillStyle='rgba(255,0,0,'+_ampLed+')';
+    ctx.beginPath();ctx.arc(_gaX+_bTs*0.1,_gaY+_bTs*0.13,_bTs*0.02,0,Math.PI*2);ctx.fill();
+
+    // ── BASS AMP — stage left near keyboard (tile col ~7, row 2) ──
+    var _baX=7*_bTs-camOx, _baY=2.4*_bTs-camOy;
+    ctx.fillStyle='#1a1a1a';
+    ctx.beginPath();ctx.roundRect(_baX+_bTs*0.1,_baY+_bTs*0.15,_bTs*0.8,_bTs*0.6,3);ctx.fill();
+    ctx.fillStyle='#222';
+    ctx.fillRect(_baX+_bTs*0.16,_baY+_bTs*0.28,_bTs*0.68,_bTs*0.38);
+    // Single large speaker
+    ctx.strokeStyle='#444';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(_baX+_bTs*0.5,_baY+_bTs*0.47,_bTs*0.16,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(_baX+_bTs*0.5,_baY+_bTs*0.47,_bTs*0.06,0,Math.PI*2);ctx.stroke();
+
+    // ── MIC STAND — center stage (tile col ~14, row 3) ──
+    var _msX=14*_bTs-camOx, _msY=3*_bTs-camOy;
+    // Stand pole
+    ctx.fillStyle='#777';ctx.fillRect(_msX+_bTs*0.47,_msY+_bTs*0.1,_bTs*0.06,_bTs*0.85);
+    // Base (tripod suggestion)
+    ctx.fillStyle='#555';
+    ctx.fillRect(_msX+_bTs*0.3,_msY+_bTs*0.9,_bTs*0.4,_bTs*0.05);
+    ctx.fillRect(_msX+_bTs*0.38,_msY+_bTs*0.85,_bTs*0.24,_bTs*0.05);
+    // Mic head (ball)
+    ctx.fillStyle='#333';
+    ctx.beginPath();ctx.arc(_msX+_bTs*0.5,_msY+_bTs*0.08,_bTs*0.08,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#555';
+    ctx.beginPath();ctx.arc(_msX+_bTs*0.5,_msY+_bTs*0.08,_bTs*0.06,0,Math.PI*2);ctx.fill();
+    // Mic grille dots
+    ctx.fillStyle='#777';
+    ctx.beginPath();ctx.arc(_msX+_bTs*0.5,_msY+_bTs*0.06,_bTs*0.015,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(_msX+_bTs*0.48,_msY+_bTs*0.1,_bTs*0.015,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(_msX+_bTs*0.52,_msY+_bTs*0.1,_bTs*0.015,0,Math.PI*2);ctx.fill();
+
+    // ── FLOOR MONITORS — front of stage (row 4) ──
+    var _monPositions=[5,10,14,18,23];
+    for(var _mi=0;_mi<_monPositions.length;_mi++){
+      var _mx=_monPositions[_mi]*_bTs-camOx, _my=4*_bTs-camOy;
+      // Wedge shape
+      ctx.fillStyle='#1a1a1a';
+      ctx.beginPath();
+      ctx.moveTo(_mx+_bTs*0.1,_my+_bTs*0.8);
+      ctx.lineTo(_mx+_bTs*0.1,_my+_bTs*0.4);
+      ctx.lineTo(_mx+_bTs*0.9,_my+_bTs*0.2);
+      ctx.lineTo(_mx+_bTs*0.9,_my+_bTs*0.8);
+      ctx.closePath();ctx.fill();
+      // Speaker grille
+      ctx.fillStyle='#2a2a2a';
+      ctx.beginPath();
+      ctx.moveTo(_mx+_bTs*0.15,_my+_bTs*0.75);
+      ctx.lineTo(_mx+_bTs*0.15,_my+_bTs*0.45);
+      ctx.lineTo(_mx+_bTs*0.85,_my+_bTs*0.27);
+      ctx.lineTo(_mx+_bTs*0.85,_my+_bTs*0.75);
+      ctx.closePath();ctx.fill();
+    }
+
+    // ── STAGE CABLES (subtle floor wiring) ──
+    ctx.save();
+    ctx.strokeStyle='rgba(40,40,40,0.35)';ctx.lineWidth=1.5;ctx.setLineDash([3,5]);
+    // Cable from keyboard to bass amp
+    ctx.beginPath();ctx.moveTo(_kbX+_bTs*1.0,_kbY+_bTs*1.2);ctx.quadraticCurveTo(_kbX-_bTs*0.5,_kbY+_bTs*1.5,_baX+_bTs*0.5,_baY+_bTs*0.8);ctx.stroke();
+    // Cable from drums to right side
+    ctx.beginPath();ctx.moveTo(_dkX+_bTs*1.0,_dkY+_bTs*1.3);ctx.quadraticCurveTo(_dkX+_bTs*2.5,_dkY+_bTs*1.5,27*_bTs-camOx+_bTs*0.5,3*_bTs-camOy+_bTs*0.8);ctx.stroke();
+    // Cable from mic to left monitor
+    ctx.beginPath();ctx.moveTo(_msX+_bTs*0.5,_msY+_bTs*0.95);ctx.quadraticCurveTo(_msX+_bTs*0.3,_msY+_bTs*1.5,14*_bTs-camOx+_bTs*0.5,4*_bTs-camOy+_bTs*0.5);ctx.stroke();
+    ctx.restore();
+
+    // ── STAGE LIGHTING GLOW (animated) ──
+    var _slPulse=0.03+0.02*Math.sin(Date.now()/500);
+    // Purple worship glow from above
+    var _slGrad=ctx.createRadialGradient(14.5*_bTs-camOx,2*_bTs-camOy,0,14.5*_bTs-camOx,3*_bTs-camOy,_bTs*6);
+    _slGrad.addColorStop(0,'rgba(180,50,255,'+(_slPulse*1.5)+')');
+    _slGrad.addColorStop(0.4,'rgba(255,20,147,'+_slPulse+')');
+    _slGrad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=_slGrad;
+    ctx.fillRect(2*_bTs-camOx,2*_bTs-camOy,26*_bTs,3*_bTs);
+  }
+
   if(!(CW_IS_MOBILE&&_cwSlowFrame)&&_upsList.includes('belltower')){
     // Bell above the entrance door
     var _bellX=14.5*ts-camOx,_bellY=0.5*ts-camOy;
@@ -6905,7 +7232,7 @@ function cw_loop(){
 
   // Update HTML activity overlay every 500ms (for timers) or on state change
   // Skip re-render for static/scrollable activities to preserve scroll position
-  var _skipRerender=s.activity&&((s.activity.type==='cafe'&&s.activity.phase==='menu')||(s.activity.type==='baptism'&&s.activity.phase==='select')||s.activity.type==='upgrades'||(s.activity.type==='parkinglot'&&(s.activity.phase==='playing'||s.activity.phase==='arrived'))||s.activity.type==='wolfgame'||s.activity.type==='biblestudy'||(s.activity.type==='evangelism'&&s.activity.phase==='step')||(s.activity.type==='communion'&&(s.activity.phase==='approach'||s.activity.phase==='bread'||s.activity.phase==='juice')));
+  var _skipRerender=s.activity&&((s.activity.type==='cafe'&&s.activity.phase==='menu')||(s.activity.type==='baptism'&&s.activity.phase==='select')||s.activity.type==='upgrades'||(s.activity.type==='parkinglot'&&(s.activity.phase==='playing'||s.activity.phase==='arrived'))||s.activity.type==='wolfgame'||s.activity.type==='biblestudy'||(s.activity.type==='evangelism'&&s.activity.phase==='step')||(s.activity.type==='communion'&&(s.activity.phase==='approach'||s.activity.phase==='bread'||s.activity.phase==='juice'))||s.activity.type==='worshipband');
   if(!_skipRerender&&(!s._lastActivityRender||(s.activity&&Date.now()-s._lastActivityRender>500))){
     s._lastActivityRender=Date.now();
     cw_renderActivity();
@@ -6946,6 +7273,9 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
       return;// button-driven
     }
     if(a.type==='biblestudy'){
+      return;// button-driven
+    }
+    if(a.type==='worshipband'){
       return;// button-driven
     }
     if(a.type==='communion'){
@@ -6999,6 +7329,31 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
       } else {
         s.activity={type:'evangelism',npcId:npc.id,npc:npc,step:0,score:0,responses:[],phase:'intro',zoneId:'ev_'+npc.id};
         cw_renderActivity();
+      }
+      return;
+    }
+    // Worship Band interaction — show song picker when talking to band leader
+    if(npc&&npc.npcType==='worshipband'){
+      if(npc.id==='wb_leader'){
+        // Show worship band song selection
+        s.activity={type:'worshipband',phase:'pick',npc:npc,zoneId:'wb_'+npc.id};
+        cw_renderActivity();
+      } else {
+        // Other band members just talk
+        if(!G.pd.npcRelations)G.pd.npcRelations={};
+        G.pd.npcRelations[npc.id]=(G.pd.npcRelations[npc.id]||0)+1;
+        var _tier=cw_getNpcTier(npc.id);
+        var talkArr=npc.talk;
+        var idx=(s.talkIdx[npc.id]||0)%talkArr.length;
+        var t=talkArr[idx];s.talkIdx[npc.id]=(idx+1);
+        var bonusXp=CW_TIER_XP_BONUS[_tier]||0;
+        var talks=G.pd.npcRelations[npc.id];
+        var tierMsg='';
+        if(talks===3)tierMsg=' · Now Acquaintance!';
+        if(talks===8)tierMsg=' · Now Friend!';
+        if(talks===15)tierMsg=' · Now Disciple!';
+        s.dialog={speaker:npc.name,emoji:npc.emoji,text:t.text+(tierMsg?' <span style=color:'+CW_TIER_COLORS[_tier]+'>'+tierMsg+'</span>':''),xp:(t.xp||0)+bonusXp};
+        persistPlayer();
       }
       return;
     }
@@ -9535,6 +9890,257 @@ function sfxWMiss(){tone(N.Bb3,.08,.3,'sawtooth',0);}
 function sfxBoss(){[N.G5,N.E5,N.C5,N.G4,N.E4,N.C4,N.G3].forEach(function(f,i){tone(f,.15,.5,'sawtooth',i*.1);});noise(.4,.3,.2,300);}
 // Music engine
 function stopMusic(){musicStopFns.forEach(function(fn){try{fn();}catch(e){}});musicStopFns=[];currentTrack=null;}
+
+// ── REVERB / EFFECTS CHAIN ──────────────────────────
+var _reverbNode=null,_reverbDry=null,_reverbWet=null;
+function getReverbBus(){
+  var c=getCtx();if(!c)return masterGain;
+  if(_reverbNode)return _reverbDry;
+  try{
+    // Generate synthetic impulse response (church hall ~1.8s)
+    var sr=c.sampleRate,len=Math.floor(sr*1.8),ir=c.createBuffer(2,len,sr);
+    for(var ch=0;ch<2;ch++){var d=ir.getChannelData(ch);for(var i=0;i<len;i++){
+      d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)*(ch===0?1:0.95);
+      // Early reflections
+      if(i<sr*0.05) d[i]*=2.5;
+    }}
+    _reverbNode=c.createConvolver();_reverbNode.buffer=ir;
+    _reverbDry=c.createGain();_reverbDry.gain.value=1;
+    _reverbWet=c.createGain();_reverbWet.gain.value=0.25;
+    _reverbDry.connect(masterGain);
+    _reverbDry.connect(_reverbNode);
+    _reverbNode.connect(_reverbWet);
+    _reverbWet.connect(masterGain);
+    return _reverbDry;
+  }catch(e){return masterGain;}
+}
+
+// ── ORGAN VOICE — 3 detuned oscillators + sub octave ──
+function organNote(c,freq,startT,dur,vol,dest,nodes){
+  var layers=[
+    {type:'sine',det:0,v:0.45},      // fundamental
+    {type:'sine',det:7,v:0.3},       // slight sharp (chorus)
+    {type:'sine',det:-7,v:0.3},      // slight flat (chorus)
+    {type:'sine',det:0,v:0.18,oct:2}, // 2nd harmonic (octave up)
+    {type:'triangle',det:0,v:0.12,oct:-1}, // sub octave
+  ];
+  for(var li=0;li<layers.length;li++){
+    var L=layers[li];
+    var o=c.createOscillator(),g=c.createGain();
+    o.type=L.type;
+    var f=freq*(L.oct===2?2:L.oct===-1?0.5:1);
+    o.frequency.setValueAtTime(f,startT);
+    if(L.det)o.detune.setValueAtTime(L.det,startT);
+    var v=vol*L.v*musicVol;
+    // Organ ADSR: soft attack, sustain, gentle release
+    g.gain.setValueAtTime(0,startT);
+    g.gain.linearRampToValueAtTime(v*0.7,startT+0.02);  // fast attack
+    g.gain.linearRampToValueAtTime(v,startT+0.08);       // bloom
+    g.gain.setValueAtTime(v,startT+dur*0.75);            // sustain
+    g.gain.linearRampToValueAtTime(v*0.3,startT+dur*0.92);
+    g.gain.linearRampToValueAtTime(0.001,startT+dur);
+    o.connect(g);g.connect(dest);
+    o.start(startT);o.stop(startT+dur+0.05);
+    nodes.push(o);
+  }
+  // Leslie-style vibrato via subtle LFO on pitch
+  var lfo=c.createOscillator(),lfoG=c.createGain();
+  lfo.type='sine';lfo.frequency.value=5.5; // ~5.5Hz leslie
+  lfoG.gain.value=3; // 3 cents wobble
+  lfo.connect(lfoG);
+  // Connect to first oscillator's detune (already created above)
+  lfo.start(startT);lfo.stop(startT+dur+0.1);
+  nodes.push(lfo);
+}
+
+// ── PIANO VOICE — bright attack + quick decay ──
+function pianoNote(c,freq,startT,dur,vol,dest,nodes){
+  var layers=[
+    {type:'triangle',det:0,v:0.5},
+    {type:'sine',det:3,v:0.35},
+    {type:'sawtooth',det:0,v:0.08}, // brightness/hammer
+  ];
+  for(var li=0;li<layers.length;li++){
+    var L=layers[li];
+    var o=c.createOscillator(),g=c.createGain();
+    o.type=L.type;o.frequency.setValueAtTime(freq,startT);
+    if(L.det)o.detune.setValueAtTime(L.det,startT);
+    var v=vol*L.v*musicVol;
+    // Piano: sharp attack, natural decay
+    g.gain.setValueAtTime(0,startT);
+    g.gain.linearRampToValueAtTime(v,startT+0.005);
+    g.gain.exponentialRampToValueAtTime(v*0.4,startT+dur*0.3);
+    g.gain.exponentialRampToValueAtTime(0.001,startT+dur);
+    o.connect(g);g.connect(dest);
+    o.start(startT);o.stop(startT+dur+0.05);
+    nodes.push(o);
+  }
+}
+
+// ── BASS VOICE — warm sub with presence ──
+function bassNote(c,freq,startT,dur,vol,dest,nodes){
+  // Sub sine
+  var o1=c.createOscillator(),g1=c.createGain();
+  o1.type='sine';o1.frequency.setValueAtTime(freq,startT);
+  var v=vol*0.55*musicVol;
+  g1.gain.setValueAtTime(0,startT);
+  g1.gain.linearRampToValueAtTime(v,startT+0.015);
+  g1.gain.setValueAtTime(v,startT+dur*0.6);
+  g1.gain.linearRampToValueAtTime(0.001,startT+dur*0.95);
+  o1.connect(g1);g1.connect(dest);o1.start(startT);o1.stop(startT+dur+0.05);
+  nodes.push(o1);
+  // Triangle presence
+  var o2=c.createOscillator(),g2=c.createGain();
+  o2.type='triangle';o2.frequency.setValueAtTime(freq,startT);
+  var v2=vol*0.3*musicVol;
+  g2.gain.setValueAtTime(0,startT);
+  g2.gain.linearRampToValueAtTime(v2,startT+0.01);
+  g2.gain.exponentialRampToValueAtTime(0.001,startT+dur*0.8);
+  o2.connect(g2);g2.connect(dest);o2.start(startT);o2.stop(startT+dur+0.05);
+  nodes.push(o2);
+  // Octave up for definition
+  var o3=c.createOscillator(),g3=c.createGain();
+  o3.type='sine';o3.frequency.setValueAtTime(freq*2,startT);
+  var v3=vol*0.1*musicVol;
+  g3.gain.setValueAtTime(0,startT);
+  g3.gain.linearRampToValueAtTime(v3,startT+0.005);
+  g3.gain.exponentialRampToValueAtTime(0.001,startT+dur*0.5);
+  o3.connect(g3);g3.connect(dest);o3.start(startT);o3.stop(startT+dur+0.05);
+  nodes.push(o3);
+}
+
+// ── DRUM SYNTHESIS ──────────────────────────────────
+function synthKick(c,startT,vol,dest,nodes){
+  var o=c.createOscillator(),g=c.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(150,startT);
+  o.frequency.exponentialRampToValueAtTime(40,startT+0.12);
+  var v=vol*0.6*musicVol;
+  g.gain.setValueAtTime(v,startT);
+  g.gain.exponentialRampToValueAtTime(0.001,startT+0.35);
+  o.connect(g);g.connect(dest);o.start(startT);o.stop(startT+0.4);
+  nodes.push(o);
+  // Click transient
+  var buf=c.createBuffer(1,Math.floor(c.sampleRate*0.02),c.sampleRate),d=buf.getChannelData(0);
+  for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,8);
+  var src=c.createBufferSource(),gn=c.createGain();
+  src.buffer=buf;gn.gain.setValueAtTime(vol*0.4*musicVol,startT);
+  gn.gain.exponentialRampToValueAtTime(0.001,startT+0.03);
+  src.connect(gn);gn.connect(dest);src.start(startT);src.stop(startT+0.05);
+  nodes.push(src);
+}
+
+function synthSnare(c,startT,vol,dest,nodes){
+  // Tone body
+  var o=c.createOscillator(),g=c.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(200,startT);
+  o.frequency.exponentialRampToValueAtTime(120,startT+0.05);
+  var v=vol*0.35*musicVol;
+  g.gain.setValueAtTime(v,startT);g.gain.exponentialRampToValueAtTime(0.001,startT+0.15);
+  o.connect(g);g.connect(dest);o.start(startT);o.stop(startT+0.2);nodes.push(o);
+  // Noise rattle
+  var len=Math.floor(c.sampleRate*0.12),buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+  var src=c.createBufferSource(),flt=c.createBiquadFilter(),gn=c.createGain();
+  src.buffer=buf;flt.type='highpass';flt.frequency.value=2000;
+  gn.gain.setValueAtTime(vol*0.45*musicVol,startT);gn.gain.exponentialRampToValueAtTime(0.001,startT+0.12);
+  src.connect(flt);flt.connect(gn);gn.connect(dest);src.start(startT);src.stop(startT+0.15);nodes.push(src);
+}
+
+function synthHihat(c,startT,vol,open,dest,nodes){
+  var dur=open?0.18:0.06;
+  var len=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,open?1.5:5);
+  var src=c.createBufferSource(),flt=c.createBiquadFilter(),gn=c.createGain();
+  src.buffer=buf;flt.type='highpass';flt.frequency.value=7000;
+  gn.gain.setValueAtTime(vol*0.28*musicVol,startT);gn.gain.exponentialRampToValueAtTime(0.001,startT+dur);
+  src.connect(flt);flt.connect(gn);gn.connect(dest);src.start(startT);src.stop(startT+dur+0.02);nodes.push(src);
+}
+
+function synthClap(c,startT,vol,dest,nodes){
+  // Multiple short noise bursts for a clap sound
+  for(var ci=0;ci<3;ci++){
+    var t2=startT+ci*0.008;
+    var len=Math.floor(c.sampleRate*0.04),buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+    for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,4);
+    var src=c.createBufferSource(),flt=c.createBiquadFilter(),gn=c.createGain();
+    src.buffer=buf;flt.type='bandpass';flt.frequency.value=1200;flt.Q.value=0.8;
+    gn.gain.setValueAtTime(vol*0.3*musicVol,t2);gn.gain.exponentialRampToValueAtTime(0.001,t2+0.06);
+    src.connect(flt);flt.connect(gn);gn.connect(dest);src.start(t2);src.stop(t2+0.08);nodes.push(src);
+  }
+}
+
+function synthTamb(c,startT,vol,dest,nodes){
+  var len=Math.floor(c.sampleRate*0.08),buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.5);
+  var src=c.createBufferSource(),flt=c.createBiquadFilter(),gn=c.createGain();
+  src.buffer=buf;flt.type='highpass';flt.frequency.value=5000;
+  gn.gain.setValueAtTime(vol*0.2*musicVol,startT);gn.gain.exponentialRampToValueAtTime(0.001,startT+0.08);
+  src.connect(flt);flt.connect(gn);gn.connect(dest);src.start(startT);src.stop(startT+0.1);nodes.push(src);
+}
+
+// ── HIGH-QUALITY WORSHIP LOOP ENGINE ────────────────
+function playWorshipLoop(mel,bass,drums,bpm,name){
+  var c=getCtx();if(!c||!musicEnabled)return;
+  if(currentTrack===name)return;
+  stopMusic();currentTrack=name;
+  var dest=getReverbBus();
+  var beat=60/bpm;
+  var melTotal=mel.reduce(function(s,n){return s+(n.d||1)*beat;},0);
+  var bassTotal=bass.reduce(function(s,n){return s+(n.d||1)*beat;},0);
+  var total=Math.max(melTotal,bassTotal);
+  // Drums loop length matches melody
+  var stopped=false,nodes=[];
+  function sched(st){
+    if(stopped)return;
+    // ── Melody (organ voice) ──
+    var t=st;
+    mel.forEach(function(n){
+      if(stopped||!n.f){t+=(n.d||1)*beat;return;}
+      var dur=(n.d||1)*beat;
+      if(n.voice==='piano') pianoNote(c,n.f,t,dur*0.95,n.v||0.5,dest,nodes);
+      else organNote(c,n.f,t,dur*0.95,n.v||0.5,dest,nodes);
+      // Harmony: add third/fifth sometimes (chord tones)
+      if(n.ch){
+        for(var ci=0;ci<n.ch.length;ci++){
+          organNote(c,n.ch[ci],t,dur*0.9,(n.v||0.5)*0.35,dest,nodes);
+        }
+      }
+      t+=(n.d||1)*beat;
+    });
+    // ── Bass ──
+    var tb=st;
+    bass.forEach(function(n){
+      if(stopped||!n.f){tb+=(n.d||1)*beat;return;}
+      var dur=(n.d||1)*beat;
+      bassNote(c,n.f,tb,dur*0.9,n.v||0.45,dest,nodes);
+      tb+=(n.d||1)*beat;
+    });
+    // ── Drums ──
+    if(drums){
+      var beatsInLoop=Math.floor(total/beat);
+      for(var bi=0;bi<beatsInLoop;bi++){
+        var bt=st+bi*beat;
+        if(stopped)break;
+        var pat=drums[bi%drums.length]||{};
+        if(pat.k) synthKick(c,bt,pat.k,dest,nodes);
+        if(pat.s) synthSnare(c,bt,pat.s,dest,nodes);
+        if(pat.h) synthHihat(c,bt,pat.h,false,dest,nodes);
+        if(pat.ho) synthHihat(c,bt,pat.ho,true,dest,nodes);
+        if(pat.cl) synthClap(c,bt,pat.cl,dest,nodes);
+        if(pat.tb) synthTamb(c,bt,pat.tb,dest,nodes);
+      }
+    }
+    if(!stopped){
+      var tid=setTimeout(function(){sched(st+total);},(st+total-c.currentTime-0.15)*1000);
+      musicStopFns.push(function(){clearTimeout(tid);});
+    }
+  }
+  sched(c.currentTime+0.05);
+  musicStopFns.push(function(){stopped=true;nodes.forEach(function(n){try{n.stop();}catch(e){}});});
+}
+
+// ── Simple loop kept for non-worship tracks ──
 function playLoop(mel,bass,bpm,name){
   var c=getCtx();if(!c||!musicEnabled)return;
   if(currentTrack===name)return;
@@ -9561,6 +10167,230 @@ var CM=[{f:392,d:1,tp:'sine'},{f:440,d:.5,tp:'sine'},{f:494,d:.5,tp:'sine'},{f:5
 var CB=[{f:196,d:2,tp:'sine'},{f:131,d:2,tp:'sine'},{f:220,d:2,tp:'sine'},{f:147,d:2,tp:'sine'},{f:131,d:2,tp:'sine'},{f:175,d:2,tp:'sine'},{f:196,d:2,tp:'sine'},{f:147,d:2,tp:'sine'}];
 var PM=[{f:880,d:.25},{f:784,d:.25},{f:659,d:.5},{f:880,d:.25},{f:784,d:.25},{f:698,d:.5},{f:659,d:.25},{f:587,d:.25},{f:523,d:.25},{f:494,d:.25},{f:440,d:1},{f:523,d:.25},{f:659,d:.25},{f:784,d:.25},{f:880,d:.25},{f:494,d:.25},{f:587,d:.25},{f:698,d:.25},{f:784,d:.25},{f:659,d:.5},{f:587,d:.25},{f:523,d:.25},{f:440,d:1}];
 var PB=[{f:220,d:1},{f:220,d:1},{f:147,d:1},{f:165,d:1},{f:220,d:1},{f:220,d:1},{f:147,d:1},{f:165,d:1}];
+
+// ── Southern Pentecostal Worship Band Tracks (HIGH QUALITY) ──
+// Each track has: mel (organ/piano melody with chord harmony), bass (walking bass), drums (per-beat pattern)
+// Drum beat keys: k=kick, s=snare, h=hihat(closed), ho=hihat(open), cl=clap, tb=tambourine
+
+// "Fire on the Altar" — up-tempo praise, Bb major, driving gospel organ
+var WB1M=[
+  {f:466,d:.5,ch:[587,698]},{f:523,d:.5},{f:587,d:.75,ch:[698,880]},{f:698,d:.25},
+  {f:784,d:.5,ch:[587,466]},{f:698,d:.25},{f:587,d:.25},{f:523,d:.75,ch:[698,880]},{f:466,d:.25},
+  {f:523,d:.5},{f:587,d:.75,ch:[466,698]},{f:698,d:.25},{f:784,d:.5,ch:[587,932]},
+  {f:880,d:.5,ch:[698,523]},{f:784,d:.25},{f:698,d:.25},{f:587,d:.5,ch:[466,698]},
+  {f:523,d:.5},{f:466,d:.75,ch:[587,698]},{f:523,d:.25},{f:587,d:.5,ch:[698,880]},
+  {f:466,d:.5,ch:[587,349]},{f:523,d:.5,ch:[659,784]},{f:698,d:.75,ch:[880,523]},
+  {f:587,d:.25},{f:523,d:.5},{f:466,d:1,ch:[587,698]}
+];
+var WB1B=[
+  {f:117,d:.5},{f:117,d:.25},{f:147,d:.25},{f:175,d:.5},{f:175,d:.25},{f:196,d:.25},
+  {f:233,d:.5},{f:233,d:.25},{f:175,d:.25},{f:147,d:.5},{f:117,d:.5},
+  {f:117,d:.25},{f:147,d:.25},{f:175,d:.5},{f:196,d:.5},{f:233,d:.5},{f:175,d:.5},
+  {f:147,d:.5},{f:117,d:.5},{f:147,d:.25},{f:175,d:.25},{f:233,d:.5},
+  {f:175,d:.5},{f:147,d:.5},{f:117,d:1}
+];
+// 4/4 gospel drive: kick on 1&3, snare on 2&4, hihat 8ths, tambourine throughout
+var WB1D=[
+  {k:1,h:.8,tb:.5},{h:.6,tb:.3},{s:.9,h:.8,cl:.6,tb:.5},{h:.6,tb:.3},
+  {k:1,h:.8,tb:.5},{h:.6,tb:.3},{s:.9,h:.8,cl:.6,tb:.5},{ho:.7,tb:.4},
+  {k:1,h:.8,tb:.5},{h:.5,tb:.3},{s:.9,h:.8,cl:.7,tb:.5},{h:.5,tb:.3},
+  {k:.8,h:.7,tb:.5},{k:.5,h:.6,tb:.3},{s:1,h:.9,cl:.8,tb:.6},{ho:.8,tb:.5}
+];
+
+// "Victory in Jesus" — classic southern gospel, G major, piano melody with walking bass
+var WB2M=[
+  {f:392,d:.5,voice:'piano',ch:[494,587]},{f:494,d:.5,voice:'piano'},{f:587,d:.75,voice:'piano',ch:[392,494]},{f:523,d:.25,voice:'piano'},
+  {f:494,d:.5,voice:'piano',ch:[392,587]},{f:392,d:.5,voice:'piano'},{f:330,d:.75,voice:'piano',ch:[392,494]},{f:392,d:.25,voice:'piano'},
+  {f:440,d:.5,voice:'piano',ch:[523,659]},{f:494,d:1,voice:'piano',ch:[392,587]},
+  {f:523,d:.5,voice:'piano'},{f:587,d:.75,voice:'piano',ch:[494,392]},{f:523,d:.25,voice:'piano'},
+  {f:494,d:.5,voice:'piano',ch:[392,587]},{f:440,d:.5,voice:'piano'},{f:392,d:.75,voice:'piano',ch:[494,587]},
+  {f:330,d:.25,voice:'piano'},{f:294,d:.5,voice:'piano',ch:[392,494]},{f:330,d:.5,voice:'piano'},{f:392,d:1.5,voice:'piano',ch:[494,587]}
+];
+var WB2B=[
+  {f:196,d:.5},{f:247,d:.5},{f:294,d:.5},{f:247,d:.5},{f:262,d:.5},{f:196,d:.5},
+  {f:165,d:.5},{f:196,d:.5},{f:220,d:.5},{f:247,d:1},{f:262,d:.5},
+  {f:294,d:.5},{f:262,d:.5},{f:247,d:.5},{f:220,d:.5},{f:196,d:.5},
+  {f:165,d:.5},{f:147,d:.5},{f:165,d:.5},{f:196,d:1.5}
+];
+// Relaxed gospel shuffle: kick 1&3, snare 2&4, open hihats for swing feel
+var WB2D=[
+  {k:.9,h:.6},{h:.4},{s:.8,ho:.5,cl:.4},{h:.4},
+  {k:.8,h:.6},{h:.4},{s:.8,ho:.5,cl:.4},{h:.4},
+  {k:.9,h:.6},{h:.4},{s:.8,h:.5,cl:.5},{h:.4},
+  {k:.7,h:.5},{k:.5,h:.4},{s:.9,ho:.6,cl:.6},{ho:.5}
+];
+
+// "Holy Ghost Power" — high energy, C major organ shout, fast 16th note feel
+var WB3M=[
+  {f:523,d:.25,ch:[659,784]},{f:587,d:.25},{f:659,d:.25,ch:[784,1047]},{f:698,d:.25},
+  {f:784,d:.5,ch:[523,659]},{f:880,d:.5,ch:[659,1047]},{f:784,d:.25},{f:698,d:.25},
+  {f:659,d:.5,ch:[523,784]},{f:587,d:.25},{f:523,d:.25},{f:466,d:.5,ch:[587,698]},
+  {f:523,d:.5,ch:[659,784]},{f:587,d:.25},{f:659,d:.5,ch:[784,1047]},
+  {f:784,d:.75,ch:[523,659]},{f:880,d:.5,ch:[1047,659]},{f:1047,d:.25,ch:[784,659]},
+  {f:880,d:.25},{f:784,d:.5,ch:[659,523]},{f:698,d:.25},{f:659,d:.25},
+  {f:587,d:.5,ch:[466,698]},{f:523,d:1,ch:[659,784]}
+];
+var WB3B=[
+  {f:131,d:.5},{f:165,d:.5},{f:196,d:.5},{f:175,d:.5},{f:196,d:.5},{f:220,d:.5},
+  {f:196,d:.5},{f:175,d:.5},{f:165,d:.5},{f:147,d:.5},{f:131,d:.5},{f:165,d:.5},
+  {f:131,d:.5},{f:165,d:.5},{f:196,d:.5},{f:220,d:.5},{f:262,d:.5},{f:220,d:.5},
+  {f:196,d:.5},{f:175,d:.5},{f:165,d:.5},{f:147,d:.5},{f:131,d:1}
+];
+// Driving 16th note feel: kick heavy, snare on 2&4, open hihats, claps on every beat
+var WB3D=[
+  {k:1,h:.9,tb:.6},{h:.7,tb:.4},{k:.4,h:.8,tb:.5},{h:.7,tb:.4},
+  {s:1,h:.9,cl:.8,tb:.6},{h:.7,tb:.4},{h:.8,tb:.5},{ho:.8,tb:.5},
+  {k:1,h:.9,tb:.6},{h:.7,tb:.4},{k:.4,h:.8,tb:.5},{h:.7,tb:.4},
+  {s:1,h:.9,cl:.9,tb:.7},{h:.7,tb:.4},{k:.6,h:.8,tb:.5},{ho:.9,k:.4,tb:.5}
+];
+
+// "Down by the Riverside" — swing gospel, F major clap-along
+var WB4M=[
+  {f:349,d:.5,ch:[440,523]},{f:440,d:.5},{f:523,d:.75,ch:[349,659]},{f:440,d:.25},
+  {f:349,d:.5,ch:[440,523]},{f:330,d:.25},{f:349,d:.25},{f:440,d:.75,ch:[523,659]},{f:523,d:.25},
+  {f:587,d:.5,ch:[349,440]},{f:523,d:.5},{f:440,d:.75,ch:[523,698]},{f:349,d:.25},
+  {f:330,d:.5},{f:294,d:.5,ch:[349,440]},{f:349,d:.75,ch:[440,523]},{f:440,d:.25},
+  {f:523,d:.5,ch:[659,349]},{f:587,d:.5,ch:[698,440]},{f:698,d:.75,ch:[523,880]},
+  {f:587,d:.25},{f:523,d:.5,ch:[440,349]},{f:440,d:.5},{f:349,d:1,ch:[440,523]}
+];
+var WB4B=[
+  {f:175,d:.5},{f:220,d:.5},{f:262,d:.5},{f:220,d:.5},{f:175,d:.5},{f:165,d:.5},
+  {f:175,d:.5},{f:220,d:.5},{f:262,d:.5},{f:294,d:.5},{f:262,d:.5},{f:220,d:.5},
+  {f:175,d:.5},{f:165,d:.5},{f:147,d:.5},{f:175,d:.5},{f:220,d:.5},{f:262,d:.5},
+  {f:294,d:.5},{f:349,d:.5},{f:294,d:.5},{f:262,d:.5},{f:220,d:.5},{f:175,d:1}
+];
+// Swing 4/4 with claps on 2&4
+var WB4D=[
+  {k:.9,h:.7},{h:.5},{s:.8,cl:.9},{h:.5},
+  {k:.8,h:.7},{h:.5},{s:.8,cl:.9},{ho:.6},
+  {k:.9,h:.7,tb:.4},{h:.5,tb:.3},{s:.8,cl:.9,tb:.5},{h:.5,tb:.3},
+  {k:.7,h:.6,tb:.4},{k:.5,h:.5,tb:.3},{s:.9,cl:1,tb:.6},{ho:.7,tb:.4}
+];
+
+// "Precious Lord, Take My Hand" — slow altar call, Eb major, organ + reverb
+var WB5M=[
+  {f:311,d:1,ch:[415,466]},{f:349,d:.5},{f:415,d:1,ch:[311,523]},
+  {f:466,d:.75,ch:[311,587]},{f:415,d:.25},{f:349,d:1,ch:[415,523]},
+  {f:311,d:1.5,ch:[415,466]},{f:349,d:.75,ch:[415,523]},{f:415,d:.25},
+  {f:466,d:1,ch:[311,587]},{f:523,d:.75,ch:[415,659]},{f:466,d:.25},
+  {f:415,d:1,ch:[523,311]},{f:349,d:1,ch:[415,466]},{f:311,d:2,ch:[415,466]}
+];
+var WB5B=[
+  {f:156,d:1.5},{f:175,d:1.5},{f:208,d:1.5},{f:233,d:1.5},
+  {f:156,d:1.5},{f:175,d:1.5},{f:208,d:1.5},{f:233,d:1.5},
+  {f:175,d:1.5},{f:156,d:2}
+];
+// Slow gospel: gentle kick, soft snare brushes, minimal
+var WB5D=[
+  {k:.6},{},{s:.4},{},
+  {k:.5},{},{s:.4},{},
+  {k:.6},{},{s:.5,cl:.3},{},
+  {k:.5},{},{s:.5},{ho:.3}
+];
+
+// "I Got the Joy" — fast handclap gospel, D major, call-and-response
+var WB6M=[
+  {f:294,d:.25,ch:[370,440]},{f:370,d:.25},{f:440,d:.5,ch:[294,523]},{f:494,d:.25},{f:523,d:.25},
+  {f:587,d:.5,ch:[440,698]},{f:523,d:.25},{f:494,d:.25},{f:440,d:.5,ch:[587,370]},
+  {f:370,d:.25},{f:294,d:.25},{f:370,d:.5,ch:[440,523]},{f:440,d:.75,ch:[523,659]},
+  {f:494,d:.25},{f:523,d:.25},{f:587,d:.75,ch:[440,698]},{f:659,d:.5,ch:[523,784]},
+  {f:587,d:.25},{f:523,d:.25},{f:494,d:.5,ch:[370,587]},{f:440,d:.25},{f:370,d:.25},
+  {f:294,d:.5,ch:[370,440]},{f:370,d:.5},{f:440,d:1,ch:[523,587]}
+];
+var WB6B=[
+  {f:147,d:.5},{f:185,d:.5},{f:220,d:.5},{f:247,d:.5},{f:294,d:.5},{f:247,d:.5},
+  {f:220,d:.5},{f:185,d:.5},{f:147,d:.5},{f:185,d:.5},{f:220,d:.5},{f:247,d:.5},
+  {f:294,d:.5},{f:247,d:.5},{f:330,d:.5},{f:294,d:.5},{f:247,d:.5},{f:220,d:.5},
+  {f:185,d:.5},{f:147,d:.5},{f:185,d:.5},{f:220,d:.5},{f:247,d:.5},{f:220,d:1}
+];
+// High-energy 4/4 with heavy claps and tambourine
+var WB6D=[
+  {k:1,h:.9,tb:.7},{h:.7,tb:.5},{s:1,h:.9,cl:1,tb:.7},{h:.7,tb:.5},
+  {k:1,h:.9,tb:.7},{h:.7,tb:.5},{s:1,h:.9,cl:1,tb:.7},{ho:.8,tb:.6},
+  {k:1,h:.9,tb:.7},{h:.7,tb:.5},{s:1,h:.9,cl:1,tb:.7},{h:.7,tb:.5},
+  {k:.8,h:.8,tb:.6},{k:.6,h:.7,tb:.5},{s:1,cl:1,h:.9,tb:.8},{ho:.9,k:.5,tb:.7}
+];
+
+var WB_TRACKS=[
+  {name:"🔥 Fire on the Altar",desc:"Up-tempo shouting music",mel:WB1M,bass:WB1B,drums:WB1D,bpm:138,audioFile:"worship-audio/fire-on-the-altar.mp3"},
+  {name:"✝️ Victory in Jesus",desc:"Classic southern gospel hymn",mel:WB2M,bass:WB2B,drums:WB2D,bpm:108,audioFile:"worship-audio/victory-in-jesus.mp3"},
+  {name:"⚡ Holy Ghost Power",desc:"High energy organ shout",mel:WB3M,bass:WB3B,drums:WB3D,bpm:152,audioFile:"worship-audio/holy-ghost-power.mp3"},
+  {name:"🏞️ Down by the Riverside",desc:"Swing gospel, clap-along",mel:WB4M,bass:WB4B,drums:WB4D,bpm:120,audioFile:"worship-audio/down-by-the-riverside.mp3"},
+  {name:"🙏 Precious Lord",desc:"Slow altar call testimony",mel:WB5M,bass:WB5B,drums:WB5D,bpm:66,audioFile:"worship-audio/precious-lord.mp3"},
+  {name:"😄 I Got the Joy",desc:"Fast handclap gospel",mel:WB6M,bass:WB6B,drums:WB6D,bpm:144,audioFile:"worship-audio/i-got-the-joy.mp3"},
+];
+var _wb_currentSong=null;
+
+// ── REAL AUDIO PLAYBACK ENGINE ──────────────────────
+// Plays actual MP3/audio files with voice when available
+// Falls back to synthesized worship loop when no audio file found
+var _wb_audio=null; // current HTMLAudioElement
+var _wb_audioLoaded={}; // {idx: blob URL} — user-uploaded tracks
+var _wb_audioAvail={}; // {idx: true} — tracks with confirmed audio files
+
+// Pre-check which audio files exist
+(function(){
+  for(var i=0;i<WB_TRACKS.length;i++){
+    (function(idx){
+      var t=WB_TRACKS[idx];
+      if(!t.audioFile)return;
+      var req=new XMLHttpRequest();
+      req.open('HEAD',t.audioFile,true);
+      req.onload=function(){if(req.status>=200&&req.status<400)_wb_audioAvail[idx]=true;};
+      try{req.send();}catch(e){}
+    })(i);
+  }
+})();
+
+function _wb_stopAudio(){
+  if(_wb_audio){
+    try{_wb_audio.pause();_wb_audio.currentTime=0;}catch(e){}
+    _wb_audio=null;
+  }
+}
+
+function _wb_playAudioFile(idx){
+  var c=getCtx(); // ensure AudioContext is alive
+  _wb_stopAudio();
+  stopMusic();
+  var src=_wb_audioLoaded[idx]||WB_TRACKS[idx].audioFile;
+  if(!src)return false;
+  try{
+    var audio=new Audio(src);
+    audio.loop=true;
+    audio.volume=Math.min(1,musicVol*4); // scale up since musicVol is designed for oscillators
+    audio.onerror=function(){
+      // File not found or unsupported format — fall back to synth
+      _wb_stopAudio();
+      var t=WB_TRACKS[idx%WB_TRACKS.length];
+      playWorshipLoop(t.mel,t.bass,t.drums,t.bpm,'worship_'+idx);
+    };
+    _wb_audio=audio;
+    currentTrack='worship_audio_'+idx;
+    musicStopFns.push(function(){_wb_stopAudio();});
+    audio.play().catch(function(){
+      // If play fails (no file, CORS, etc), fall back to synth
+      _wb_stopAudio();
+      var t=WB_TRACKS[idx%WB_TRACKS.length];
+      playWorshipLoop(t.mel,t.bass,t.drums,t.bpm,'worship_'+idx);
+    });
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function _wb_hasAudio(idx){
+  return !!_wb_audioLoaded[idx]||!!_wb_audioAvail[idx];
+}
+
+function _wb_loadUserAudio(idx,file){
+  if(!file)return;
+  var url=URL.createObjectURL(file);
+  _wb_audioLoaded[idx]=url;
+  _wb_audioAvail[idx]=true;
+}
+
 return{
   click:sfxClick,hit:sfxHit,crit:sfxCrit,ability:sfxAbility,victory:sfxVictory,defeat:sfxDefeat,
   unlock:sfxUnlock,checkIn:sfxCheckIn,talk:sfxTalk,correct:sfxCorrect,wrong:sfxWrong,
@@ -9570,6 +10400,23 @@ return{
   playMission:function(){playLoop(MM,MB,140,'mission');},
   playChurch: function(){playLoop(CM,CB,72,'church');},
   playPvp:    function(){playLoop(PM,PB,180,'pvp');},
+  playWorshipBand:function(idx){
+    if(idx===undefined||idx===null)idx=Math.floor(Math.random()*WB_TRACKS.length);
+    var t=WB_TRACKS[idx%WB_TRACKS.length];
+    _wb_currentSong=t.name;
+    // Try real audio file first (MP3 with actual singing)
+    if(_wb_hasAudio(idx)){
+      var played=_wb_playAudioFile(idx);
+      if(played)return;
+    }
+    // Fallback: synthesized worship loop
+    playWorshipLoop(t.mel,t.bass,t.drums,t.bpm,'worship_'+idx);
+  },
+  hasWorshipAudio:function(idx){return _wb_hasAudio(idx);},
+  loadWorshipAudio:function(idx,file){_wb_loadUserAudio(idx,file);},
+  setWorshipVolume:function(){if(_wb_audio)_wb_audio.volume=Math.min(1,musicVol*4);},
+  getWorshipTracks:function(){return WB_TRACKS;},
+  getWorshipSongName:function(){return _wb_currentSong;},
   stopMusic:stopMusic,
   setSfxVol:function(v){sfxVol=v;},setMusicVol:function(v){musicVol=v;},
   toggleSfx:function(){enabled=!enabled;return enabled;},
@@ -11173,6 +12020,1472 @@ function td_retreat(){
 }
 
 // ══════════════════════════════════════════════════════
+// MOSES RPG ENGINE — Desert Exploration & Plagues
+// ══════════════════════════════════════════════════════
+
+var MRPG = {
+  active:false, canvas:null, ctx:null, _raf:null,
+  // Map phases: midian, burning_bush, travel, egypt, plague, red_sea, victory
+  phase:'midian',
+  // Player position (tile coords)
+  px:3, py:8, facing:0, walkFrame:0, walkTimer:0,
+  // Camera
+  camX:0, camY:0,
+  // Input
+  keys:{}, touchStart:null, touchDir:null, joystickActive:false,
+  // Dialog / event
+  dialog:null, dialogIdx:0, dialogCallback:null,
+  // Plague system
+  plagueIdx:0, plagueActive:false, plagueMinigame:null,
+  pharaohHeart:10, // starts at 10 (hardened), each plague reduces by 1
+  // NPCs and objects in current map
+  npcs:[], objects:[],
+  // XP earned
+  totalXp:0,
+  // Timers
+  _lastT:0, animT:0,
+  // Map data per phase
+  mapW:0, mapH:0, tiles:null,
+  // Encounter flags
+  bushFound:false, staffObtained:false,
+  // Transition
+  fadeAlpha:0, fadeDir:0, fadeCallback:null,
+  // Mission ref
+  mission:null
+};
+
+// ── Tile types ──
+var MRPG_TILES = {
+  SAND:0, DUNE:1, ROCK:2, WATER:3, BUSH:4, PATH:5, PALACE_FLOOR:6,
+  PALACE_WALL:7, PILLAR:8, THRONE:9, BURNING_BUSH:10, TENT:11, OASIS:12, BRIDGE:13
+};
+var MT = MRPG_TILES;
+
+// ── Color palette ──
+var MRPG_COLORS = {
+  0:'#C2A64E', 1:'#B8963A', 2:'#6B5B3A', 3:'#2266AA', 4:'#556B2F',
+  5:'#D4B96A', 6:'#8B7355', 7:'#4A3728', 8:'#6B5B48', 9:'#FFD700',
+  10:'#FF6600', 11:'#8B6914', 12:'#33AA77', 13:'#8B7355'
+};
+
+// ── Map generators ──
+function mrpg_genMidian(){
+  var w=20,h=16;var t=new Array(w*h).fill(MT.SAND);
+  // Dunes scattered
+  for(var i=0;i<30;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);t[ry*w+rx]=MT.DUNE;}
+  // Rocks
+  for(var i=0;i<12;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);t[ry*w+rx]=MT.ROCK;}
+  // Oasis at top-right area
+  t[3*w+15]=MT.OASIS;t[3*w+16]=MT.OASIS;t[4*w+15]=MT.WATER;t[4*w+16]=MT.WATER;
+  // Tent (Moses' tent)
+  t[8*w+2]=MT.TENT;t[8*w+3]=MT.TENT;
+  // Path leading east (to burning bush)
+  for(var x=5;x<w;x++)t[10*w+x]=MT.PATH;
+  // Burning bush at far east
+  t[10*w+18]=MT.BURNING_BUSH;
+  // Clear player start area
+  t[8*w+3]=MT.SAND;t[9*w+3]=MT.SAND;t[8*w+4]=MT.SAND;
+  MRPG.tiles=t;MRPG.mapW=w;MRPG.mapH=h;
+  MRPG.px=3;MRPG.py=9;
+  // NPCs
+  MRPG.npcs=[
+    {x:5,y:8,emoji:'👳',name:'Jethro',dialog:['Moses, my son-in-law! God has plans for you.','You have tended my flocks faithfully.','Something stirs in the desert... go, walk the eastern path.']},
+    {x:7,y:6,emoji:'🐑',name:'Sheep',dialog:['Baa! 🐑']},
+    {x:12,y:8,emoji:'🐑',name:'Sheep',dialog:['Baaaa! 🐑🐑']},
+    {x:14,y:4,emoji:'👤',name:'Shepherd',dialog:['The desert is vast, but God watches over every grain of sand.','I heard rumors of a strange fire to the east...','A bush that burns but is never consumed!']}
+  ];
+  MRPG.objects=[];
+}
+
+function mrpg_genEgypt(){
+  var w=22,h=18;var t=new Array(w*h).fill(MT.SAND);
+  // Palace entrance at top
+  for(var x=6;x<16;x++){t[0*w+x]=MT.PALACE_WALL;t[1*w+x]=MT.PALACE_WALL;}
+  for(var x=8;x<14;x++){for(var y=2;y<6;y++)t[y*w+x]=MT.PALACE_FLOOR;}
+  // Throne
+  t[2*w+11]=MT.THRONE;
+  // Pillars
+  t[3*w+8]=MT.PILLAR;t[3*w+13]=MT.PILLAR;t[5*w+8]=MT.PILLAR;t[5*w+13]=MT.PILLAR;
+  // Path from south to palace
+  for(var y=6;y<h;y++)t[y*w+11]=MT.PATH;
+  // Nile river on left side
+  for(var y=4;y<h;y++){t[y*w+2]=MT.WATER;t[y*w+3]=MT.WATER;}
+  // Bushes along river
+  for(var y=5;y<h;y+=2)t[y*w+4]=MT.BUSH;
+  // Egyptian buildings
+  for(var y=6;y<10;y++){t[y*w+17]=MT.PALACE_WALL;t[y*w+18]=MT.PALACE_WALL;}
+  for(var y=11;y<14;y++){t[y*w+6]=MT.PALACE_WALL;t[y*w+7]=MT.PALACE_WALL;}
+  // Rocks
+  for(var i=0;i<8;i++){var rx=5+Math.floor(Math.random()*12),ry=8+Math.floor(Math.random()*8);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.ROCK;}
+  // Dunes
+  for(var i=0;i<15;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.DUNE;}
+  MRPG.tiles=t;MRPG.mapW=w;MRPG.mapH=h;
+  MRPG.px=11;MRPG.py=h-2;
+  // NPCs
+  MRPG.npcs=[
+    {x:11,y:2,emoji:'👑',name:'Pharaoh',dialog:null,isPharaoh:true},
+    {x:9,y:4,emoji:'💂',name:'Royal Guard',dialog:['Halt! No one approaches the Pharaoh without permission!','...unless God commands it. Proceed, Hebrew.']},
+    {x:13,y:4,emoji:'💂',name:'Royal Guard',dialog:['The Pharaoh\'s heart is hard as stone.','You will need more than words to move him.']},
+    {x:5,y:12,emoji:'👷',name:'Hebrew Slave',dialog:['Moses! You returned! We heard God spoke to you!','Please... free us from this bondage!','We have suffered under Pharaoh\'s whip for too long.']},
+    {x:16,y:8,emoji:'🧙',name:'Court Magician',dialog:['Ha! Your God is nothing compared to our magic!','...Wait, how did your staff become a serpent?!']},
+    {x:8,y:15,emoji:'👤',name:'Aaron',dialog:['Brother Moses! God told me you were coming!','I will speak for you before Pharaoh.','Together we will deliver God\'s message!']}
+  ];
+}
+
+// Plague definitions
+var MRPG_PLAGUES=[
+  {idx:0,name:'Water to Blood',emoji:'🩸',desc:'The Nile turns to blood!',verse:'Exodus 7:20',
+   instruction:'TAP the Nile rapidly to turn it to BLOOD!',type:'tap',target:40,time:8000,color:'#CC0000'},
+  {idx:1,name:'Frogs',emoji:'🐸',desc:'Frogs swarm across all of Egypt!',verse:'Exodus 8:6',
+   instruction:'TAP each frog before it escapes!',type:'whack',target:15,time:10000,color:'#33AA33'},
+  {idx:2,name:'Gnats',emoji:'🦟',desc:'The dust becomes gnats!',verse:'Exodus 8:17',
+   instruction:'SWIPE to scatter the swarms of gnats!',type:'swipe',target:20,time:8000,color:'#666666'},
+  {idx:3,name:'Flies',emoji:'🪰',desc:'Swarms of flies fill Pharaoh\'s palace!',verse:'Exodus 8:24',
+   instruction:'TAP the flies invading the palace!',type:'whack',target:18,time:10000,color:'#333333'},
+  {idx:4,name:'Livestock Death',emoji:'🐄',desc:'All Egyptian livestock perishes!',verse:'Exodus 9:6',
+   instruction:'HOLD your staff high — channel God\'s power!',type:'hold',target:3000,time:5000,color:'#8B4513'},
+  {idx:5,name:'Boils',emoji:'🔴',desc:'Painful boils cover the Egyptians!',verse:'Exodus 9:10',
+   instruction:'Scatter the ashes! TAP to spread boils!',type:'tap',target:35,time:7000,color:'#CC3333'},
+  {idx:6,name:'Hail',emoji:'🌨️',desc:'Hail and fire rain from the sky!',verse:'Exodus 9:23',
+   instruction:'DODGE the hailstones! Tap safe zones!',type:'dodge',target:12,time:10000,color:'#AACCEE'},
+  {idx:7,name:'Locusts',emoji:'🦗',desc:'Locusts devour every crop in Egypt!',verse:'Exodus 10:14',
+   instruction:'SWIPE to direct locust swarms to the crops!',type:'swipe',target:25,time:10000,color:'#556B2F'},
+  {idx:8,name:'Darkness',emoji:'🌑',desc:'Three days of impenetrable darkness!',verse:'Exodus 10:22',
+   instruction:'HOLD the staff to maintain the darkness!',type:'hold',target:4000,time:6000,color:'#111111'},
+  {idx:9,name:'Death of Firstborn',emoji:'👼',desc:'The final plague. The angel of death passes over.',verse:'Exodus 12:29',
+   instruction:'PRAY — hold both hands on screen to protect Israel!',type:'hold',target:5000,time:8000,color:'#FFD700'}
+];
+
+// ── Tile collision ──
+function mrpg_solid(tx,ty){
+  if(tx<0||ty<0||tx>=MRPG.mapW||ty>=MRPG.mapH)return true;
+  var t=MRPG.tiles[ty*MRPG.mapW+tx];
+  return t===MT.ROCK||t===MT.WATER||t===MT.PALACE_WALL||t===MT.PILLAR||t===MT.THRONE;
+}
+
+// ── NPC at tile ──
+function mrpg_npcAt(tx,ty){
+  for(var i=0;i<MRPG.npcs.length;i++){
+    if(MRPG.npcs[i].x===tx&&MRPG.npcs[i].y===ty)return MRPG.npcs[i];
+  }
+  return null;
+}
+
+// ── Start RPG Mission ──
+function beginMissionRPG(m){
+  MRPG.active=true;MRPG.mission=m;MRPG.phase='midian';
+  MRPG.totalXp=0;MRPG.plagueIdx=0;MRPG.pharaohHeart=10;
+  MRPG.bushFound=false;MRPG.staffObtained=false;
+  MRPG.dialog=null;MRPG.plagueActive=false;MRPG.plagueMinigame=null;
+  MRPG.fadeAlpha=0;MRPG.fadeDir=0;MRPG.keys={};
+  MRPG.animT=0;MRPG._lastT=0;
+  G.activeMission=m;G.battleType='mission';
+  mrpg_genMidian();
+  go('moses_rpg');
+}
+
+// ── Render HTML shell ──
+function rMosesRPG(){
+  var accent='#FFD700';
+  var phaseLabel=MRPG.phase==='midian'?'Midian Desert':MRPG.phase==='burning_bush'?'The Burning Bush':MRPG.phase==='travel'?'Journey to Egypt':MRPG.phase==='egypt'?'Land of Egypt':MRPG.phase==='plague'?('Plague '+(MRPG.plagueIdx+1)+'/10 — '+MRPG_PLAGUES[MRPG.plagueIdx].name):MRPG.phase==='red_sea'?'The Red Sea':'Victory';
+  var heartBar='';
+  if(MRPG.phase==='egypt'||MRPG.phase==='plague'){
+    heartBar='<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px">';
+    heartBar+='<span style="font-size:12px;color:#aaa">Pharaoh\'s Heart:</span>';
+    for(var i=0;i<10;i++){
+      heartBar+='<span style="font-size:14px;opacity:'+(i<MRPG.pharaohHeart?'1':'0.2')+'">'+(i<MRPG.pharaohHeart?'🖤':'💛')+'</span>';
+    }
+    heartBar+='</div>';
+  }
+  return'<div style="min-height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;padding:8px 4px 0;font-family:Georgia,serif">'+
+    '<div style="width:100%;max-width:580px">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
+        '<button onclick="mrpg_quit()" style="background:none;border:1px solid #333;color:#555;padding:4px 10px;border-radius:6px;font-size:14px;cursor:pointer">← Quit</button>'+
+        '<div style="flex:1;text-align:center;font-size:15px;color:'+accent+';letter-spacing:1px;font-weight:bold">LET MY PEOPLE GO</div>'+
+        '<div style="font-size:15px;color:#888">🪄</div>'+
+      '</div>'+
+      '<div style="text-align:center;font-size:13px;color:#aaa;margin-bottom:3px">'+phaseLabel+'</div>'+
+      heartBar+
+      '<canvas id="mrpgCanvas" width="560" height="480" style="width:100%;max-width:580px;border-radius:10px;border:2px solid #FFD70033;display:block;touch-action:none"></canvas>'+
+      '<div id="mrpgDialog" style="display:none;background:linear-gradient(180deg,#0d0d1a,#0a0a12);border:1px solid #FFD70044;border-radius:0 0 10px 10px;padding:14px 16px;margin-top:-1px">'+
+        '<div id="mrpgDialogText" style="font-size:16px;color:#ddd;line-height:1.6;text-align:center;min-height:40px"></div>'+
+        '<div id="mrpgDialogBtns" style="text-align:center;margin-top:10px"></div>'+
+      '</div>'+
+      '<div id="mrpgControls" style="display:flex;justify-content:center;align-items:center;gap:20px;margin-top:10px;user-select:none">'+
+        '<canvas id="mrpgJoystick" width="140" height="140" style="width:140px;height:140px;touch-action:none;cursor:pointer"></canvas>'+
+        '<button onclick="mrpg_interact()" style="background:linear-gradient(135deg,#1a1a00,#0d0d00);border:2px solid #FFD70066;color:#FFD700;font-size:16px;border-radius:50%;width:64px;height:64px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:Georgia,serif;box-shadow:0 0 12px #FFD70022">ACT</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+// ── Joystick state ──
+var _mrpg_joy = {ax:0, ay:0, active:false, knobX:0, knobY:0};
+var _mrpg_heldKeys = {};
+var _mrpg_moveCooldown = 0;
+
+function mrpg_initJoystick(){
+  var jc=document.getElementById('mrpgJoystick');
+  if(!jc)return;
+  var jctx=jc.getContext('2d');
+  var cx=70,cy=70,outerR=60,knobR=22;
+  _mrpg_joy={ax:0,ay:0,active:false,knobX:cx,knobY:cy};
+
+  function drawJoy(){
+    if(!MRPG.active)return;
+    jctx.clearRect(0,0,140,140);
+    // Outer ring
+    jctx.beginPath();jctx.arc(cx,cy,outerR,0,Math.PI*2);
+    jctx.fillStyle='rgba(255,255,255,0.06)';jctx.fill();
+    jctx.strokeStyle='#FFD70044';jctx.lineWidth=2;jctx.stroke();
+    // Cross hairs
+    jctx.strokeStyle='#ffffff11';jctx.lineWidth=1;
+    jctx.beginPath();jctx.moveTo(cx,cy-outerR+8);jctx.lineTo(cx,cy+outerR-8);jctx.stroke();
+    jctx.beginPath();jctx.moveTo(cx-outerR+8,cy);jctx.lineTo(cx+outerR-8,cy);jctx.stroke();
+    // Knob
+    var grd=jctx.createRadialGradient(_mrpg_joy.knobX,_mrpg_joy.knobY,2,_mrpg_joy.knobX,_mrpg_joy.knobY,knobR);
+    grd.addColorStop(0,_mrpg_joy.active?'#FFD700':'#555');
+    grd.addColorStop(1,_mrpg_joy.active?'#CC880088':'#33333388');
+    jctx.beginPath();jctx.arc(_mrpg_joy.knobX,_mrpg_joy.knobY,knobR,0,Math.PI*2);
+    jctx.fillStyle=grd;jctx.fill();
+    jctx.strokeStyle=_mrpg_joy.active?'#FFD700':'#666';jctx.lineWidth=2;jctx.stroke();
+    // Direction arrows around the ring
+    jctx.fillStyle='#ffffff22';jctx.font='14px sans-serif';jctx.textAlign='center';jctx.textBaseline='middle';
+    jctx.fillText('▲',cx,cy-outerR+12);jctx.fillText('▼',cx,cy+outerR-12);
+    jctx.fillText('◀',cx-outerR+12,cy);jctx.fillText('▶',cx+outerR-12,cy);
+    requestAnimationFrame(drawJoy);
+  }
+  drawJoy();
+
+  function getJoyPos(e){
+    var rect=jc.getBoundingClientRect();
+    var jx=e.clientX-rect.left,jy=e.clientY-rect.top;
+    var dx=jx-cx,dy=jy-cy;
+    var dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>outerR){dx=dx/dist*outerR;dy=dy/dist*outerR;dist=outerR;}
+    _mrpg_joy.knobX=cx+dx;_mrpg_joy.knobY=cy+dy;
+    _mrpg_joy.ax=dx/outerR; // -1 to 1
+    _mrpg_joy.ay=dy/outerR;
+    _mrpg_joy.active=true;
+  }
+
+  jc.addEventListener('pointerdown',function(e){
+    jc.setPointerCapture(e.pointerId);
+    getJoyPos(e);
+  });
+  jc.addEventListener('pointermove',function(e){
+    if(_mrpg_joy.active)getJoyPos(e);
+  });
+  jc.addEventListener('pointerup',function(e){
+    _mrpg_joy.active=false;_mrpg_joy.ax=0;_mrpg_joy.ay=0;
+    _mrpg_joy.knobX=cx;_mrpg_joy.knobY=cy;
+  });
+  jc.addEventListener('pointercancel',function(e){
+    _mrpg_joy.active=false;_mrpg_joy.ax=0;_mrpg_joy.ay=0;
+    _mrpg_joy.knobX=cx;_mrpg_joy.knobY=cy;
+  });
+}
+
+// ── Continuous movement (called from game loop) ──
+function mrpg_updateMovement(dt){
+  if(MRPG.dialog||MRPG.plagueActive||MRPG.fadeDir)return;
+  _mrpg_moveCooldown=Math.max(0,_mrpg_moveCooldown-dt);
+  if(_mrpg_moveCooldown>0)return;
+
+  // Combine joystick + keyboard input
+  var ix=_mrpg_joy.ax, iy=_mrpg_joy.ay;
+  if(_mrpg_heldKeys['ArrowLeft']||_mrpg_heldKeys['a'])ix-=1;
+  if(_mrpg_heldKeys['ArrowRight']||_mrpg_heldKeys['d'])ix+=1;
+  if(_mrpg_heldKeys['ArrowUp']||_mrpg_heldKeys['w'])iy-=1;
+  if(_mrpg_heldKeys['ArrowDown']||_mrpg_heldKeys['s'])iy+=1;
+  ix=Math.max(-1,Math.min(1,ix));iy=Math.max(-1,Math.min(1,iy));
+
+  // Dead zone
+  if(Math.abs(ix)<0.25&&Math.abs(iy)<0.25)return;
+
+  // Determine primary direction for tile movement
+  var dir;
+  if(Math.abs(ix)>Math.abs(iy)){dir=ix>0?1:3;}
+  else{dir=iy>0?2:0;}
+
+  var dx=[0,1,0,-1][dir],dy=[-1,0,1,0][dir];
+  var nx=MRPG.px+dx,ny=MRPG.py+dy;
+  MRPG.facing=dir;
+  MRPG.walkFrame++;
+  if(!mrpg_solid(nx,ny)&&!mrpg_npcAt(nx,ny)){
+    MRPG.px=nx;MRPG.py=ny;
+    SFX&&SFX.click&&SFX.click();
+  }
+  mrpg_checkTileEvent();
+
+  // Movement speed: faster with stronger joystick push
+  var mag=Math.sqrt(ix*ix+iy*iy);
+  _mrpg_moveCooldown=mag>0.7?0.12:0.18;
+}
+
+// ── Legacy direction move (for canvas tap) ──
+function mrpg_moveDir(dir){
+  if(MRPG.dialog||MRPG.plagueActive||MRPG.fadeDir)return;
+  var dx=[0,1,0,-1][dir],dy=[-1,0,1,0][dir];
+  var nx=MRPG.px+dx,ny=MRPG.py+dy;
+  MRPG.facing=dir;
+  MRPG.walkFrame++;
+  if(!mrpg_solid(nx,ny)&&!mrpg_npcAt(nx,ny)){
+    MRPG.px=nx;MRPG.py=ny;
+    SFX&&SFX.click&&SFX.click();
+  }
+  mrpg_checkTileEvent();
+}
+
+// ── Canvas init ──
+function mrpg_initCanvas(){
+  var c=document.getElementById('mrpgCanvas');
+  if(!c)return;
+  MRPG.canvas=c;MRPG.ctx=c.getContext('2d');
+  // Init joystick
+  mrpg_initJoystick();
+  // Keyboard — held key tracking for fluid movement
+  MRPG._keyDown=function(e){
+    if(!MRPG.active)return;
+    _mrpg_heldKeys[e.key]=true;
+    // Keyboard support for plague minigames (space/enter = tap/click)
+    if(MRPG.plagueActive&&MRPG.plagueMinigame&&MRPG.plagueMinigame.active){
+      if(e.key===' '||e.key==='Enter'){
+        e.preventDefault();
+        if(MRPG.plagueMinigame.type==='redsea'){
+          MRPG.plagueMinigame.taps++;
+          MRPG.plagueMinigame.seaLevel=Math.max(0,1.0-MRPG.plagueMinigame.taps/MRPG.plagueMinigame.target);
+          SFX&&SFX.click&&SFX.click();
+        }else{
+          mrpg_plagueTap(MRPG.canvas?MRPG.canvas.width/2:200,MRPG.canvas?MRPG.canvas.height/2:200,true);
+        }
+      }
+      return;
+    }
+    if(MRPG.dialog){
+      if(e.key==='Enter'||e.key===' ')mrpg_advanceDialog();
+      return;
+    }
+    if(e.key==='e'||e.key==='Enter')mrpg_interact();
+  };
+  MRPG._keyUp=function(e){
+    if(!MRPG.active)return;
+    delete _mrpg_heldKeys[e.key];
+    // Release hold for plague minigames
+    if(MRPG.plagueActive&&MRPG.plagueMinigame&&MRPG.plagueMinigame.active){
+      if(e.key===' '||e.key==='Enter'){
+        mrpg_plagueTap(0,0,false);
+      }
+    }
+  };
+  window.addEventListener('keydown',MRPG._keyDown);
+  window.addEventListener('keyup',MRPG._keyUp);
+  // Touch swipe on canvas (still allow tap-to-interact and swipe-to-move)
+  c.addEventListener('pointerdown',function(e){
+    MRPG.touchStart={x:e.clientX,y:e.clientY};
+  });
+  c.addEventListener('pointerup',function(e){
+    if(!MRPG.touchStart)return;
+    var dx=e.clientX-MRPG.touchStart.x,dy=e.clientY-MRPG.touchStart.y;
+    MRPG.touchStart=null;
+    if(MRPG.dialog){mrpg_advanceDialog();return;}
+    if(Math.abs(dx)<15&&Math.abs(dy)<15){mrpg_interact();return;}
+    if(Math.abs(dx)>Math.abs(dy)){mrpg_moveDir(dx>0?1:3);}
+    else{mrpg_moveDir(dy>0?2:0);}
+  });
+  // Start game loop
+  MRPG._lastT=performance.now();
+  MRPG._raf=requestAnimationFrame(mrpg_loop);
+}
+
+function mrpg_stop(){
+  MRPG.active=false;
+  if(MRPG._raf){cancelAnimationFrame(MRPG._raf);MRPG._raf=null;}
+  if(MRPG._keyDown){window.removeEventListener('keydown',MRPG._keyDown);MRPG._keyDown=null;}
+  if(MRPG._keyUp){window.removeEventListener('keyup',MRPG._keyUp);MRPG._keyUp=null;}
+  _mrpg_heldKeys={};_mrpg_joy={ax:0,ay:0,active:false,knobX:0,knobY:0};_mrpg_moveCooldown=0;
+}
+
+function mrpg_quit(){
+  mrpg_stop();
+  go('game');toast('Left the mission');
+}
+
+// ── Game Loop ──
+function mrpg_loop(ts){
+  if(!MRPG.active){return;}
+  var dt=(ts-(MRPG._lastT||ts))/1000;
+  if(dt>0.1)dt=0.1; // cap delta
+  MRPG._lastT=ts;MRPG.animT+=dt;
+  // Continuous movement from joystick/held keys
+  mrpg_updateMovement(dt);
+  // Fade transitions
+  if(MRPG.fadeDir){
+    MRPG.fadeAlpha+=MRPG.fadeDir*dt*2.5;
+    if(MRPG.fadeDir>0&&MRPG.fadeAlpha>=1){
+      MRPG.fadeAlpha=1;MRPG.fadeDir=-1;
+      if(MRPG.fadeCallback){MRPG.fadeCallback();MRPG.fadeCallback=null;}
+    }
+    if(MRPG.fadeDir<0&&MRPG.fadeAlpha<=0){MRPG.fadeAlpha=0;MRPG.fadeDir=0;}
+  }
+  mrpg_draw();
+  MRPG._raf=requestAnimationFrame(mrpg_loop);
+}
+
+// ── Phase transition ──
+function mrpg_fadeToPhase(newPhase,setupFn){
+  MRPG.fadeDir=1;MRPG.fadeAlpha=0;
+  MRPG.fadeCallback=function(){
+    MRPG.phase=newPhase;
+    if(setupFn)setupFn();
+    // Re-render HTML for updated phase label
+    if(document.getElementById('app'))render();
+    setTimeout(mrpg_initCanvas,30);
+  };
+}
+
+// ── Tile events ──
+function mrpg_checkTileEvent(){
+  var t=MRPG.tiles[MRPG.py*MRPG.mapW+MRPG.px];
+  // Burning bush discovery
+  if(t===MT.BURNING_BUSH&&!MRPG.bushFound&&MRPG.phase==='midian'){
+    MRPG.bushFound=true;
+    mrpg_showDialog([
+      '🔥 The bush burns with fire, but it is not consumed!',
+      '🔥 God speaks: "MOSES! MOSES!"',
+      '🙏 "Here I am," Moses answers.',
+      '🔥 "Do not come any closer. Take off your sandals, for the place where you are standing is holy ground."',
+      '🔥 "I am the God of your father, the God of Abraham, Isaac, and Jacob."',
+      '🔥 "I have seen the misery of my people in Egypt. I am sending YOU to Pharaoh to bring my people out!"',
+      '🪄 Moses receives the STAFF OF GOD!',
+      '🔥 "With this staff, you will perform signs and wonders. GO TO EGYPT!"'
+    ],function(){
+      MRPG.staffObtained=true;
+      MRPG.totalXp+=100;
+      doFlash('#FFD70066',500);toast('🪄 Staff of God obtained! +100 XP');
+      // Transition to Egypt
+      setTimeout(function(){
+        mrpg_fadeToPhase('egypt',function(){mrpg_genEgypt();});
+      },800);
+    });
+  }
+  // Edge detection for Midian — prompt to explore
+  if(MRPG.phase==='midian'&&MRPG.px>=MRPG.mapW-1&&!MRPG.bushFound){
+    mrpg_showDialog(['The desert stretches endlessly... Perhaps there is something along the eastern path.'],null);
+  }
+}
+
+// ── Interact (talk/examine) ──
+function mrpg_interact(){
+  if(MRPG.dialog){mrpg_advanceDialog();return;}
+  if(MRPG.plagueActive)return;
+  // Check facing tile for NPC
+  var dx=[0,1,0,-1][MRPG.facing],dy=[-1,0,1,0][MRPG.facing];
+  var tx=MRPG.px+dx,ty=MRPG.py+dy;
+  var npc=mrpg_npcAt(tx,ty);
+  if(npc){
+    if(npc.isPharaoh){
+      mrpg_pharaohEncounter();
+      return;
+    }
+    if(npc.dialog){mrpg_showDialog(npc.dialog,null);}
+    return;
+  }
+  // Check tile
+  var tileVal=(tx>=0&&ty>=0&&tx<MRPG.mapW&&ty<MRPG.mapH)?MRPG.tiles[ty*MRPG.mapW+tx]:-1;
+  if(tileVal===MT.BURNING_BUSH&&!MRPG.bushFound){
+    mrpg_checkTileEvent();
+  }
+  if(tileVal===MT.OASIS){
+    mrpg_showDialog(['💧 Cool water from the oasis refreshes you.','The desert is harsh, but God provides.'],null);
+  }
+  if(tileVal===MT.TENT){
+    mrpg_showDialog(['🏕️ Moses\'s tent in Midian. 40 years of quiet shepherding...','But God has other plans.'],null);
+  }
+}
+
+// ── Pharaoh encounter ──
+function mrpg_pharaohEncounter(){
+  if(MRPG.pharaohHeart<=0){
+    mrpg_showDialog([
+      '👑 Pharaoh falls to his knees!',
+      '"ENOUGH! Take your people and GO!"',
+      '"Leave Egypt — you, the Israelites, all of you!"',
+      '🎉 THE ISRAELITES ARE FREE!'
+    ],function(){
+      mrpg_fadeToPhase('red_sea',function(){mrpg_startRedSea();});
+    });
+    return;
+  }
+  var plagueData=MRPG_PLAGUES[MRPG.plagueIdx];
+  if(!plagueData){
+    mrpg_showDialog(['Pharaoh stares at you defiantly...'],null);
+    return;
+  }
+  // Before the 10th plague — Passover preparation
+  if(MRPG.plagueIdx===9){
+    mrpg_showDialog([
+      '🪄 Moses leaves Pharaoh\'s palace with a heavy heart.',
+      '"The LORD has spoken — one final plague will come upon Egypt."',
+      '🏘️ Moses gathers the people of Israel together.',
+      '🐑 "Each household must take a lamb without blemish and slaughter it at twilight."',
+      '🩸 "Take the blood and put it on the two doorposts and the lintel of your houses."',
+      '📖 Exodus 12:7 — "Then they shall take some of the blood and put it on the doorposts and the lintel of the houses in which they eat it."',
+      '🍞 "Eat the meat roasted with unleavened bread and bitter herbs. Eat in haste with your sandals on — this is the LORD\'s Passover."',
+      '⚠️ "For tonight the LORD will pass through Egypt and strike down every firstborn."',
+      '🩸 "But when He sees the BLOOD on your doorpost, the LORD will PASS OVER that house, and the destroyer shall not enter."',
+      '📖 Exodus 12:13 — "The blood shall be a sign for you... and when I see the blood, I will pass over you."',
+      '🙏 The Israelites bow their heads and worship. Every family marks their door with the blood of the lamb.',
+      '🌙 Night falls over Egypt...'
+    ],function(){
+      mrpg_showDialog([
+        '🪄 Moses raises his staff before Pharaoh!',
+        '"The LORD, the God of Israel, says: LET MY PEOPLE GO!"',
+        '👑 Pharaoh: "Who is the LORD that I should obey him? I will NOT let Israel go!"',
+        '🪄 "Then the LORD will show His final, terrible power..."',
+        '⚡ Plague 10: Death of Firstborn!',
+        '📖 '+plagueData.verse
+      ],function(){
+        MRPG.plagueActive=true;
+        MRPG.phase='plague';
+        mrpg_startPlague(plagueData);
+        render();setTimeout(mrpg_initCanvas,30);
+      });
+    });
+  }else{
+  mrpg_showDialog([
+    '🪄 Moses raises his staff before Pharaoh!',
+    '"The LORD, the God of Israel, says: LET MY PEOPLE GO!"',
+    '👑 Pharaoh: "Who is the LORD that I should obey him? I will NOT let Israel go!"',
+    '🪄 "Then the LORD will show His power..."',
+    '⚡ Plague '+(MRPG.plagueIdx+1)+': '+plagueData.name+'!',
+    '📖 '+plagueData.verse
+  ],function(){
+    // Launch plague minigame
+    MRPG.plagueActive=true;
+    MRPG.phase='plague';
+    mrpg_startPlague(plagueData);
+    render();setTimeout(mrpg_initCanvas,30);
+  });
+  }
+}
+
+// ── Dialog system ──
+function mrpg_showDialog(lines,callback){
+  MRPG.dialog={lines:lines,idx:0};
+  MRPG.dialogCallback=callback;
+  mrpg_updateDialogUI();
+}
+
+function mrpg_advanceDialog(){
+  if(!MRPG.dialog)return;
+  MRPG.dialog.idx++;
+  if(MRPG.dialog.idx>=MRPG.dialog.lines.length){
+    var cb=MRPG.dialogCallback;
+    MRPG.dialog=null;MRPG.dialogCallback=null;
+    var dEl=document.getElementById('mrpgDialog');if(dEl)dEl.style.display='none';
+    if(cb)cb();
+    return;
+  }
+  mrpg_updateDialogUI();
+}
+
+function mrpg_updateDialogUI(){
+  var dEl=document.getElementById('mrpgDialog');
+  var tEl=document.getElementById('mrpgDialogText');
+  var bEl=document.getElementById('mrpgDialogBtns');
+  if(!dEl||!tEl)return;
+  dEl.style.display='block';
+  tEl.textContent=MRPG.dialog.lines[MRPG.dialog.idx];
+  var remaining=MRPG.dialog.lines.length-MRPG.dialog.idx-1;
+  bEl.innerHTML='<button onclick="mrpg_advanceDialog()" style="background:linear-gradient(135deg,#1a1a00,#0a0a00);border:1px solid #FFD70055;color:#FFD700;padding:8px 20px;border-radius:8px;font-size:15px;cursor:pointer;font-family:Georgia,serif">'+(remaining>0?'Continue ▶':'OK ✓')+'</button>';
+}
+
+// ══════════════════════════════════════════════
+// PLAGUE MINIGAMES
+// ══════════════════════════════════════════════
+
+function mrpg_startPlague(p){
+  var mg={
+    plague:p, score:0, target:p.target, timeLeft:p.time,
+    startTime:Date.now(), active:true, success:false,
+    // For whack-a-mole type
+    entities:[],spawnTimer:0,
+    // For hold type
+    holdTime:0, holding:false,
+    // For dodge type
+    dodgeTargets:[], safeZones:[], dodgeScore:0
+  };
+  // Pre-spawn entities for whack type
+  if(p.type==='whack'){
+    for(var i=0;i<5;i++){
+      mg.entities.push({x:50+Math.random()*460,y:40+Math.random()*320,alive:true,timer:2+Math.random()*3,emoji:p.emoji});
+    }
+  }
+  if(p.type==='dodge'){
+    for(var i=0;i<4;i++){
+      mg.safeZones.push({x:40+Math.random()*480,y:30+Math.random()*340,r:32});
+    }
+  }
+  MRPG.plagueMinigame=mg;
+  // Bind touch events for minigame on canvas
+  var c=document.getElementById('mrpgCanvas');
+  if(c){
+    MRPG._plaguePointerDown=function(e){
+      var rect=c.getBoundingClientRect();
+      var sx=(e.clientX-rect.left)*(c.width/rect.width);
+      var sy=(e.clientY-rect.top)*(c.height/rect.height);
+      mrpg_plagueTap(sx,sy,true);
+    };
+    MRPG._plaguePointerUp=function(e){
+      mrpg_plagueTap(0,0,false);
+    };
+    c.addEventListener('pointerdown',MRPG._plaguePointerDown);
+    c.addEventListener('pointerup',MRPG._plaguePointerUp);
+  }
+}
+
+function mrpg_plagueTap(sx,sy,down){
+  var mg=MRPG.plagueMinigame;if(!mg||!mg.active)return;
+  var p=mg.plague;
+  if(p.type==='tap'||p.type==='swipe'){
+    if(down){
+      mg.score++;
+      SFX&&SFX.click&&SFX.click();
+    }
+  }
+  if(p.type==='whack'){
+    if(down){
+      for(var i=0;i<mg.entities.length;i++){
+        var e=mg.entities[i];
+        if(e.alive&&Math.abs(e.x-sx)<28&&Math.abs(e.y-sy)<28){
+          e.alive=false;mg.score++;
+          SFX&&SFX.hit&&SFX.hit();
+          break;
+        }
+      }
+    }
+  }
+  if(p.type==='hold'){
+    mg.holding=down;
+  }
+  if(p.type==='dodge'){
+    if(down){
+      // Check if tapped a safe zone
+      for(var i=0;i<mg.safeZones.length;i++){
+        var z=mg.safeZones[i];
+        if(Math.hypot(sx-z.x,sy-z.y)<z.r){
+          mg.score++;
+          z.x=40+Math.random()*480;z.y=30+Math.random()*340;
+          SFX&&SFX.click&&SFX.click();
+          break;
+        }
+      }
+    }
+  }
+}
+
+function mrpg_updatePlague(dt){
+  var mg=MRPG.plagueMinigame;if(!mg||!mg.active)return;
+  var elapsed=Date.now()-mg.startTime;
+  mg.timeLeft=Math.max(0,mg.plague.time-elapsed);
+  // Hold type — accumulate hold time
+  if(mg.plague.type==='hold'&&mg.holding){
+    mg.holdTime+=dt*1000;
+    mg.score=Math.floor(mg.holdTime);
+  }
+  // Whack type — respawn entities
+  if(mg.plague.type==='whack'){
+    mg.spawnTimer+=dt;
+    if(mg.spawnTimer>0.8){
+      mg.spawnTimer=0;
+      var aliveCount=mg.entities.filter(function(e){return e.alive;}).length;
+      if(aliveCount<6){
+        mg.entities.push({x:40+Math.random()*480,y:40+Math.random()*360,alive:true,timer:2+Math.random()*2,emoji:mg.plague.emoji});
+      }
+    }
+    // Age out entities
+    for(var i=mg.entities.length-1;i>=0;i--){
+      mg.entities[i].timer-=dt;
+      if(mg.entities[i].timer<=0)mg.entities[i].alive=false;
+    }
+  }
+  // Dodge type — move safe zones slightly
+  if(mg.plague.type==='dodge'){
+    for(var i=0;i<mg.safeZones.length;i++){
+      mg.safeZones[i].x+=Math.sin(MRPG.animT*2+i)*0.5;
+      mg.safeZones[i].y+=Math.cos(MRPG.animT*1.5+i)*0.3;
+    }
+  }
+  // Check completion
+  if(mg.timeLeft<=0||mg.score>=mg.target){
+    mg.active=false;mg.success=mg.score>=mg.target;
+    // Remove minigame touch events
+    var c=document.getElementById('mrpgCanvas');
+    if(c&&MRPG._plaguePointerDown){
+      c.removeEventListener('pointerdown',MRPG._plaguePointerDown);
+      c.removeEventListener('pointerup',MRPG._plaguePointerUp);
+    }
+    // Process result
+    setTimeout(function(){mrpg_plagueResult(mg);},500);
+  }
+}
+
+function mrpg_plagueResult(mg){
+  MRPG.plagueActive=false;MRPG.plagueMinigame=null;
+  var xpGain=mg.success?80:30;
+  MRPG.totalXp+=xpGain;
+  MRPG.pharaohHeart=Math.max(0,MRPG.pharaohHeart-1);
+  MRPG.plagueIdx++;
+  if(mg.success){
+    doFlash(mg.plague.color+'66',400);
+    toast('✅ '+mg.plague.name+'! Pharaoh\'s heart softens! +'+xpGain+' XP');
+  }else{
+    toast('⚠️ Plague power was weak, but God\'s will prevails! +'+xpGain+' XP');
+  }
+  // Return to Egypt map
+  MRPG.phase='egypt';
+  var afterMsg;
+  if(MRPG.pharaohHeart<=0){
+    afterMsg=[
+      '👑 Pharaoh\'s heart has been broken!',
+      'After '+MRPG.plagueIdx+' terrible plagues, Pharaoh can resist no more.',
+      'Go speak with Pharaoh one final time!'
+    ];
+  }else if(MRPG.plagueIdx<10){
+    afterMsg=[
+      '👑 Pharaoh: "'+(mg.success?'Enough! I will—NO! I have changed my mind! The Hebrews STAY!':'That was nothing! My sorcerers can do the same!')+'"',
+      '💔 Pharaoh hardens his heart. ('+MRPG.pharaohHeart+'/10 hardness remaining)',
+      'Return to Pharaoh to unleash the next plague!'
+    ];
+  }else{
+    // All 10 plagues done
+    afterMsg=['All 10 plagues have struck Egypt!','Pharaoh MUST let Israel go. Speak with him!'];
+    MRPG.pharaohHeart=0;
+  }
+  mrpg_showDialog(afterMsg,null);
+  render();setTimeout(mrpg_initCanvas,30);
+}
+
+// ══════════════════════════════════════════════
+// RED SEA CROSSING (tap challenge after plagues)
+// ══════════════════════════════════════════════
+
+function mrpg_startRedSea(){
+  MRPG.phase='red_sea';
+  MRPG.plagueActive=true; // reuse flag to block movement
+  MRPG.plagueMinigame={
+    type:'redsea',active:true,taps:0,target:50,timeLeft:10000,
+    startTime:Date.now(),seaLevel:1.0,success:false
+  };
+  // Bind taps
+  var c=document.getElementById('mrpgCanvas');
+  if(c){
+    MRPG._plaguePointerDown=function(e){
+      var mg=MRPG.plagueMinigame;if(!mg||!mg.active)return;
+      mg.taps++;mg.seaLevel=Math.max(0,1.0-mg.taps/mg.target);
+      SFX&&SFX.click&&SFX.click();
+    };
+    c.addEventListener('pointerdown',MRPG._plaguePointerDown);
+  }
+}
+
+function mrpg_updateRedSea(dt){
+  var mg=MRPG.plagueMinigame;if(!mg||mg.type!=='redsea'||!mg.active)return;
+  var elapsed=Date.now()-mg.startTime;
+  mg.timeLeft=Math.max(0,10000-elapsed);
+  if(mg.timeLeft<=0||mg.taps>=mg.target){
+    mg.active=false;mg.success=mg.taps>=mg.target;
+    var c=document.getElementById('mrpgCanvas');
+    if(c&&MRPG._plaguePointerDown){c.removeEventListener('pointerdown',MRPG._plaguePointerDown);}
+    setTimeout(function(){
+      MRPG.plagueActive=false;MRPG.plagueMinigame=null;
+      MRPG.totalXp+=150;
+      if(mg.success){
+        doFlash('#4488CC88',600);
+        mrpg_showDialog([
+          '🌊 THE SEA PARTS! Walls of water tower on each side!',
+          '🏃 The Israelites cross on DRY GROUND!',
+          '🌊 The waters crash down on Pharaoh\'s army!',
+          '🎉 "Sing to the LORD, for He has triumphed gloriously!" — Exodus 15:1',
+          '✨ ISRAEL IS FREE! The journey to the Promised Land begins!'
+        ],function(){mrpg_victory();});
+      }else{
+        mrpg_showDialog([
+          '🌊 The sea parts just enough... the Israelites rush through!',
+          '🏃 It was close, but God\'s power prevailed!',
+          '✨ ISRAEL IS FREE!'
+        ],function(){mrpg_victory();});
+      }
+    },600);
+  }
+}
+
+// ── Victory ──
+function mrpg_victory(){
+  MRPG.totalXp+=200;
+  var m=MRPG.mission;
+  if(!G.completedMissions.includes(m.id)){
+    G.pd.xp+=MRPG.totalXp+m.xpReward;
+    G.completedMissions.push(m.id);
+    G.pd.powerups.push({...m.reward});
+    if(m.unlockCharId&&!G.unlocked.includes(m.unlockCharId))G.unlocked.push(m.unlockCharId);
+  }
+  checkUnlocks();persistPlayer();
+  mrpg_stop();
+  go('mission_complete');
+}
+
+// ══════════════════════════════════════════════
+// DRAWING ENGINE
+// ══════════════════════════════════════════════
+
+function mrpg_draw(){
+  var c=MRPG.canvas,ctx=MRPG.ctx;if(!c||!ctx)return;
+  var W=c.width,H=c.height;
+  var TS=32; // tile size (larger for better detail)
+  var t=MRPG.animT;
+
+  // Update minigame
+  var dt=1/60;
+  if(MRPG.plagueActive&&MRPG.plagueMinigame){
+    if(MRPG.plagueMinigame.type==='redsea')mrpg_updateRedSea(dt);
+    else mrpg_updatePlague(dt);
+  }
+
+  // ── Plague minigame screen ──
+  if(MRPG.plagueActive&&MRPG.plagueMinigame&&MRPG.plagueMinigame.active){
+    var mg=MRPG.plagueMinigame;
+    if(mg.type==='redsea'){
+      mrpg_drawRedSea(ctx,W,H,t,mg);
+    }else{
+      mrpg_drawPlagueMinigame(ctx,W,H,t,mg);
+    }
+    return;
+  }
+
+  // ── Map drawing ──
+  // Camera follows player
+  var viewTilesX=Math.ceil(W/TS),viewTilesY=Math.ceil(H/TS);
+  var camTX=Math.max(0,Math.min(MRPG.mapW-viewTilesX,MRPG.px-Math.floor(viewTilesX/2)));
+  var camTY=Math.max(0,Math.min(MRPG.mapH-viewTilesY,MRPG.py-Math.floor(viewTilesY/2)));
+
+  // Sky / background
+  if(MRPG.phase==='midian'||MRPG.phase==='burning_bush'){
+    var grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#1a0d00');grad.addColorStop(0.3,'#2a1500');grad.addColorStop(1,'#4a3010');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+    // Stars
+    for(var i=0;i<30;i++){
+      var sx=(i*137.5+83)%W,sy=(i*89.3+17)%(H*0.3);
+      var br=0.2+0.2*Math.sin(t*2+i);
+      ctx.fillStyle='rgba(255,255,200,'+br+')';
+      ctx.beginPath();ctx.arc(sx,sy,1.2,0,Math.PI*2);ctx.fill();
+    }
+  }else if(MRPG.phase==='egypt'){
+    var grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#0a0a1a');grad.addColorStop(0.4,'#1a1000');grad.addColorStop(1,'#2a1d0a');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  }else{
+    ctx.fillStyle='#0a0a0a';ctx.fillRect(0,0,W,H);
+  }
+
+  // Draw tiles
+  for(var ty=camTY;ty<Math.min(MRPG.mapH,camTY+viewTilesY+1);ty++){
+    for(var tx=camTX;tx<Math.min(MRPG.mapW,camTX+viewTilesX+1);tx++){
+      var tileVal=MRPG.tiles[ty*MRPG.mapW+tx];
+      var sx=(tx-camTX)*TS,sy=(ty-camTY)*TS;
+      ctx.fillStyle=MRPG_COLORS[tileVal]||'#C2A64E';
+      ctx.fillRect(sx,sy,TS,TS);
+      // Tile decorations
+      if(tileVal===MT.DUNE){
+        ctx.fillStyle='#C2A64E';
+        ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.6,TS*0.45,Math.PI,0);ctx.fill();
+        ctx.fillStyle='#D4B96A44';
+        ctx.beginPath();ctx.arc(sx+TS*0.3,sy+TS*0.5,TS*0.2,Math.PI,0);ctx.fill();
+      }
+      if(tileVal===MT.ROCK){
+        ctx.fillStyle='#5a5a5a';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.55,TS*0.38,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#6a6a6a';ctx.beginPath();ctx.arc(sx+TS*0.4,sy+TS*0.45,TS*0.22,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#48484844';ctx.beginPath();ctx.arc(sx+TS*0.6,sy+TS*0.6,TS*0.15,0,Math.PI*2);ctx.fill();
+      }
+      if(tileVal===MT.WATER){
+        ctx.fillStyle='#1155AA';ctx.fillRect(sx,sy,TS,TS);
+        // Multiple wave lines
+        for(var wl=0;wl<3;wl++){
+          var wv=Math.sin(t*3+tx*0.8+ty*0.5+wl*2)*3;
+          ctx.strokeStyle='rgba(100,180,255,'+(0.3-wl*0.08)+')';ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.moveTo(sx,sy+TS*0.3+wl*TS*0.2+wv);ctx.quadraticCurveTo(sx+TS/2,sy+TS*0.3+wl*TS*0.2-wv,sx+TS,sy+TS*0.3+wl*TS*0.2+wv);ctx.stroke();
+        }
+      }
+      if(tileVal===MT.BUSH){
+        ctx.fillStyle='#2a5a1a';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.55,TS*0.38,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#3a7a2a';ctx.beginPath();ctx.arc(sx+TS*0.4,sy+TS*0.4,TS*0.25,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#4a9a3a';ctx.beginPath();ctx.arc(sx+TS*0.6,sy+TS*0.45,TS*0.18,0,Math.PI*2);ctx.fill();
+      }
+      if(tileVal===MT.PATH){
+        ctx.fillStyle='#B89A56';ctx.fillRect(sx+1,sy+1,TS-2,TS-2);
+        // Sand grain dots
+        ctx.fillStyle='#A08840';
+        for(var pi=0;pi<3;pi++){
+          var px2=(tx*7+pi*13+ty*3)%(TS-6)+3;
+          var py2=(ty*11+pi*7+tx*5)%(TS-6)+3;
+          ctx.beginPath();ctx.arc(sx+px2,sy+py2,1.5,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(tileVal===MT.PALACE_FLOOR){
+        ctx.fillStyle='#9B8565';ctx.fillRect(sx,sy,TS,TS);
+        ctx.strokeStyle='#7A6A50';ctx.lineWidth=0.5;ctx.strokeRect(sx+2,sy+2,TS-4,TS-4);
+        // Tile pattern
+        ctx.fillStyle='#8A7555';ctx.fillRect(sx+TS/2-1,sy,2,TS);ctx.fillRect(sx,sy+TS/2-1,TS,2);
+      }
+      if(tileVal===MT.PALACE_WALL){
+        ctx.fillStyle='#4A3728';ctx.fillRect(sx,sy,TS,TS);
+        // Brick lines
+        ctx.fillStyle='#3A2718';
+        ctx.fillRect(sx,sy+TS/3-1,TS,1);ctx.fillRect(sx,sy+TS*2/3-1,TS,1);
+        // Hieroglyph patterns — Eye of Horus style
+        if((tx+ty)%2===0){
+          ctx.fillStyle='#FFD70044';
+          // Eye shape
+          ctx.beginPath();ctx.ellipse(sx+TS/2,sy+TS/2,TS*0.2,TS*0.12,0,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#FFD70033';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS/2,TS*0.06,0,Math.PI*2);ctx.fill();
+        }else{
+          // Ankh symbol
+          ctx.strokeStyle='#FFD70033';ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.3,TS*0.1,0,Math.PI*2);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(sx+TS/2,sy+TS*0.4);ctx.lineTo(sx+TS/2,sy+TS*0.8);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(sx+TS*0.35,sy+TS*0.55);ctx.lineTo(sx+TS*0.65,sy+TS*0.55);ctx.stroke();
+        }
+      }
+      if(tileVal===MT.PILLAR){
+        // Ornate Egyptian column
+        ctx.fillStyle='#8B7D68';ctx.fillRect(sx+TS*0.25,sy+TS*0.1,TS*0.5,TS*0.8);
+        // Capital (lotus top)
+        ctx.fillStyle='#9B8D78';
+        ctx.beginPath();ctx.moveTo(sx+TS*0.15,sy+TS*0.1);ctx.lineTo(sx+TS*0.85,sy+TS*0.1);ctx.lineTo(sx+TS*0.75,sy);ctx.lineTo(sx+TS*0.25,sy);ctx.closePath();ctx.fill();
+        // Base
+        ctx.fillRect(sx+TS*0.15,sy+TS*0.88,TS*0.7,TS*0.12);
+        // Fluting lines
+        ctx.strokeStyle='#7A6D58';ctx.lineWidth=0.5;
+        ctx.beginPath();ctx.moveTo(sx+TS*0.4,sy+TS*0.12);ctx.lineTo(sx+TS*0.4,sy+TS*0.88);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(sx+TS*0.6,sy+TS*0.12);ctx.lineTo(sx+TS*0.6,sy+TS*0.88);ctx.stroke();
+      }
+      if(tileVal===MT.THRONE){
+        ctx.fillStyle='#8B7355';ctx.fillRect(sx,sy,TS,TS);
+        // Golden throne
+        ctx.fillStyle='#FFD700';ctx.fillRect(sx+TS*0.15,sy+TS*0.1,TS*0.7,TS*0.85);
+        ctx.fillStyle='#CC8800';ctx.fillRect(sx+TS*0.22,sy+TS*0.2,TS*0.56,TS*0.65);
+        // Arm rests
+        ctx.fillStyle='#FFD700';
+        ctx.fillRect(sx+TS*0.1,sy+TS*0.4,TS*0.15,TS*0.5);
+        ctx.fillRect(sx+TS*0.75,sy+TS*0.4,TS*0.15,TS*0.5);
+        // Cobra ornament on top
+        ctx.fillStyle='#FFD700';
+        ctx.beginPath();ctx.moveTo(sx+TS/2,sy);ctx.lineTo(sx+TS/2+4,sy+TS*0.12);ctx.lineTo(sx+TS/2-4,sy+TS*0.12);ctx.closePath();ctx.fill();
+      }
+      if(tileVal===MT.BURNING_BUSH){
+        // Animated fire with more detail
+        ctx.fillStyle='#2a5a1a';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.6,TS*0.35,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#3a7a2a';ctx.beginPath();ctx.arc(sx+TS*0.4,sy+TS*0.5,TS*0.2,0,Math.PI*2);ctx.fill();
+        var flicker=Math.sin(t*8)*4;
+        // Fire tongues
+        for(var fi=0;fi<4;fi++){
+          var fx2=sx+TS*0.3+fi*TS*0.12;
+          var fy2=sy+TS*0.45-Math.abs(Math.sin(t*7+fi*1.5))*TS*0.25;
+          ctx.fillStyle='rgba(255,'+(80+fi*40)+',0,'+(0.8-fi*0.12)+')';
+          ctx.beginPath();ctx.ellipse(fx2,fy2,TS*0.08,TS*0.15+Math.sin(t*6+fi)*TS*0.05,0,0,Math.PI*2);ctx.fill();
+        }
+        ctx.fillStyle='rgba(255,200,50,0.5)';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.35-flicker*0.5,TS*0.12,0,Math.PI*2);ctx.fill();
+        // Holy glow
+        ctx.fillStyle='rgba(255,180,50,'+(0.12+0.08*Math.sin(t*4))+')';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS/2,TS*1.1,0,Math.PI*2);ctx.fill();
+      }
+      if(tileVal===MT.TENT){
+        // More detailed tent
+        ctx.fillStyle='#8B6914';
+        ctx.beginPath();ctx.moveTo(sx+TS/2,sy+TS*0.1);ctx.lineTo(sx+TS-3,sy+TS-3);ctx.lineTo(sx+3,sy+TS-3);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#6B4914';ctx.lineWidth=1.5;ctx.stroke();
+        // Tent entrance
+        ctx.fillStyle='#5a3d0a';
+        ctx.beginPath();ctx.moveTo(sx+TS*0.4,sy+TS*0.5);ctx.lineTo(sx+TS*0.6,sy+TS*0.5);ctx.lineTo(sx+TS*0.55,sy+TS-3);ctx.lineTo(sx+TS*0.45,sy+TS-3);ctx.closePath();ctx.fill();
+        // Support pole
+        ctx.strokeStyle='#5a3d0a';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(sx+TS/2,sy+TS*0.1);ctx.lineTo(sx+TS/2,sy+TS-3);ctx.stroke();
+      }
+      if(tileVal===MT.OASIS){
+        ctx.fillStyle='#33AA77';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.6,TS*0.42,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#2288CC';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.65,TS*0.25,0,Math.PI*2);ctx.fill();
+        // Water shimmer
+        ctx.fillStyle='rgba(100,200,255,'+(0.2+0.1*Math.sin(t*3))+')';
+        ctx.beginPath();ctx.arc(sx+TS/2-3,sy+TS*0.6,TS*0.1,0,Math.PI*2);ctx.fill();
+        // Palm tree
+        ctx.fillStyle='#5a3d0a';ctx.fillRect(sx+TS/2-2,sy,4,TS*0.5);
+        // Palm fronds
+        ctx.strokeStyle='#338833';ctx.lineWidth=2;
+        for(var pf=0;pf<5;pf++){
+          var pa=-Math.PI*0.7+pf*Math.PI*0.35;
+          ctx.beginPath();ctx.moveTo(sx+TS/2,sy+TS*0.05);
+          ctx.quadraticCurveTo(sx+TS/2+Math.cos(pa)*TS*0.3,sy+TS*0.05+Math.sin(pa)*TS*0.1,sx+TS/2+Math.cos(pa)*TS*0.45,sy+TS*0.15+Math.sin(pa+0.3)*TS*0.15);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Draw NPCs with detailed canvas art
+  for(var i=0;i<MRPG.npcs.length;i++){
+    var npc=MRPG.npcs[i];
+    var nx=(npc.x-camTX)*TS,ny=(npc.y-camTY)*TS;
+    if(nx<-TS||ny<-TS||nx>W+TS||ny>H+TS)continue;
+    mrpg_drawNPC(ctx,nx,ny,TS,t,npc);
+  }
+
+  // Draw Moses (player)
+  var mpx=(MRPG.px-camTX)*TS,mpy=(MRPG.py-camTY)*TS;
+  mrpg_drawMoses(ctx,mpx,mpy,TS,t);
+
+  // Interaction hint
+  var dx2=[0,1,0,-1][MRPG.facing],dy2=[-1,0,1,0][MRPG.facing];
+  var fx=MRPG.px+dx2,fy=MRPG.py+dy2;
+  var fNpc=mrpg_npcAt(fx,fy);
+  var fTile=(fx>=0&&fy>=0&&fx<MRPG.mapW&&fy<MRPG.mapH)?MRPG.tiles[fy*MRPG.mapW+fx]:-1;
+  if(fNpc||fTile===MT.BURNING_BUSH||fTile===MT.OASIS||fTile===MT.TENT){
+    var hx=(fx-camTX)*TS+TS/2,hy=(fy-camTY)*TS-8;
+    ctx.font='bold 14px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+    ctx.fillText('❗',hx,hy+Math.sin(t*4)*3);
+  }
+
+  // Objective text
+  ctx.font='bold 13px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+  var obj='';
+  if(MRPG.phase==='midian'&&!MRPG.bushFound)obj='🔍 Explore the desert. Follow the eastern path.';
+  if(MRPG.phase==='midian'&&MRPG.bushFound)obj='🔥 The Burning Bush! Approach it!';
+  if(MRPG.phase==='egypt'&&MRPG.pharaohHeart>0)obj='👑 Speak to Pharaoh — Plague '+(MRPG.plagueIdx+1)+'/10';
+  if(MRPG.phase==='egypt'&&MRPG.pharaohHeart<=0)obj='👑 Speak to Pharaoh — he will let Israel go!';
+  if(obj){
+    ctx.fillStyle='rgba(0,0,0,0.75)';
+    var tw=ctx.measureText(obj).width+16;
+    ctx.beginPath();ctx.roundRect((W-tw)/2,H-28,tw,22,6);ctx.fill();
+    ctx.fillStyle='#FFD700';ctx.fillText(obj,W/2,H-13);
+  }
+
+  // Staff indicator
+  if(MRPG.staffObtained){
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.beginPath();ctx.roundRect(4,H-28,110,22,6);ctx.fill();
+    ctx.font='13px serif';ctx.textAlign='left';ctx.fillStyle='#FFD700';
+    ctx.fillText('🪄 Staff of God',10,H-13);
+  }
+
+  // Fade overlay
+  if(MRPG.fadeAlpha>0){
+    ctx.fillStyle='rgba(0,0,0,'+MRPG.fadeAlpha+')';
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+// ── Draw Moses character (detailed) ──
+function mrpg_drawMoses(ctx,x,y,s,t){
+  var cx=x+s/2,bob=Math.sin(t*4)*1*(MRPG.walkFrame%4>1?1:0);
+  ctx.save();
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.25)';ctx.beginPath();ctx.ellipse(cx,y+s-1,s*0.28,s*0.06,0,0,Math.PI*2);ctx.fill();
+  // Sandals
+  var walkOff=MRPG.walkFrame%2===1?1.5:-1.5;
+  ctx.fillStyle='#6B4513';
+  ctx.fillRect(x+s*0.3,y+s*0.9+bob,s*0.15,s*0.08);
+  ctx.fillRect(x+s*0.55,y+s*0.9+bob-walkOff*0.5,s*0.15,s*0.08);
+  // Robe (flowing)
+  ctx.fillStyle='#B8860B';
+  ctx.beginPath();ctx.moveTo(cx-s*0.22,y+s*0.38+bob);ctx.lineTo(cx+s*0.22,y+s*0.38+bob);
+  ctx.quadraticCurveTo(cx+s*0.28,y+s*0.65,cx+s*0.26,y+s*0.92+bob);
+  ctx.lineTo(cx-s*0.26,y+s*0.92+bob);
+  ctx.quadraticCurveTo(cx-s*0.28,y+s*0.65,cx-s*0.22,y+s*0.38+bob);
+  ctx.closePath();ctx.fill();
+  // Robe shadow fold
+  ctx.fillStyle='#9B7209';
+  ctx.beginPath();ctx.moveTo(cx,y+s*0.5+bob);ctx.lineTo(cx+s*0.06,y+s*0.92+bob);ctx.lineTo(cx-s*0.06,y+s*0.92+bob);ctx.closePath();ctx.fill();
+  // Sash/belt
+  ctx.fillStyle='#DAA520';ctx.fillRect(cx-s*0.2,y+s*0.47+bob,s*0.4,s*0.05);
+  // Arms
+  ctx.strokeStyle='#D4A06A';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(cx-s*0.2,y+s*0.42+bob);ctx.lineTo(cx-s*0.3,y+s*0.6+bob);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+s*0.2,y+s*0.42+bob);ctx.lineTo(cx+s*0.32,y+s*0.55+bob);ctx.stroke();
+  // Hands
+  ctx.fillStyle='#D4A06A';
+  ctx.beginPath();ctx.arc(cx-s*0.3,y+s*0.62+bob,s*0.04,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.32,y+s*0.57+bob,s*0.04,0,Math.PI*2);ctx.fill();
+  // Staff
+  if(MRPG.staffObtained){
+    var wobble=Math.sin(t*3)*1;
+    ctx.strokeStyle='#6B3A0A';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(cx+s*0.33+wobble,y+s*0.15);ctx.lineTo(cx+s*0.33,y+s*0.95+bob);ctx.stroke();
+    // Hook at top
+    ctx.beginPath();ctx.arc(cx+s*0.33+wobble+3,y+s*0.15,4,Math.PI*0.5,Math.PI*1.5);ctx.stroke();
+    // Staff glow
+    ctx.fillStyle='rgba(255,215,0,'+(0.35+0.2*Math.sin(t*4))+')';
+    ctx.beginPath();ctx.arc(cx+s*0.33+wobble,y+s*0.13,5,0,Math.PI*2);ctx.fill();
+  }
+  // Neck
+  ctx.fillStyle='#D4A06A';ctx.fillRect(cx-s*0.05,y+s*0.33+bob,s*0.1,s*0.07);
+  // Head
+  ctx.fillStyle='#D4A06A';ctx.beginPath();ctx.arc(cx,y+s*0.24+bob,s*0.16,0,Math.PI*2);ctx.fill();
+  // White beard
+  ctx.fillStyle='#ddd';
+  ctx.beginPath();ctx.moveTo(cx-s*0.1,y+s*0.32+bob);
+  ctx.quadraticCurveTo(cx,y+s*0.46+bob,cx+s*0.1,y+s*0.32+bob);ctx.fill();
+  // White hair sides
+  ctx.beginPath();ctx.arc(cx-s*0.14,y+s*0.2+bob,s*0.07,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.14,y+s*0.2+bob,s*0.07,0,Math.PI*2);ctx.fill();
+  // Hair top
+  ctx.beginPath();ctx.arc(cx,y+s*0.13+bob,s*0.11,Math.PI,0);ctx.fill();
+  // Eyes (direction-aware)
+  var eyeOff=MRPG.facing===1?2:MRPG.facing===3?-2:0;
+  var eyeYOff=MRPG.facing===0?-1:MRPG.facing===2?1:0;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(cx-s*0.06+eyeOff,y+s*0.22+bob+eyeYOff,s*0.035,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.06+eyeOff,y+s*0.22+bob+eyeYOff,s*0.035,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3a2a1a';
+  ctx.beginPath();ctx.arc(cx-s*0.06+eyeOff*1.3,y+s*0.22+bob+eyeYOff,s*0.02,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.06+eyeOff*1.3,y+s*0.22+bob+eyeYOff,s*0.02,0,Math.PI*2);ctx.fill();
+  // Nose
+  ctx.fillStyle='#C49060';
+  ctx.beginPath();ctx.moveTo(cx,y+s*0.24+bob);ctx.lineTo(cx-s*0.02,y+s*0.28+bob);ctx.lineTo(cx+s*0.02,y+s*0.28+bob);ctx.closePath();ctx.fill();
+  // Name label
+  ctx.font='bold 9px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('Moses',cx,y-8+bob);
+  ctx.restore();
+}
+
+// ── Draw NPC (canvas-rendered Egyptian characters) ──
+function mrpg_drawNPC(ctx,x,y,s,t,npc){
+  var cx=x+s/2;
+  var bob=Math.sin(t*2+npc.x*3+npc.y*7)*0.8;
+  ctx.save();
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(cx,y+s-1,s*0.25,s*0.05,0,0,Math.PI*2);ctx.fill();
+
+  if(npc.name==='Sheep'){
+    // Fluffy sheep
+    ctx.fillStyle='#f0f0e8';
+    ctx.beginPath();ctx.arc(cx,y+s*0.55+bob,s*0.28,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx-s*0.15,y+s*0.45+bob,s*0.15,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+s*0.15,y+s*0.45+bob,s*0.15,0,Math.PI*2);ctx.fill();
+    // Head
+    ctx.fillStyle='#333';ctx.beginPath();ctx.arc(cx,y+s*0.35+bob,s*0.1,0,Math.PI*2);ctx.fill();
+    // Eyes
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx-s*0.04,y+s*0.33+bob,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+s*0.04,y+s*0.33+bob,2,0,Math.PI*2);ctx.fill();
+    // Legs
+    ctx.fillStyle='#333';
+    ctx.fillRect(cx-s*0.18,y+s*0.78+bob,3,s*0.15);ctx.fillRect(cx+s*0.12,y+s*0.78+bob,3,s*0.15);
+    ctx.font='bold 8px Georgia';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-6);
+    ctx.restore();return;
+  }
+
+  // ── Egyptian human NPCs ──
+  var skin=npc.isPharaoh?'#C49860':'#C8A070';
+  var robCol,headType;
+  if(npc.isPharaoh){robCol='#FFD700';headType='nemes';}
+  else if(npc.name==='Royal Guard'){robCol='#CC0000';headType='guard';}
+  else if(npc.name==='Court Magician'){robCol='#660099';headType='hood';}
+  else if(npc.name==='Hebrew Slave'){skin='#B08050';robCol='#8B7355';headType='bare';}
+  else if(npc.name==='Aaron'){skin='#C8A070';robCol='#1a5a8a';headType='turban';}
+  else if(npc.name==='Jethro'){skin='#A07040';robCol='#555';headType='turban';}
+  else if(npc.name==='Shepherd'){skin='#B88A60';robCol='#6B5B3A';headType='bare';}
+  else{skin='#C8A070';robCol='#888';headType='bare';}
+
+  // Feet/sandals
+  ctx.fillStyle='#6B4513';
+  ctx.fillRect(cx-s*0.12,y+s*0.9+bob,s*0.1,s*0.07);
+  ctx.fillRect(cx+s*0.04,y+s*0.9+bob,s*0.1,s*0.07);
+  // Robe/dress
+  ctx.fillStyle=robCol;
+  ctx.beginPath();ctx.moveTo(cx-s*0.2,y+s*0.38+bob);ctx.lineTo(cx+s*0.2,y+s*0.38+bob);
+  ctx.lineTo(cx+s*0.23,y+s*0.9+bob);ctx.lineTo(cx-s*0.23,y+s*0.9+bob);ctx.closePath();ctx.fill();
+  // Robe detail stripe
+  ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx,y+s*0.45+bob);ctx.lineTo(cx,y+s*0.88+bob);ctx.stroke();
+  
+  // Belt
+  if(npc.isPharaoh){
+    ctx.fillStyle='#CC8800';ctx.fillRect(cx-s*0.2,y+s*0.48+bob,s*0.4,s*0.04);
+    // Gold belt gem
+    ctx.fillStyle='#0088FF';ctx.beginPath();ctx.arc(cx,y+s*0.5+bob,s*0.025,0,Math.PI*2);ctx.fill();
+  }
+  if(npc.name==='Royal Guard'){
+    ctx.fillStyle='#FFD70088';ctx.fillRect(cx-s*0.2,y+s*0.46+bob,s*0.4,s*0.03);
+  }
+
+  // Arms
+  ctx.strokeStyle=skin;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(cx-s*0.18,y+s*0.42+bob);ctx.lineTo(cx-s*0.28,y+s*0.6+bob);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx+s*0.18,y+s*0.42+bob);ctx.lineTo(cx+s*0.28,y+s*0.6+bob);ctx.stroke();
+  // Hands
+  ctx.fillStyle=skin;
+  ctx.beginPath();ctx.arc(cx-s*0.28,y+s*0.62+bob,s*0.035,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.28,y+s*0.62+bob,s*0.035,0,Math.PI*2);ctx.fill();
+
+  // Guard spear
+  if(npc.name==='Royal Guard'){
+    ctx.strokeStyle='#6B3A0A';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx+s*0.3,y+s*0.1);ctx.lineTo(cx+s*0.3,y+s*0.9+bob);ctx.stroke();
+    // Spear tip
+    ctx.fillStyle='#AAA';
+    ctx.beginPath();ctx.moveTo(cx+s*0.3,y+s*0.05);ctx.lineTo(cx+s*0.3-3,y+s*0.14);ctx.lineTo(cx+s*0.3+3,y+s*0.14);ctx.closePath();ctx.fill();
+  }
+  // Magician staff with cobra
+  if(npc.name==='Court Magician'){
+    ctx.strokeStyle='#333';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx-s*0.3,y+s*0.15);ctx.lineTo(cx-s*0.3,y+s*0.9+bob);ctx.stroke();
+    ctx.fillStyle='#33AA33';
+    ctx.beginPath();ctx.arc(cx-s*0.3,y+s*0.12,3,0,Math.PI*2);ctx.fill();
+  }
+
+  // Neck
+  ctx.fillStyle=skin;ctx.fillRect(cx-s*0.05,y+s*0.32+bob,s*0.1,s*0.08);
+  // Head
+  ctx.beginPath();ctx.arc(cx,y+s*0.24+bob,s*0.14,0,Math.PI*2);ctx.fill();
+
+  // Headwear
+  if(headType==='nemes'){
+    // Egyptian Nemes headdress (Pharaoh)
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath();ctx.moveTo(cx,y+s*0.06+bob);
+    ctx.lineTo(cx-s*0.22,y+s*0.2+bob);ctx.lineTo(cx-s*0.2,y+s*0.42+bob);
+    ctx.lineTo(cx-s*0.08,y+s*0.35+bob);ctx.lineTo(cx,y+s*0.12+bob);
+    ctx.lineTo(cx+s*0.08,y+s*0.35+bob);ctx.lineTo(cx+s*0.2,y+s*0.42+bob);
+    ctx.lineTo(cx+s*0.22,y+s*0.2+bob);ctx.closePath();ctx.fill();
+    // Nemes stripes
+    ctx.strokeStyle='#1155AA';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx-s*0.14,y+s*0.18+bob);ctx.lineTo(cx-s*0.16,y+s*0.38+bob);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+s*0.14,y+s*0.18+bob);ctx.lineTo(cx+s*0.16,y+s*0.38+bob);ctx.stroke();
+    // Uraeus (cobra on forehead)
+    ctx.fillStyle='#FFD700';
+    ctx.beginPath();ctx.moveTo(cx,y+s*0.08+bob);ctx.lineTo(cx-2,y+s*0.14+bob);ctx.lineTo(cx+2,y+s*0.14+bob);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#CC0000';ctx.beginPath();ctx.arc(cx,y+s*0.07+bob,2,0,Math.PI*2);ctx.fill();
+    // Eye of Horus eyeliner
+    ctx.strokeStyle='#000';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx-s*0.1,y+s*0.22+bob);ctx.lineTo(cx-s*0.16,y+s*0.25+bob);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+s*0.1,y+s*0.22+bob);ctx.lineTo(cx+s*0.16,y+s*0.25+bob);ctx.stroke();
+  }
+  if(headType==='guard'){
+    // Egyptian guard helmet — flat top with cobra
+    ctx.fillStyle='#CC0000';
+    ctx.beginPath();ctx.moveTo(cx-s*0.16,y+s*0.12+bob);ctx.lineTo(cx+s*0.16,y+s*0.12+bob);
+    ctx.lineTo(cx+s*0.14,y+s*0.24+bob);ctx.lineTo(cx-s*0.14,y+s*0.24+bob);ctx.closePath();ctx.fill();
+    // Gold band
+    ctx.fillStyle='#FFD700';ctx.fillRect(cx-s*0.16,y+s*0.12+bob,s*0.32,s*0.03);
+    // Side flaps
+    ctx.fillStyle='#AA0000';
+    ctx.fillRect(cx-s*0.18,y+s*0.15+bob,s*0.04,s*0.2);
+    ctx.fillRect(cx+s*0.14,y+s*0.15+bob,s*0.04,s*0.2);
+  }
+  if(headType==='hood'){
+    // Magician hood
+    ctx.fillStyle='#440077';
+    ctx.beginPath();ctx.arc(cx,y+s*0.2+bob,s*0.18,Math.PI,0);ctx.fill();
+    ctx.fillRect(cx-s*0.18,y+s*0.2+bob,s*0.36,s*0.1);
+    // Eye symbol
+    ctx.fillStyle='#FFD70088';ctx.beginPath();ctx.arc(cx,y+s*0.15+bob,s*0.04,0,Math.PI*2);ctx.fill();
+  }
+  if(headType==='turban'){
+    // Turban/head cloth
+    ctx.fillStyle=npc.name==='Aaron'?'#fff':'#C4A35A';
+    ctx.beginPath();ctx.arc(cx,y+s*0.17+bob,s*0.15,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx,y+s*0.13+bob,s*0.1,0,Math.PI*2);ctx.fill();
+  }
+  // Hebrew slave — ragged
+  if(npc.name==='Hebrew Slave'){
+    // Torn robe details
+    ctx.strokeStyle='#5a4a3a';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(cx-s*0.15,y+s*0.85+bob);ctx.lineTo(cx-s*0.18,y+s*0.92+bob);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx+s*0.1,y+s*0.87+bob);ctx.lineTo(cx+s*0.13,y+s*0.93+bob);ctx.stroke();
+  }
+
+  // Eyes (for non-animal NPCs)
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(cx-s*0.05,y+s*0.22+bob,s*0.03,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.05,y+s*0.22+bob,s*0.03,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2a1a0a';
+  ctx.beginPath();ctx.arc(cx-s*0.05,y+s*0.22+bob,s*0.015,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(cx+s*0.05,y+s*0.22+bob,s*0.015,0,Math.PI*2);ctx.fill();
+
+  // Name label
+  ctx.font='bold 9px Georgia';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle=npc.isPharaoh?'#FFD700':npc.name==='Royal Guard'?'#FF6666':npc.name==='Court Magician'?'#CC88FF':npc.name==='Aaron'?'#88BBFF':'#ccc';
+  ctx.fillText(npc.name,cx,y-8+bob);
+
+  // Pharaoh golden glow
+  if(npc.isPharaoh){
+    ctx.fillStyle='rgba(255,215,0,'+(0.06+0.04*Math.sin(t*3))+')';
+    ctx.beginPath();ctx.arc(cx,y+s/2+bob,s*0.6,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ── Draw Plague Minigame ──
+function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
+  var p=mg.plague;
+  // Background
+  var grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,p.color+'33');grad.addColorStop(1,'#000');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+
+  // Title
+  ctx.font='bold 22px Georgia';ctx.fillStyle=p.color;ctx.textAlign='center';
+  ctx.fillText(p.emoji+' '+p.name,W/2,32);
+  ctx.font='13px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText(p.instruction+' (or press SPACE)',W/2,52);
+
+  // Timer bar
+  var pct=mg.timeLeft/p.time;
+  ctx.fillStyle='#222';ctx.fillRect(20,64,W-40,14);
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,64,(W-40)*pct,14);
+  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='right';
+  ctx.fillText((mg.timeLeft/1000).toFixed(1)+'s',W-22,76);
+
+  // Score bar
+  var scorePct=Math.min(1,mg.score/mg.target);
+  ctx.fillStyle='#111';ctx.fillRect(20,84,W-40,12);
+  ctx.fillStyle='#FFD700';ctx.fillRect(20,84,(W-40)*scorePct,12);
+  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.score+'/'+mg.target,22,95);
+
+  // Minigame visuals
+  if(p.type==='tap'||p.type==='swipe'){
+    // Pulsing circle target in center
+    var pulseR=50+Math.sin(t*6)*14;
+    ctx.strokeStyle=p.color;ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(W/2,H/2+20,pulseR,0,Math.PI*2);ctx.stroke();
+    ctx.font='52px serif';ctx.textAlign='center';
+    ctx.fillText(p.emoji,W/2,H/2+38);
+    // Ripple effect on tap
+    if(mg.score>0){
+      var rr=mg.score%10*10;
+      ctx.strokeStyle=p.color+'44';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(W/2,H/2+20,rr+25,0,Math.PI*2);ctx.stroke();
+    }
+    // Instruction
+    ctx.font='18px Georgia';ctx.fillStyle='#ddd';
+    ctx.fillText('TAP or press SPACE!',W/2,H-50);
+  }
+
+  if(p.type==='whack'){
+    // Draw alive entities
+    for(var i=0;i<mg.entities.length;i++){
+      var e=mg.entities[i];
+      if(!e.alive)continue;
+      ctx.font='36px serif';ctx.textAlign='center';
+      var bob=Math.sin(t*5+i)*5;
+      ctx.fillText(e.emoji,e.x,e.y+110+bob);
+      // Shadow
+      ctx.fillStyle='rgba(0,0,0,0.3)';
+      ctx.beginPath();ctx.ellipse(e.x,e.y+130+bob,16,5,0,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  if(p.type==='hold'){
+    // Big circle that fills as you hold
+    var holdPct=Math.min(1,mg.holdTime/mg.target);
+    ctx.strokeStyle='#333';ctx.lineWidth=12;
+    ctx.beginPath();ctx.arc(W/2,H/2+20,75,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle=p.color;ctx.lineWidth=12;
+    ctx.beginPath();ctx.arc(W/2,H/2+20,75,-Math.PI/2,-Math.PI/2+holdPct*Math.PI*2);ctx.stroke();
+    ctx.font='52px serif';ctx.textAlign='center';
+    ctx.fillText(mg.holding?'🪄':'👆',W/2,H/2+38);
+    ctx.font='16px Georgia';ctx.fillStyle='#ddd';
+    ctx.fillText(mg.holding?'HOLDING... Keep pressing!':'HOLD CLICK or SPACE!',W/2,H-50);
+  }
+
+  if(p.type==='dodge'){
+    // Hailstones falling
+    for(var i=0;i<25;i++){
+      var hx=(i*73.7+t*80*(i%3+1))%W;
+      var hy=(i*47+t*120*(i%2+1))%H;
+      ctx.fillStyle='#AACCEE';ctx.beginPath();ctx.arc(hx,hy,5+i%4,0,Math.PI*2);ctx.fill();
+    }
+    // Safe zones
+    for(var i=0;i<mg.safeZones.length;i++){
+      var z=mg.safeZones[i];
+      ctx.fillStyle='rgba(74,222,128,0.2)';ctx.beginPath();ctx.arc(z.x,z.y+110,z.r+6,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.beginPath();ctx.arc(z.x,z.y+110,z.r+6,0,Math.PI*2);ctx.stroke();
+      ctx.font='15px Georgia';ctx.fillStyle='#4ade80';ctx.textAlign='center';
+      ctx.fillText('TAP',z.x,z.y+115);
+    }
+  }
+}
+
+// ── Draw Red Sea ──
+function mrpg_drawRedSea(ctx,W,H,t,mg){
+  // Ocean background
+  var grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#001133');grad.addColorStop(1,'#000811');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+
+  // Sea parting animation
+  var sl=mg.seaLevel;
+  var gapW=W*(1-sl)*0.6;
+  // Left water wall
+  ctx.fillStyle='#1155AA';
+  ctx.fillRect(0,0,W/2-gapW/2,H);
+  // Right water wall
+  ctx.fillRect(W/2+gapW/2,0,W/2-gapW/2+W,H);
+  // Dry ground in gap
+  if(gapW>10){
+    ctx.fillStyle='#C2A64E';ctx.fillRect(W/2-gapW/2,H*0.3,gapW,H*0.7);
+    // Sand texture
+    ctx.fillStyle='#B89A3A';
+    for(var i=0;i<10;i++){
+      ctx.beginPath();ctx.arc(W/2-gapW/3+Math.random()*gapW*0.66,H*0.4+Math.random()*H*0.5,2,0,Math.PI*2);ctx.fill();
+    }
+  }
+  // Water wave effects
+  for(var side=0;side<2;side++){
+    var wx=side===0?W/2-gapW/2:W/2+gapW/2;
+    ctx.strokeStyle='rgba(100,180,255,0.5)';ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var y=0;y<H;y+=3){
+      ctx.lineTo(wx+Math.sin(t*5+y*0.05)*(3+sl*8)*(side===0?-1:1),y);
+    }
+    ctx.stroke();
+  }
+
+  // Moses at bottom center
+  mrpg_drawMoses(ctx,W/2-16,H*0.65,32,t);
+
+  // Israelites walking up if parted enough
+  if(gapW>40){
+    var peeps=['👤','👩','👦','👧','🧓','👳'];
+    for(var i=0;i<10;i++){
+      var px=W/2-gapW/3+i*(gapW/12);
+      var py=H*0.45+i*14+Math.sin(t*2+i)*4;
+      ctx.font='16px serif';ctx.textAlign='center';ctx.fillText(peeps[i%peeps.length],px,py);
+    }
+  }
+
+  // Title
+  ctx.font='bold 24px Georgia';ctx.fillStyle='#4488CC';ctx.textAlign='center';
+  ctx.fillText('🌊 PART THE RED SEA! 🌊',W/2,30);
+  ctx.font='15px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText('TAP or press SPACE rapidly to hold the waters apart!',W/2,52);
+
+  // Timer
+  var pct=mg.timeLeft/10000;
+  ctx.fillStyle='#111';ctx.fillRect(20,62,W-40,12);
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,62,(W-40)*pct,12);
+
+  // Progress
+  var tapPct=Math.min(1,mg.taps/mg.target);
+  ctx.fillStyle='#111';ctx.fillRect(20,78,W-40,12);
+  ctx.fillStyle='#FFD700';ctx.fillRect(20,78,(W-40)*tapPct,12);
+  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.taps+'/'+mg.target+' taps',22,89);
+}
+
+
+// ══════════════════════════════════════════════════════
 // STORY MODE ENGINE — Branching narrative missions
 // ══════════════════════════════════════════════════════
 
@@ -11198,8 +13511,8 @@ function story_choose(choiceIdx){
   var nextScene=m.scenes[st.sceneId];
   if(nextScene&&nextScene.ending){
     st.totalXp+=(nextScene.xpBonus||0);
-    G.pd.xp+=st.totalXp+m.xpReward;
     if(!G.completedMissions.includes(m.id)){
+      G.pd.xp+=st.totalXp+m.xpReward;
       G.completedMissions.push(m.id);
       G.pd.powerups.push({...m.reward});
       if(m.unlockCharId&&!G.unlocked.includes(m.unlockCharId))G.unlocked.push(m.unlockCharId);
