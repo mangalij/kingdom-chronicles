@@ -337,7 +337,7 @@ var KC_AUTH = (function(){
 
   // ── Cloud CFG: save admin settings to Firebase (shared) ──
   function cloudSaveCFG(cb){
-    if(!_db){if(cb)cb('Firebase not ready');return;}
+    if(!_user || !_db){if(cb)cb(_user?'Firebase not ready':'Not signed in — log in first to sync admin settings');return;}
     var data={
       churchName:CFG.churchName,
       churchAddress:CFG.churchAddress,
@@ -2212,7 +2212,7 @@ function rPvpLobby(){
   </div></div>`;}
 
 function openTcgPvP(){
-  window.open('pvp-tcg-v3/dist/index.html','_blank','noopener');
+  window.open('https://kingdom-chronicles.vercel.app/','_blank','noopener');
 }
 
 function startPvP(name,charId,lv,tag){
