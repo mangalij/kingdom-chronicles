@@ -60,6 +60,15 @@ input,select{font-family:Georgia,serif}
 .toggle input:checked+.tog-sl{background:#166534}
 .toggle input:checked+.tog-sl:before{transform:translateX(22px);background:#4ade80}
 .section-card{background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:16px;margin-bottom:12px}
+@media(max-width:768px){
+[style*="font-size:7px"],[style*="font-size: 7px"],
+[style*="font-size:8px"],[style*="font-size: 8px"],
+[style*="font-size:9px"],[style*="font-size: 9px"],
+[style*="font-size:10px"],[style*="font-size: 10px"],
+[style*="font-size:11px"],[style*="font-size: 11px"],
+[style*="font-size:12px"],[style*="font-size: 12px"],
+[style*="font-size:13px"],[style*="font-size: 13px"]{font-size:14px!important}
+}
 </style>
 </head><body>
 <div id="app"></div>
@@ -12069,7 +12078,8 @@ var MRPG = {
 // ── Tile types ──
 var MRPG_TILES = {
   SAND:0, DUNE:1, ROCK:2, WATER:3, BUSH:4, PATH:5, PALACE_FLOOR:6,
-  PALACE_WALL:7, PILLAR:8, THRONE:9, BURNING_BUSH:10, TENT:11, OASIS:12, BRIDGE:13
+  PALACE_WALL:7, PILLAR:8, THRONE:9, BURNING_BUSH:10, TENT:11, OASIS:12, BRIDGE:13,
+  WELL:14, MARKET_STALL:15, TEMPLE_FLOOR:16, TEMPLE_WALL:17, SLAVE_HUT:18, REED:19, CAMPFIRE:20
 };
 var MT = MRPG_TILES;
 
@@ -12077,70 +12087,174 @@ var MT = MRPG_TILES;
 var MRPG_COLORS = {
   0:'#C2A64E', 1:'#B8963A', 2:'#6B5B3A', 3:'#2266AA', 4:'#556B2F',
   5:'#D4B96A', 6:'#8B7355', 7:'#4A3728', 8:'#6B5B48', 9:'#FFD700',
-  10:'#FF6600', 11:'#8B6914', 12:'#33AA77', 13:'#8B7355'
+  10:'#FF6600', 11:'#8B6914', 12:'#33AA77', 13:'#8B7355',
+  14:'#5588AA', 15:'#8B6914', 16:'#7A6B55', 17:'#3A2A1A', 18:'#6B5530', 19:'#4A7A3A', 20:'#FF6600'
 };
 
 // ── Map generators ──
 function mrpg_genMidian(){
-  var w=20,h=16;var t=new Array(w*h).fill(MT.SAND);
-  // Dunes scattered
-  for(var i=0;i<30;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);t[ry*w+rx]=MT.DUNE;}
-  // Rocks
-  for(var i=0;i<12;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);t[ry*w+rx]=MT.ROCK;}
-  // Oasis at top-right area
-  t[3*w+15]=MT.OASIS;t[3*w+16]=MT.OASIS;t[4*w+15]=MT.WATER;t[4*w+16]=MT.WATER;
-  // Tent (Moses' tent)
-  t[8*w+2]=MT.TENT;t[8*w+3]=MT.TENT;
-  // Path leading east (to burning bush)
-  for(var x=5;x<w;x++)t[10*w+x]=MT.PATH;
-  // Burning bush at far east
-  t[10*w+18]=MT.BURNING_BUSH;
+  var w=30,h=24;var t=new Array(w*h).fill(MT.SAND);
+  // Dunes scattered across desert
+  for(var i=0;i<55;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.DUNE;}
+  // Rocks scattered
+  for(var i=0;i<22;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.ROCK;}
+
+  // ── Shepherd camp (NW area, x:2-8, y:2-7) ──
+  t[3*w+3]=MT.TENT;t[3*w+4]=MT.TENT;
+  t[5*w+6]=MT.TENT;
+  t[4*w+5]=MT.CAMPFIRE;
+  for(var x=3;x<=6;x++)t[6*w+x]=MT.PATH;
+
+  // ── Oasis village (NE area, x:20-27, y:2-8) ──
+  t[3*w+22]=MT.OASIS;t[3*w+23]=MT.OASIS;
+  t[4*w+22]=MT.WATER;t[4*w+23]=MT.WATER;t[4*w+24]=MT.WATER;
+  t[3*w+24]=MT.BUSH;t[5*w+22]=MT.BUSH;
+  t[5*w+25]=MT.WELL;
+  t[6*w+24]=MT.MARKET_STALL;t[6*w+26]=MT.MARKET_STALL;
+  for(var x=21;x<=27;x++)t[7*w+x]=MT.PATH;
+  t[5*w+24]=MT.PATH;t[6*w+25]=MT.PATH;
+
+  // ── Moses' home area (W center, x:2-6, y:12-16) ──
+  t[13*w+3]=MT.TENT;t[13*w+4]=MT.TENT;
+  t[14*w+2]=MT.BUSH;t[14*w+5]=MT.BUSH;
+  t[12*w+3]=MT.CAMPFIRE;
+
+  // ── Main east-west path to burning bush ──
+  for(var x=6;x<w;x++)t[14*w+x]=MT.PATH;
+  // Branch path north to shepherd camp
+  for(var y=7;y<=14;y++)t[y*w+6]=MT.PATH;
+  // Branch path NE to oasis
+  for(var y=7;y<=14;y++)t[y*w+21]=MT.PATH;
+  for(var x=6;x<=21;x++)t[7*w+x]=MT.PATH;
+
+  // ── Rocky canyon (south, y:18-22) ──
+  for(var x=4;x<26;x++){t[18*w+x]=MT.ROCK;if(x%3!==0)t[18*w+x]=MT.ROCK;else t[18*w+x]=MT.PATH;}
+  for(var x=6;x<24;x++){t[22*w+x]=MT.ROCK;}
+  for(var x=8;x<22;x++){t[19*w+x]=MT.SAND;t[20*w+x]=MT.SAND;t[21*w+x]=MT.SAND;}
+  // Canyon path
+  for(var x=8;x<22;x++)t[20*w+x]=MT.PATH;
+  t[18*w+10]=MT.PATH;t[19*w+10]=MT.PATH; // entrance from above
+  t[18*w+18]=MT.PATH;t[19*w+18]=MT.PATH; // exit east
+  // Canyon oasis
+  t[20*w+14]=MT.WATER;t[20*w+15]=MT.WATER;t[19*w+14]=MT.BUSH;t[19*w+15]=MT.BUSH;
+
+  // ── Burning bush at far east ──
+  t[14*w+28]=MT.BURNING_BUSH;
+
+  // ── Small water stream (mid area) ──
+  for(var y=9;y<=12;y++){t[y*w+15]=MT.WATER;t[y*w+16]=MT.REED;}
+
   // Clear player start area
-  t[8*w+3]=MT.SAND;t[9*w+3]=MT.SAND;t[8*w+4]=MT.SAND;
+  t[14*w+4]=MT.SAND;t[14*w+5]=MT.SAND;t[15*w+4]=MT.SAND;t[15*w+5]=MT.SAND;
+  t[13*w+5]=MT.SAND;
+
   MRPG.tiles=t;MRPG.mapW=w;MRPG.mapH=h;
-  MRPG.px=3;MRPG.py=9;
+  MRPG.px=4;MRPG.py=14;
   // NPCs
   MRPG.npcs=[
-    {x:5,y:8,emoji:'👳',name:'Jethro',dialog:['Moses, my son-in-law! God has plans for you.','You have tended my flocks faithfully.','Something stirs in the desert... go, walk the eastern path.']},
-    {x:7,y:6,emoji:'🐑',name:'Sheep',dialog:['Baa! 🐑']},
-    {x:12,y:8,emoji:'🐑',name:'Sheep',dialog:['Baaaa! 🐑🐑']},
-    {x:14,y:4,emoji:'👤',name:'Shepherd',dialog:['The desert is vast, but God watches over every grain of sand.','I heard rumors of a strange fire to the east...','A bush that burns but is never consumed!']}
+    {x:6,y:13,emoji:'👳',name:'Jethro',dialog:['Moses, my son-in-law! God has plans for you.','You have tended my flocks faithfully for forty years.','Something stirs in the desert... go, walk the eastern path.','There is a fire that never goes out — far to the east.']},
+    {x:4,y:12,emoji:'👩',name:'Zipporah',dialog:['Husband, I sense something is about to change.','God has been preparing you in this wilderness.','Take care of yourself on the journey east.','I will keep the children safe.']},
+    {x:8,y:6,emoji:'🐑',name:'Sheep',dialog:['Baa! 🐑']},
+    {x:14,y:8,emoji:'🐑',name:'Sheep',dialog:['Baaaa! 🐑🐑']},
+    {x:20,y:10,emoji:'🐑',name:'Sheep',dialog:['Meeehh! 🐑']},
+    {x:5,y:4,emoji:'👤',name:'Shepherd Eli',dialog:['The nights grow restless in these hills.','I have seen strange lights flickering to the east.','A bush that burns but is never consumed!','Could it be a sign from the Almighty?']},
+    {x:7,y:5,emoji:'👦',name:'Shepherd Boy',dialog:['Are you Moses? My grandfather speaks of you often!','He says you came from Egypt long ago.','Will you tell me a story about the great pyramids?']},
+    {x:4,y:3,emoji:'🧓',name:'Elder Reuel',dialog:['Peace be upon you, Moses.','I have lived ninety years in this desert.','The wind carries whispers of change — a great deliverance.','The God of Abraham has not forgotten His people in Egypt.','Follow the path east. Your destiny awaits at the burning bush.']},
+    {x:24,y:5,emoji:'👤',name:'Merchant Asher',dialog:['Welcome to the oasis! Water is life in this desert.','I trade between Midian and the eastern settlements.','You look like a man on a mission, friend.','I heard the Hebrews in Egypt cry out day and night under Pharaoh\'s lash.']},
+    {x:26,y:6,emoji:'👩',name:'Village Woman',dialog:['The well provides fresh water for our little village.','We are blessed to live near the oasis.','Are you the shepherd from the southern camp?']},
+    {x:22,y:7,emoji:'👴',name:'Old Trader',dialog:['I used to trade in Egypt — beautiful but cruel land.','Pharaoh works the Hebrews without mercy.','If only someone would stand up to that tyrant...','But who could challenge the might of Egypt?']},
+    {x:14,y:20,emoji:'👤',name:'Desert Hermit',dialog:['Few venture into this canyon.','I came here to pray and fast.','The rocks echo with ancient songs of deliverance.','God spoke to Abraham in a place like this.','Be still, and know that He is God.']},
+    {x:18,y:20,emoji:'🐍',name:'Snake',dialog:['Hsssss! 🐍','The snake slithers away harmlessly.']},
+    {x:17,y:10,emoji:'🐐',name:'Wild Goat',dialog:['The goat eyes you cautiously from across the stream.','Mehhhh! 🐐']}
   ];
   MRPG.objects=[];
 }
 
 function mrpg_genEgypt(){
-  var w=22,h=18;var t=new Array(w*h).fill(MT.SAND);
-  // Palace entrance at top
-  for(var x=6;x<16;x++){t[0*w+x]=MT.PALACE_WALL;t[1*w+x]=MT.PALACE_WALL;}
-  for(var x=8;x<14;x++){for(var y=2;y<6;y++)t[y*w+x]=MT.PALACE_FLOOR;}
-  // Throne
-  t[2*w+11]=MT.THRONE;
+  var w=32,h=26;var t=new Array(w*h).fill(MT.SAND);
+
+  // ── Royal Palace (top center, x:10-22, y:0-6) ──
+  for(var x=10;x<22;x++){t[0*w+x]=MT.PALACE_WALL;t[1*w+x]=MT.PALACE_WALL;}
+  for(var x=12;x<20;x++){for(var y=2;y<6;y++)t[y*w+x]=MT.PALACE_FLOOR;}
+  // Throne room
+  t[2*w+16]=MT.THRONE;
   // Pillars
-  t[3*w+8]=MT.PILLAR;t[3*w+13]=MT.PILLAR;t[5*w+8]=MT.PILLAR;t[5*w+13]=MT.PILLAR;
-  // Path from south to palace
-  for(var y=6;y<h;y++)t[y*w+11]=MT.PATH;
-  // Nile river on left side
-  for(var y=4;y<h;y++){t[y*w+2]=MT.WATER;t[y*w+3]=MT.WATER;}
+  t[3*w+12]=MT.PILLAR;t[3*w+19]=MT.PILLAR;t[5*w+12]=MT.PILLAR;t[5*w+19]=MT.PILLAR;
+  // Extra palace chambers
+  for(var x=10;x<12;x++){for(var y=2;y<6;y++)t[y*w+x]=MT.PALACE_FLOOR;}
+  for(var x=20;x<22;x++){for(var y=2;y<6;y++)t[y*w+x]=MT.PALACE_FLOOR;}
+  t[2*w+10]=MT.PILLAR;t[2*w+21]=MT.PILLAR;
+
+  // ── Temple of Ra (west side, x:2-7, y:8-14) ──
+  for(var x=2;x<8;x++){t[8*w+x]=MT.TEMPLE_WALL;t[14*w+x]=MT.TEMPLE_WALL;}
+  for(var y=8;y<=14;y++){t[y*w+2]=MT.TEMPLE_WALL;t[y*w+7]=MT.TEMPLE_WALL;}
+  for(var x=3;x<7;x++){for(var y=9;y<14;y++)t[y*w+x]=MT.TEMPLE_FLOOR;}
+  t[8*w+5]=MT.PATH; // temple entrance
+  t[10*w+4]=MT.PILLAR;t[10*w+5]=MT.PILLAR;t[12*w+4]=MT.PILLAR;t[12*w+5]=MT.PILLAR;
+
+  // ── Nile river (left side, x:0-1) ──
+  for(var y=0;y<h;y++){t[y*w+0]=MT.WATER;t[y*w+1]=MT.WATER;}
+  // Reeds along the Nile
+  for(var y=2;y<h;y+=2){if(t[y*w+2]===MT.SAND)t[y*w+2]=MT.REED;}
+
+  // ── Marketplace (center, x:13-19, y:10-14) ──
+  t[10*w+14]=MT.MARKET_STALL;t[10*w+16]=MT.MARKET_STALL;t[10*w+18]=MT.MARKET_STALL;
+  t[12*w+13]=MT.MARKET_STALL;t[12*w+15]=MT.MARKET_STALL;t[12*w+17]=MT.MARKET_STALL;t[12*w+19]=MT.MARKET_STALL;
+  for(var x=13;x<=19;x++){t[11*w+x]=MT.PATH;t[13*w+x]=MT.PATH;}
+  t[10*w+15]=MT.PATH;t[10*w+17]=MT.PATH;
+  t[12*w+14]=MT.PATH;t[12*w+16]=MT.PATH;t[12*w+18]=MT.PATH;
+  t[14*w+16]=MT.WELL;
+
+  // ── Slave quarters (SE, x:22-29, y:18-24) ──
+  for(var x=23;x<=28;x+=2){t[19*w+x]=MT.SLAVE_HUT;t[21*w+x]=MT.SLAVE_HUT;t[23*w+x]=MT.SLAVE_HUT;}
+  for(var x=22;x<=29;x++){t[20*w+x]=MT.PATH;t[22*w+x]=MT.PATH;}
+
+  // ── Egyptian housing (east, x:24-28, y:6-10) ──
+  for(var y=6;y<10;y++){t[y*w+24]=MT.PALACE_WALL;t[y*w+25]=MT.PALACE_WALL;}
+  for(var y=6;y<10;y++){t[y*w+27]=MT.PALACE_WALL;t[y*w+28]=MT.PALACE_WALL;}
+  t[8*w+24]=MT.PATH;t[8*w+27]=MT.PATH; // doorways
+
+  // ── Main paths ──
+  // North-south palace road
+  for(var y=6;y<h;y++)t[y*w+16]=MT.PATH;
+  // East-west road through marketplace
+  for(var x=8;x<24;x++)t[11*w+x]=MT.PATH;
+  // Path to slave quarters
+  for(var y=14;y<=20;y++)t[y*w+25]=MT.PATH;
+  // Path to temple
+  for(var x=5;x<=13;x++)t[11*w+x]=MT.PATH;
+
   // Bushes along river
-  for(var y=5;y<h;y+=2)t[y*w+4]=MT.BUSH;
-  // Egyptian buildings
-  for(var y=6;y<10;y++){t[y*w+17]=MT.PALACE_WALL;t[y*w+18]=MT.PALACE_WALL;}
-  for(var y=11;y<14;y++){t[y*w+6]=MT.PALACE_WALL;t[y*w+7]=MT.PALACE_WALL;}
-  // Rocks
-  for(var i=0;i<8;i++){var rx=5+Math.floor(Math.random()*12),ry=8+Math.floor(Math.random()*8);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.ROCK;}
-  // Dunes
-  for(var i=0;i<15;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.DUNE;}
+  for(var y=5;y<h;y+=3){if(t[y*w+3]===MT.SAND)t[y*w+3]=MT.BUSH;}
+
+  // Rocks & dunes
+  for(var i=0;i<20;i++){var rx=5+Math.floor(Math.random()*22),ry=8+Math.floor(Math.random()*16);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.ROCK;}
+  for(var i=0;i<30;i++){var rx=Math.floor(Math.random()*w),ry=Math.floor(Math.random()*h);if(t[ry*w+rx]===MT.SAND)t[ry*w+rx]=MT.DUNE;}
+
   MRPG.tiles=t;MRPG.mapW=w;MRPG.mapH=h;
-  MRPG.px=11;MRPG.py=h-2;
+  MRPG.px=16;MRPG.py=h-2;
   // NPCs
   MRPG.npcs=[
-    {x:11,y:2,emoji:'👑',name:'Pharaoh',dialog:null,isPharaoh:true},
-    {x:9,y:4,emoji:'💂',name:'Royal Guard',dialog:['Halt! No one approaches the Pharaoh without permission!','...unless God commands it. Proceed, Hebrew.']},
-    {x:13,y:4,emoji:'💂',name:'Royal Guard',dialog:['The Pharaoh\'s heart is hard as stone.','You will need more than words to move him.']},
-    {x:5,y:12,emoji:'👷',name:'Hebrew Slave',dialog:['Moses! You returned! We heard God spoke to you!','Please... free us from this bondage!','We have suffered under Pharaoh\'s whip for too long.']},
-    {x:16,y:8,emoji:'🧙',name:'Court Magician',dialog:['Ha! Your God is nothing compared to our magic!','...Wait, how did your staff become a serpent?!']},
-    {x:8,y:15,emoji:'👤',name:'Aaron',dialog:['Brother Moses! God told me you were coming!','I will speak for you before Pharaoh.','Together we will deliver God\'s message!']}
+    {x:16,y:2,emoji:'👑',name:'Pharaoh',dialog:null,isPharaoh:true},
+    {x:13,y:4,emoji:'💂',name:'Royal Guard',dialog:['Halt! No one approaches the Pharaoh without permission!','...unless God commands it. Proceed, Hebrew.']},
+    {x:19,y:4,emoji:'💂',name:'Royal Guard',dialog:['The Pharaoh\'s heart is hard as stone.','You will need more than words to move him.','Even his own advisors cannot sway him.']},
+    {x:15,y:3,emoji:'💂',name:'Captain Khafre',dialog:['I am the captain of the royal guard.','I have witnessed many audiences with Pharaoh.','He fears nothing... except perhaps the unknown.','Your God — He is not like our gods, is He?']},
+    {x:8,y:16,emoji:'👤',name:'Aaron',dialog:['Brother Moses! God told me you were coming!','I will speak for you before Pharaoh.','Together we will deliver God\'s message!','The people are ready. They have prayed for this day.']},
+    {x:10,y:18,emoji:'👩',name:'Miriam',dialog:['Moses! My little brother — look how God preserved you!','I watched over you in the basket on the Nile so many years ago.','Now God sends you back to free us all!','I will lead the women in songs of praise when we are free!','Be strong and courageous — the LORD is with you.']},
+    {x:24,y:20,emoji:'👷',name:'Hebrew Slave',dialog:['Moses! You returned! We heard God spoke to you!','Please... free us from this bondage!','We have suffered under Pharaoh\'s whip for too long.']},
+    {x:26,y:21,emoji:'👷',name:'Slave Ezra',dialog:['The overseers beat us for asking for straw.','We must make bricks without straw now!','Pharaoh punishes us more since you came.','But we trust in the God of our fathers.']},
+    {x:28,y:23,emoji:'👷',name:'Slave Woman',dialog:['My children work beside me in the mud pits.','We cry out to the LORD every night.','If you truly come from God, please hurry!']},
+    {x:23,y:19,emoji:'😠',name:'Taskmaster',dialog:['Get back to work, slaves!','What are you looking at, Hebrew?','Your Moses only makes things worse for your people!','Ha! Pharaoh will never let you go!']},
+    {x:22,y:8,emoji:'🧙',name:'Court Magician',dialog:['Ha! Your God is nothing compared to our magic!','...Wait, how did your staff become a serpent?!','Our serpents could not match yours...','Perhaps there is something to your God after all.']},
+    {x:5,y:10,emoji:'🧙',name:'Temple Priest',dialog:['This is the Temple of Ra, the sun god.','Ra rules the heavens! No foreign god can challenge him!','...But I have heard strange things about your God.','The other priests whisper about the Hebrew prophecy.']},
+    {x:4,y:12,emoji:'🧎',name:'Temple Servant',dialog:['I tend the sacred fires day and night.','The priests say your God threatens Egypt.','I am only a servant... I do not understand these things.']},
+    {x:15,y:11,emoji:'👨',name:'Merchant Imhotep',dialog:['Welcome to the great marketplace of Memphis!','I sell fine linen and precious stones.','Business has been poor since those Hebrews started causing trouble.','Between you and me, perhaps Pharaoh should just let them go.']},
+    {x:17,y:13,emoji:'👩',name:'Fruit Seller',dialog:['Fresh figs! Dates! Pomegranates!','The Nile floods bring us rich harvests.','But I heard a rumor — someone says the Nile will turn to blood!','Nonsense, surely... right?']},
+    {x:19,y:11,emoji:'👨',name:'Potter',dialog:['I make fine clay vessels for the palace.','The Hebrews are the best brickmakers in all Egypt.','If Pharaoh lets them go, who will build his monuments?']},
+    {x:13,y:14,emoji:'👩',name:'Egyptian Woman',dialog:['My neighbor says a Hebrew prophet came to the palace.','He demanded that Pharaoh free the slaves!','Can you imagine the audacity?','...though my grandmother always said the Hebrew God was real.']},
+    {x:10,y:22,emoji:'🧓',name:'Hebrew Elder',dialog:['Moses, I remember when you were drawn from the Nile.','Pharaoh\'s daughter raised you in the palace.','Now you return — not as a prince, but as God\'s prophet!','The elders of Israel stand with you.','God told Abraham our suffering would last 400 years — the time is fulfilled!']},
+    {x:6,y:20,emoji:'👦',name:'Hebrew Child',dialog:['Are you really Moses? Mama says you\'re going to save us!','I want to see the Promised Land!','Is it true there\'s milk and honey there?']},
+    {x:20,y:16,emoji:'💂',name:'Gate Guard',dialog:['The road south leads to the slave quarters.','Be careful — the taskmasters are harsh.','I look the other way when I can... those Hebrews suffer greatly.']}
   ];
 }
 
@@ -12172,7 +12286,7 @@ var MRPG_PLAGUES=[
 function mrpg_solid(tx,ty){
   if(tx<0||ty<0||tx>=MRPG.mapW||ty>=MRPG.mapH)return true;
   var t=MRPG.tiles[ty*MRPG.mapW+tx];
-  return t===MT.ROCK||t===MT.WATER||t===MT.PALACE_WALL||t===MT.PILLAR||t===MT.THRONE;
+  return t===MT.ROCK||t===MT.WATER||t===MT.PALACE_WALL||t===MT.PILLAR||t===MT.THRONE||t===MT.TEMPLE_WALL||t===MT.MARKET_STALL||t===MT.SLAVE_HUT;
 }
 
 // ── NPC at tile ──
@@ -12203,29 +12317,29 @@ function rMosesRPG(){
   var heartBar='';
   if(MRPG.phase==='egypt'||MRPG.phase==='plague'){
     heartBar='<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px">';
-    heartBar+='<span style="font-size:12px;color:#aaa">Pharaoh\'s Heart:</span>';
+    heartBar+='<span style="font-size:15px;color:#aaa">Pharaoh\'s Heart:</span>';
     for(var i=0;i<10;i++){
-      heartBar+='<span style="font-size:14px;opacity:'+(i<MRPG.pharaohHeart?'1':'0.2')+'">'+(i<MRPG.pharaohHeart?'🖤':'💛')+'</span>';
+      heartBar+='<span style="font-size:16px;opacity:'+(i<MRPG.pharaohHeart?'1':'0.2')+'">'+(i<MRPG.pharaohHeart?'🖤':'💛')+'</span>';
     }
     heartBar+='</div>';
   }
   return'<div style="min-height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;padding:8px 4px 0;font-family:Georgia,serif">'+
-    '<div style="width:100%;max-width:580px">'+
+    '<div style="width:100%;max-width:720px">'+
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'+
-        '<button onclick="mrpg_quit()" style="background:none;border:1px solid #333;color:#555;padding:4px 10px;border-radius:6px;font-size:14px;cursor:pointer">← Quit</button>'+
-        '<div style="flex:1;text-align:center;font-size:15px;color:'+accent+';letter-spacing:1px;font-weight:bold">LET MY PEOPLE GO</div>'+
-        '<div style="font-size:15px;color:#888">🪄</div>'+
+        '<button onclick="mrpg_quit()" style="background:none;border:1px solid #333;color:#555;padding:6px 12px;border-radius:6px;font-size:16px;cursor:pointer">← Quit</button>'+
+        '<div style="flex:1;text-align:center;font-size:18px;color:'+accent+';letter-spacing:1px;font-weight:bold">LET MY PEOPLE GO</div>'+
+        '<div style="font-size:18px;color:#888">🪄</div>'+
       '</div>'+
-      '<div style="text-align:center;font-size:13px;color:#aaa;margin-bottom:3px">'+phaseLabel+'</div>'+
+      '<div style="text-align:center;font-size:15px;color:#aaa;margin-bottom:3px">'+phaseLabel+'</div>'+
       heartBar+
-      '<canvas id="mrpgCanvas" width="560" height="480" style="width:100%;max-width:580px;border-radius:10px;border:2px solid #FFD70033;display:block;touch-action:none"></canvas>'+
+      '<canvas id="mrpgCanvas" width="720" height="580" style="width:100%;max-width:720px;border-radius:10px;border:2px solid #FFD70033;display:block;touch-action:none"></canvas>'+
       '<div id="mrpgDialog" style="display:none;background:linear-gradient(180deg,#0d0d1a,#0a0a12);border:1px solid #FFD70044;border-radius:0 0 10px 10px;padding:14px 16px;margin-top:-1px">'+
-        '<div id="mrpgDialogText" style="font-size:16px;color:#ddd;line-height:1.6;text-align:center;min-height:40px"></div>'+
+        '<div id="mrpgDialogText" style="font-size:18px;color:#ddd;line-height:1.6;text-align:center;min-height:40px"></div>'+
         '<div id="mrpgDialogBtns" style="text-align:center;margin-top:10px"></div>'+
       '</div>'+
-      '<div id="mrpgControls" style="display:flex;justify-content:center;align-items:center;gap:20px;margin-top:10px;user-select:none">'+
-        '<canvas id="mrpgJoystick" width="140" height="140" style="width:140px;height:140px;touch-action:none;cursor:pointer"></canvas>'+
-        '<button onclick="mrpg_interact()" style="background:linear-gradient(135deg,#1a1a00,#0d0d00);border:2px solid #FFD70066;color:#FFD700;font-size:16px;border-radius:50%;width:64px;height:64px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:Georgia,serif;box-shadow:0 0 12px #FFD70022">ACT</button>'+
+      '<div id="mrpgControls" style="display:flex;justify-content:center;align-items:center;gap:24px;margin-top:10px;user-select:none">'+
+        '<canvas id="mrpgJoystick" width="160" height="160" style="width:160px;height:160px;touch-action:none;cursor:pointer"></canvas>'+
+        '<button onclick="mrpg_interact()" style="background:linear-gradient(135deg,#1a1a00,#0d0d00);border:2px solid #FFD70066;color:#FFD700;font-size:18px;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:Georgia,serif;box-shadow:0 0 12px #FFD70022">ACT</button>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -12240,12 +12354,12 @@ function mrpg_initJoystick(){
   var jc=document.getElementById('mrpgJoystick');
   if(!jc)return;
   var jctx=jc.getContext('2d');
-  var cx=70,cy=70,outerR=60,knobR=22;
+  var cx=80,cy=80,outerR=68,knobR=26;
   _mrpg_joy={ax:0,ay:0,active:false,knobX:cx,knobY:cy};
 
   function drawJoy(){
     if(!MRPG.active)return;
-    jctx.clearRect(0,0,140,140);
+    jctx.clearRect(0,0,160,160);
     // Outer ring
     jctx.beginPath();jctx.arc(cx,cy,outerR,0,Math.PI*2);
     jctx.fillStyle='rgba(255,255,255,0.06)';jctx.fill();
@@ -12262,9 +12376,9 @@ function mrpg_initJoystick(){
     jctx.fillStyle=grd;jctx.fill();
     jctx.strokeStyle=_mrpg_joy.active?'#FFD700':'#666';jctx.lineWidth=2;jctx.stroke();
     // Direction arrows around the ring
-    jctx.fillStyle='#ffffff22';jctx.font='14px sans-serif';jctx.textAlign='center';jctx.textBaseline='middle';
-    jctx.fillText('▲',cx,cy-outerR+12);jctx.fillText('▼',cx,cy+outerR-12);
-    jctx.fillText('◀',cx-outerR+12,cy);jctx.fillText('▶',cx+outerR-12,cy);
+    jctx.fillStyle='#ffffff22';jctx.font='16px sans-serif';jctx.textAlign='center';jctx.textBaseline='middle';
+    jctx.fillText('▲',cx,cy-outerR+14);jctx.fillText('▼',cx,cy+outerR-14);
+    jctx.fillText('◀',cx-outerR+14,cy);jctx.fillText('▶',cx+outerR-14,cy);
     requestAnimationFrame(drawJoy);
   }
   drawJoy();
@@ -12282,11 +12396,12 @@ function mrpg_initJoystick(){
   }
 
   jc.addEventListener('pointerdown',function(e){
+    e.preventDefault();
     jc.setPointerCapture(e.pointerId);
     getJoyPos(e);
   });
   jc.addEventListener('pointermove',function(e){
-    if(_mrpg_joy.active)getJoyPos(e);
+    if(_mrpg_joy.active){e.preventDefault();getJoyPos(e);}
   });
   jc.addEventListener('pointerup',function(e){
     _mrpg_joy.active=false;_mrpg_joy.ax=0;_mrpg_joy.ay=0;
@@ -12485,6 +12600,13 @@ function mrpg_checkTileEvent(){
   if(MRPG.phase==='midian'&&MRPG.px>=MRPG.mapW-1&&!MRPG.bushFound){
     mrpg_showDialog(['The desert stretches endlessly... Perhaps there is something along the eastern path.'],null);
   }
+  // Stream crossing hint
+  if(MRPG.phase==='midian'&&!MRPG.bushFound){
+    var ct=MRPG.tiles[MRPG.py*MRPG.mapW+MRPG.px];
+    if(ct===MT.REED){
+      mrpg_showDialog(['🌿 Reeds grow along a small desert stream.','The water flows east... toward something.'],null);
+    }
+  }
 }
 
 // ── Interact (talk/examine) ──
@@ -12513,6 +12635,20 @@ function mrpg_interact(){
   }
   if(tileVal===MT.TENT){
     mrpg_showDialog(['🏕️ Moses\'s tent in Midian. 40 years of quiet shepherding...','But God has other plans.'],null);
+  }
+  if(tileVal===MT.WELL){
+    mrpg_showDialog(['💧 The well draws water from deep underground.','In the desert, a well is a gathering place for the community.','\"Everyone who drinks this water will be thirsty again, but whoever drinks the water I give will never thirst.\"'],null);
+  }
+  if(tileVal===MT.CAMPFIRE){
+    mrpg_showDialog(['🔥 The campfire crackles and pops.','The warmth pushes back the cold desert night.','Shepherds gather here to share stories of the Almighty.'],null);
+  }
+  if(tileVal===MT.MARKET_STALL){
+    var marketDialogs=[
+      ['🏪 A merchant\'s stall selling spices and dried fruits.','The aroma of cinnamon and myrrh fills the air.'],
+      ['🏪 Colorful fabrics and pottery are displayed for sale.','Trade has connected these desert villages for centuries.'],
+      ['🏪 A stall with leather goods and woven baskets.','The merchant eyes you curiously.']
+    ];
+    mrpg_showDialog(marketDialogs[Math.floor(Math.random()*marketDialogs.length)],null);
   }
 }
 
@@ -12610,7 +12746,7 @@ function mrpg_updateDialogUI(){
   dEl.style.display='block';
   tEl.textContent=MRPG.dialog.lines[MRPG.dialog.idx];
   var remaining=MRPG.dialog.lines.length-MRPG.dialog.idx-1;
-  bEl.innerHTML='<button onclick="mrpg_advanceDialog()" style="background:linear-gradient(135deg,#1a1a00,#0a0a00);border:1px solid #FFD70055;color:#FFD700;padding:8px 20px;border-radius:8px;font-size:15px;cursor:pointer;font-family:Georgia,serif">'+(remaining>0?'Continue ▶':'OK ✓')+'</button>';
+  bEl.innerHTML='<button onclick="mrpg_advanceDialog()" ontouchstart="mrpg_advanceDialog();if(event.cancelable)event.preventDefault()" style="background:linear-gradient(135deg,#1a1a00,#0a0a00);border:1px solid #FFD70055;color:#FFD700;padding:10px 24px;border-radius:8px;font-size:17px;cursor:pointer;font-family:Georgia,serif;touch-action:manipulation">'+(remaining>0?'Continue ▶':'OK ✓')+'</button>';
 }
 
 // ══════════════════════════════════════════════
@@ -12631,12 +12767,12 @@ function mrpg_startPlague(p){
   // Pre-spawn entities for whack type
   if(p.type==='whack'){
     for(var i=0;i<5;i++){
-      mg.entities.push({x:50+Math.random()*460,y:40+Math.random()*320,alive:true,timer:2+Math.random()*3,emoji:p.emoji});
+      mg.entities.push({x:60+Math.random()*600,y:50+Math.random()*400,alive:true,timer:2+Math.random()*3,emoji:p.emoji});
     }
   }
   if(p.type==='dodge'){
     for(var i=0;i<4;i++){
-      mg.safeZones.push({x:40+Math.random()*480,y:30+Math.random()*340,r:32});
+      mg.safeZones.push({x:50+Math.random()*620,y:40+Math.random()*420,r:36});
     }
   }
   MRPG.plagueMinigame=mg;
@@ -12644,16 +12780,32 @@ function mrpg_startPlague(p){
   var c=document.getElementById('mrpgCanvas');
   if(c){
     MRPG._plaguePointerDown=function(e){
+      e.preventDefault();e.stopPropagation();
       var rect=c.getBoundingClientRect();
       var sx=(e.clientX-rect.left)*(c.width/rect.width);
       var sy=(e.clientY-rect.top)*(c.height/rect.height);
       mrpg_plagueTap(sx,sy,true);
     };
     MRPG._plaguePointerUp=function(e){
+      e.preventDefault();e.stopPropagation();
+      mrpg_plagueTap(0,0,false);
+    };
+    MRPG._plagueTouchStart=function(e){
+      e.preventDefault();e.stopPropagation();
+      var touch=e.touches[0];if(!touch)return;
+      var rect=c.getBoundingClientRect();
+      var sx=(touch.clientX-rect.left)*(c.width/rect.width);
+      var sy=(touch.clientY-rect.top)*(c.height/rect.height);
+      mrpg_plagueTap(sx,sy,true);
+    };
+    MRPG._plagueTouchEnd=function(e){
+      e.preventDefault();e.stopPropagation();
       mrpg_plagueTap(0,0,false);
     };
     c.addEventListener('pointerdown',MRPG._plaguePointerDown);
     c.addEventListener('pointerup',MRPG._plaguePointerUp);
+    c.addEventListener('touchstart',MRPG._plagueTouchStart,{passive:false});
+    c.addEventListener('touchend',MRPG._plagueTouchEnd,{passive:false});
   }
 }
 
@@ -12688,7 +12840,7 @@ function mrpg_plagueTap(sx,sy,down){
         var z=mg.safeZones[i];
         if(Math.hypot(sx-z.x,sy-z.y)<z.r){
           mg.score++;
-          z.x=40+Math.random()*480;z.y=30+Math.random()*340;
+          z.x=50+Math.random()*620;z.y=40+Math.random()*420;
           SFX&&SFX.click&&SFX.click();
           break;
         }
@@ -12713,7 +12865,7 @@ function mrpg_updatePlague(dt){
       mg.spawnTimer=0;
       var aliveCount=mg.entities.filter(function(e){return e.alive;}).length;
       if(aliveCount<6){
-        mg.entities.push({x:40+Math.random()*480,y:40+Math.random()*360,alive:true,timer:2+Math.random()*2,emoji:mg.plague.emoji});
+        mg.entities.push({x:50+Math.random()*620,y:40+Math.random()*400,alive:true,timer:2+Math.random()*2,emoji:mg.plague.emoji});
       }
     }
     // Age out entities
@@ -12737,6 +12889,7 @@ function mrpg_updatePlague(dt){
     if(c&&MRPG._plaguePointerDown){
       c.removeEventListener('pointerdown',MRPG._plaguePointerDown);
       c.removeEventListener('pointerup',MRPG._plaguePointerUp);
+      if(MRPG._plagueTouchStart){c.removeEventListener('touchstart',MRPG._plagueTouchStart);c.removeEventListener('touchend',MRPG._plagueTouchEnd);}
     }
     // Process result
     setTimeout(function(){mrpg_plagueResult(mg);},500);
@@ -12794,11 +12947,19 @@ function mrpg_startRedSea(){
   var c=document.getElementById('mrpgCanvas');
   if(c){
     MRPG._plaguePointerDown=function(e){
+      e.preventDefault();e.stopPropagation();
+      var mg=MRPG.plagueMinigame;if(!mg||!mg.active)return;
+      mg.taps++;mg.seaLevel=Math.max(0,1.0-mg.taps/mg.target);
+      SFX&&SFX.click&&SFX.click();
+    };
+    MRPG._plagueTouchStart=function(e){
+      e.preventDefault();e.stopPropagation();
       var mg=MRPG.plagueMinigame;if(!mg||!mg.active)return;
       mg.taps++;mg.seaLevel=Math.max(0,1.0-mg.taps/mg.target);
       SFX&&SFX.click&&SFX.click();
     };
     c.addEventListener('pointerdown',MRPG._plaguePointerDown);
+    c.addEventListener('touchstart',MRPG._plagueTouchStart,{passive:false});
   }
 }
 
@@ -12809,7 +12970,7 @@ function mrpg_updateRedSea(dt){
   if(mg.timeLeft<=0||mg.taps>=mg.target){
     mg.active=false;mg.success=mg.taps>=mg.target;
     var c=document.getElementById('mrpgCanvas');
-    if(c&&MRPG._plaguePointerDown){c.removeEventListener('pointerdown',MRPG._plaguePointerDown);}
+    if(c&&MRPG._plaguePointerDown){c.removeEventListener('pointerdown',MRPG._plaguePointerDown);if(MRPG._plagueTouchStart){c.removeEventListener('touchstart',MRPG._plagueTouchStart);}}
     setTimeout(function(){
       MRPG.plagueActive=false;MRPG.plagueMinigame=null;
       MRPG.totalXp+=150;
@@ -12855,7 +13016,7 @@ function mrpg_victory(){
 function mrpg_draw(){
   var c=MRPG.canvas,ctx=MRPG.ctx;if(!c||!ctx)return;
   var W=c.width,H=c.height;
-  var TS=32; // tile size (larger for better detail)
+  var TS=40; // tile size (larger for mobile readability)
   var t=MRPG.animT;
 
   // Update minigame
@@ -13041,6 +13202,102 @@ function mrpg_draw(){
           ctx.stroke();
         }
       }
+      // ── New tile types ──
+      if(tileVal===MT.WELL){
+        ctx.fillStyle='#C2A64E';ctx.fillRect(sx,sy,TS,TS);
+        // Stone well ring
+        ctx.fillStyle='#888';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS/2,TS*0.35,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#2266AA';ctx.beginPath();ctx.arc(sx+TS/2,sy+TS/2,TS*0.22,0,Math.PI*2);ctx.fill();
+        // Water shimmer
+        ctx.fillStyle='rgba(100,180,255,'+(0.3+0.15*Math.sin(t*3))+')';
+        ctx.beginPath();ctx.arc(sx+TS/2,sy+TS/2,TS*0.12,0,Math.PI*2);ctx.fill();
+        // Cross beams
+        ctx.fillStyle='#5a3d0a';ctx.fillRect(sx+TS*0.2,sy+TS*0.08,TS*0.6,TS*0.06);
+        ctx.fillRect(sx+TS/2-2,sy,4,TS*0.15);
+        // Bucket
+        ctx.fillStyle='#6B4513';ctx.fillRect(sx+TS*0.42,sy+TS*0.15,TS*0.16,TS*0.12);
+      }
+      if(tileVal===MT.MARKET_STALL){
+        ctx.fillStyle='#C2A64E';ctx.fillRect(sx,sy,TS,TS);
+        // Stall frame
+        ctx.fillStyle='#5a3d0a';ctx.fillRect(sx+2,sy+TS*0.3,TS-4,TS*0.65);
+        // Canopy (alternating colors)
+        var canCol=(tx+ty)%2===0?'#CC3333':'#CC8800';
+        ctx.fillStyle=canCol;
+        ctx.beginPath();ctx.moveTo(sx,sy+TS*0.3);ctx.lineTo(sx+TS/2,sy+TS*0.1);ctx.lineTo(sx+TS,sy+TS*0.3);ctx.closePath();ctx.fill();
+        // Goods on display
+        ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(sx+TS*0.3,sy+TS*0.6,TS*0.08,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#FF6600';ctx.beginPath();ctx.arc(sx+TS*0.5,sy+TS*0.6,TS*0.08,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#33AA33';ctx.beginPath();ctx.arc(sx+TS*0.7,sy+TS*0.6,TS*0.08,0,Math.PI*2);ctx.fill();
+      }
+      if(tileVal===MT.TEMPLE_FLOOR){
+        ctx.fillStyle='#7A6B55';ctx.fillRect(sx,sy,TS,TS);
+        // Checkered pattern
+        ctx.fillStyle='#6A5B45';
+        if((tx+ty)%2===0)ctx.fillRect(sx,sy,TS/2,TS/2);
+        else ctx.fillRect(sx+TS/2,sy+TS/2,TS/2,TS/2);
+        ctx.strokeStyle='#5A4B35';ctx.lineWidth=0.5;ctx.strokeRect(sx+1,sy+1,TS-2,TS-2);
+      }
+      if(tileVal===MT.TEMPLE_WALL){
+        ctx.fillStyle='#3A2A1A';ctx.fillRect(sx,sy,TS,TS);
+        // Brick pattern
+        ctx.fillStyle='#2A1A0A';
+        ctx.fillRect(sx,sy+TS/3-1,TS,1);ctx.fillRect(sx,sy+TS*2/3-1,TS,1);
+        // Egyptian symbol — ankh or sun disk
+        if((tx+ty)%2===0){
+          ctx.fillStyle='#FFD70033';
+          ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.4,TS*0.15,0,Math.PI*2);ctx.fill();
+          // Sun rays
+          ctx.strokeStyle='#FFD70022';ctx.lineWidth=1;
+          for(var r=0;r<6;r++){var ra=r*Math.PI/3;ctx.beginPath();ctx.moveTo(sx+TS/2+Math.cos(ra)*TS*0.18,sy+TS*0.4+Math.sin(ra)*TS*0.18);ctx.lineTo(sx+TS/2+Math.cos(ra)*TS*0.3,sy+TS*0.4+Math.sin(ra)*TS*0.3);ctx.stroke();}
+        }else{
+          ctx.strokeStyle='#FFD70022';ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.3,TS*0.08,0,Math.PI*2);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(sx+TS/2,sy+TS*0.38);ctx.lineTo(sx+TS/2,sy+TS*0.75);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(sx+TS*0.35,sy+TS*0.5);ctx.lineTo(sx+TS*0.65,sy+TS*0.5);ctx.stroke();
+        }
+      }
+      if(tileVal===MT.SLAVE_HUT){
+        ctx.fillStyle='#C2A64E';ctx.fillRect(sx,sy,TS,TS);
+        // Mud brick hut
+        ctx.fillStyle='#6B5530';ctx.fillRect(sx+TS*0.1,sy+TS*0.3,TS*0.8,TS*0.65);
+        // Roof
+        ctx.fillStyle='#8B6914';
+        ctx.beginPath();ctx.moveTo(sx+TS*0.05,sy+TS*0.3);ctx.lineTo(sx+TS/2,sy+TS*0.05);ctx.lineTo(sx+TS*0.95,sy+TS*0.3);ctx.closePath();ctx.fill();
+        // Door
+        ctx.fillStyle='#3A2510';ctx.fillRect(sx+TS*0.38,sy+TS*0.55,TS*0.24,TS*0.4);
+      }
+      if(tileVal===MT.REED){
+        ctx.fillStyle='#C2A64E';ctx.fillRect(sx,sy,TS,TS);
+        // Reed stalks
+        for(var ri=0;ri<4;ri++){
+          var rx2=sx+TS*0.15+ri*TS*0.22;
+          ctx.strokeStyle='#4A7A3A';ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(rx2,sy+TS);ctx.quadraticCurveTo(rx2+Math.sin(t*2+ri)*3,sy+TS*0.3,rx2+Math.sin(t*3+ri)*4,sy+TS*0.05);ctx.stroke();
+          // Reed head
+          ctx.fillStyle='#8B7355';ctx.beginPath();ctx.ellipse(rx2+Math.sin(t*3+ri)*4,sy+TS*0.08,2,TS*0.06,0,0,Math.PI*2);ctx.fill();
+        }
+      }
+      if(tileVal===MT.CAMPFIRE){
+        ctx.fillStyle='#C2A64E';ctx.fillRect(sx,sy,TS,TS);
+        // Fire pit stones
+        ctx.fillStyle='#666';
+        var stoneAngles=[0,0.7,1.4,2.1,2.8,3.5,4.2,4.9,5.6];
+        for(var si=0;si<stoneAngles.length;si++){
+          ctx.beginPath();ctx.arc(sx+TS/2+Math.cos(stoneAngles[si])*TS*0.28,sy+TS*0.6+Math.sin(stoneAngles[si])*TS*0.18,TS*0.06,0,Math.PI*2);ctx.fill();
+        }
+        // Fire
+        for(var fi=0;fi<3;fi++){
+          var ff=Math.sin(t*8+fi*2)*3;
+          ctx.fillStyle='rgba(255,'+(120+fi*50)+',0,'+(0.9-fi*0.2)+')';
+          ctx.beginPath();ctx.ellipse(sx+TS/2+fi*3-3,sy+TS*0.5-Math.abs(ff)*0.5,TS*0.06,TS*0.12+Math.sin(t*6+fi)*TS*0.03,0,0,Math.PI*2);ctx.fill();
+        }
+        ctx.fillStyle='rgba(255,220,50,'+(0.5+0.3*Math.sin(t*5))+')';
+        ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.45,TS*0.08,0,Math.PI*2);ctx.fill();
+        // Glow
+        ctx.fillStyle='rgba(255,150,50,'+(0.08+0.05*Math.sin(t*4))+')';
+        ctx.beginPath();ctx.arc(sx+TS/2,sy+TS*0.55,TS*0.7,0,Math.PI*2);ctx.fill();
+      }
     }
   }
 
@@ -13061,14 +13318,14 @@ function mrpg_draw(){
   var fx=MRPG.px+dx2,fy=MRPG.py+dy2;
   var fNpc=mrpg_npcAt(fx,fy);
   var fTile=(fx>=0&&fy>=0&&fx<MRPG.mapW&&fy<MRPG.mapH)?MRPG.tiles[fy*MRPG.mapW+fx]:-1;
-  if(fNpc||fTile===MT.BURNING_BUSH||fTile===MT.OASIS||fTile===MT.TENT){
+  if(fNpc||fTile===MT.BURNING_BUSH||fTile===MT.OASIS||fTile===MT.TENT||fTile===MT.WELL||fTile===MT.CAMPFIRE||fTile===MT.MARKET_STALL){
     var hx=(fx-camTX)*TS+TS/2,hy=(fy-camTY)*TS-8;
-    ctx.font='bold 14px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+    ctx.font='bold 16px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
     ctx.fillText('❗',hx,hy+Math.sin(t*4)*3);
   }
 
   // Objective text
-  ctx.font='bold 13px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+  ctx.font='bold 15px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
   var obj='';
   if(MRPG.phase==='midian'&&!MRPG.bushFound)obj='🔍 Explore the desert. Follow the eastern path.';
   if(MRPG.phase==='midian'&&MRPG.bushFound)obj='🔥 The Burning Bush! Approach it!';
@@ -13076,17 +13333,17 @@ function mrpg_draw(){
   if(MRPG.phase==='egypt'&&MRPG.pharaohHeart<=0)obj='👑 Speak to Pharaoh — he will let Israel go!';
   if(obj){
     ctx.fillStyle='rgba(0,0,0,0.75)';
-    var tw=ctx.measureText(obj).width+16;
-    ctx.beginPath();ctx.roundRect((W-tw)/2,H-28,tw,22,6);ctx.fill();
-    ctx.fillStyle='#FFD700';ctx.fillText(obj,W/2,H-13);
+    var tw=ctx.measureText(obj).width+20;
+    ctx.beginPath();ctx.roundRect((W-tw)/2,H-32,tw,26,6);ctx.fill();
+    ctx.fillStyle='#FFD700';ctx.fillText(obj,W/2,H-15);
   }
 
   // Staff indicator
   if(MRPG.staffObtained){
     ctx.fillStyle='rgba(0,0,0,0.6)';
-    ctx.beginPath();ctx.roundRect(4,H-28,110,22,6);ctx.fill();
-    ctx.font='13px serif';ctx.textAlign='left';ctx.fillStyle='#FFD700';
-    ctx.fillText('🪄 Staff of God',10,H-13);
+    ctx.beginPath();ctx.roundRect(4,H-32,130,26,6);ctx.fill();
+    ctx.font='15px serif';ctx.textAlign='left';ctx.fillStyle='#FFD700';
+    ctx.fillText('🪄 Staff of God',10,H-15);
   }
 
   // Fade overlay
@@ -13164,8 +13421,8 @@ function mrpg_drawMoses(ctx,x,y,s,t){
   ctx.fillStyle='#C49060';
   ctx.beginPath();ctx.moveTo(cx,y+s*0.24+bob);ctx.lineTo(cx-s*0.02,y+s*0.28+bob);ctx.lineTo(cx+s*0.02,y+s*0.28+bob);ctx.closePath();ctx.fill();
   // Name label
-  ctx.font='bold 9px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='top';
-  ctx.fillText('Moses',cx,y-8+bob);
+  ctx.font='bold 14px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('Moses',cx,y-12+bob);
   ctx.restore();
 }
 
@@ -13191,8 +13448,48 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
     // Legs
     ctx.fillStyle='#333';
     ctx.fillRect(cx-s*0.18,y+s*0.78+bob,3,s*0.15);ctx.fillRect(cx+s*0.12,y+s*0.78+bob,3,s*0.15);
-    ctx.font='bold 8px Georgia';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(npc.name,cx,y-6);
+    ctx.font='bold 14px Georgia';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-10);
+    ctx.restore();return;
+  }
+
+  if(npc.name==='Snake'){
+    // Coiled snake
+    ctx.strokeStyle='#558833';ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(cx-s*0.2,y+s*0.7+bob);
+    ctx.quadraticCurveTo(cx,y+s*0.4+bob,cx+s*0.15,y+s*0.55+bob);
+    ctx.quadraticCurveTo(cx+s*0.3,y+s*0.7+bob,cx+s*0.1,y+s*0.75+bob);
+    ctx.stroke();
+    // Head
+    ctx.fillStyle='#558833';ctx.beginPath();ctx.arc(cx-s*0.2,y+s*0.68+bob,s*0.06,0,Math.PI*2);ctx.fill();
+    // Eyes
+    ctx.fillStyle='#FF0000';ctx.beginPath();ctx.arc(cx-s*0.22,y+s*0.66+bob,1.5,0,Math.PI*2);ctx.fill();
+    // Tongue
+    ctx.strokeStyle='#CC0000';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx-s*0.26,y+s*0.68+bob);ctx.lineTo(cx-s*0.32,y+s*0.65+bob);ctx.stroke();
+    ctx.font='bold 14px Georgia';ctx.fillStyle='#88CC88';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-10);
+    ctx.restore();return;
+  }
+
+  if(npc.name==='Wild Goat'){
+    // Goat body
+    ctx.fillStyle='#AA8866';
+    ctx.beginPath();ctx.ellipse(cx,y+s*0.6+bob,s*0.25,s*0.15,0,0,Math.PI*2);ctx.fill();
+    // Head
+    ctx.fillStyle='#997755';ctx.beginPath();ctx.arc(cx-s*0.15,y+s*0.45+bob,s*0.1,0,Math.PI*2);ctx.fill();
+    // Horns
+    ctx.strokeStyle='#666';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx-s*0.15,y+s*0.38+bob);ctx.quadraticCurveTo(cx-s*0.25,y+s*0.25+bob,cx-s*0.2,y+s*0.2+bob);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-s*0.1,y+s*0.38+bob);ctx.quadraticCurveTo(cx-s*0.02,y+s*0.25+bob,cx-s*0.05,y+s*0.2+bob);ctx.stroke();
+    // Eyes
+    ctx.fillStyle='#333';ctx.beginPath();ctx.arc(cx-s*0.18,y+s*0.43+bob,1.5,0,Math.PI*2);ctx.fill();
+    // Legs
+    ctx.fillStyle='#886644';
+    ctx.fillRect(cx-s*0.15,y+s*0.72+bob,3,s*0.18);ctx.fillRect(cx+s*0.1,y+s*0.72+bob,3,s*0.18);
+    ctx.font='bold 14px Georgia';ctx.fillStyle='#ccc';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-10);
     ctx.restore();return;
   }
 
@@ -13200,12 +13497,23 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
   var skin=npc.isPharaoh?'#C49860':'#C8A070';
   var robCol,headType;
   if(npc.isPharaoh){robCol='#FFD700';headType='nemes';}
-  else if(npc.name==='Royal Guard'){robCol='#CC0000';headType='guard';}
+  else if(npc.name==='Royal Guard'||npc.name==='Captain Khafre'){robCol='#CC0000';headType='guard';}
   else if(npc.name==='Court Magician'){robCol='#660099';headType='hood';}
-  else if(npc.name==='Hebrew Slave'){skin='#B08050';robCol='#8B7355';headType='bare';}
+  else if(npc.name==='Temple Priest'){robCol='#333';headType='hood';}
+  else if(npc.name==='Temple Servant'){skin='#B08050';robCol='#555';headType='bare';}
+  else if(npc.name==='Hebrew Slave'||npc.name==='Slave Ezra'||npc.name==='Slave Woman'){skin='#B08050';robCol='#8B7355';headType='bare';}
+  else if(npc.name==='Taskmaster'){skin='#C49860';robCol='#8B0000';headType='guard';}
+  else if(npc.name==='Gate Guard'){robCol='#CC4400';headType='guard';}
   else if(npc.name==='Aaron'){skin='#C8A070';robCol='#1a5a8a';headType='turban';}
-  else if(npc.name==='Jethro'){skin='#A07040';robCol='#555';headType='turban';}
-  else if(npc.name==='Shepherd'){skin='#B88A60';robCol='#6B5B3A';headType='bare';}
+  else if(npc.name==='Miriam'){skin='#C8A070';robCol='#6B2D8B';headType='turban';}
+  else if(npc.name==='Jethro'||npc.name==='Elder Reuel'){skin='#A07040';robCol='#555';headType='turban';}
+  else if(npc.name==='Zipporah'){skin='#B88A60';robCol='#2a6a4a';headType='turban';}
+  else if(npc.name==='Shepherd'||npc.name==='Shepherd Eli'){skin='#B88A60';robCol='#6B5B3A';headType='bare';}
+  else if(npc.name==='Shepherd Boy'||npc.name==='Hebrew Child'){skin='#C8A070';robCol='#8B7355';headType='bare';}
+  else if(npc.name==='Merchant Asher'||npc.name==='Merchant Imhotep'||npc.name==='Potter'){skin='#C49860';robCol='#886644';headType='turban';}
+  else if(npc.name==='Fruit Seller'||npc.name==='Village Woman'||npc.name==='Egyptian Woman'){skin='#C8A070';robCol='#AA5533';headType='turban';}
+  else if(npc.name==='Old Trader'||npc.name==='Hebrew Elder'){skin='#A07040';robCol='#666';headType='turban';}
+  else if(npc.name==='Desert Hermit'){skin='#B08050';robCol='#444';headType='turban';}
   else{skin='#C8A070';robCol='#888';headType='bare';}
 
   // Feet/sandals
@@ -13325,9 +13633,9 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
   ctx.beginPath();ctx.arc(cx+s*0.05,y+s*0.22+bob,s*0.015,0,Math.PI*2);ctx.fill();
 
   // Name label
-  ctx.font='bold 9px Georgia';ctx.textAlign='center';ctx.textBaseline='top';
-  ctx.fillStyle=npc.isPharaoh?'#FFD700':npc.name==='Royal Guard'?'#FF6666':npc.name==='Court Magician'?'#CC88FF':npc.name==='Aaron'?'#88BBFF':'#ccc';
-  ctx.fillText(npc.name,cx,y-8+bob);
+  ctx.font='bold 14px Georgia';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle=npc.isPharaoh?'#FFD700':npc.name.indexOf('Guard')>=0||npc.name==='Captain Khafre'||npc.name==='Taskmaster'?'#FF6666':npc.name.indexOf('Magician')>=0||npc.name.indexOf('Priest')>=0?'#CC88FF':npc.name==='Aaron'||npc.name==='Miriam'?'#88BBFF':npc.name.indexOf('Hebrew')>=0||npc.name.indexOf('Slave')>=0?'#AADDFF':'#ccc';
+  ctx.fillText(npc.name,cx,y-12+bob);
 
   // Pharaoh golden glow
   if(npc.isPharaoh){
@@ -13346,41 +13654,41 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
   ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
 
   // Title
-  ctx.font='bold 22px Georgia';ctx.fillStyle=p.color;ctx.textAlign='center';
-  ctx.fillText(p.emoji+' '+p.name,W/2,32);
-  ctx.font='13px Georgia';ctx.fillStyle='#aaa';
-  ctx.fillText(p.instruction+' (or press SPACE)',W/2,52);
+  ctx.font='bold 26px Georgia';ctx.fillStyle=p.color;ctx.textAlign='center';
+  ctx.fillText(p.emoji+' '+p.name,W/2,36);
+  ctx.font='16px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText(p.instruction+' (or press SPACE)',W/2,58);
 
   // Timer bar
   var pct=mg.timeLeft/p.time;
-  ctx.fillStyle='#222';ctx.fillRect(20,64,W-40,14);
-  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,64,(W-40)*pct,14);
-  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='right';
-  ctx.fillText((mg.timeLeft/1000).toFixed(1)+'s',W-22,76);
+  ctx.fillStyle='#222';ctx.fillRect(20,70,W-40,18);
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,70,(W-40)*pct,18);
+  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='right';
+  ctx.fillText((mg.timeLeft/1000).toFixed(1)+'s',W-22,85);
 
   // Score bar
   var scorePct=Math.min(1,mg.score/mg.target);
-  ctx.fillStyle='#111';ctx.fillRect(20,84,W-40,12);
-  ctx.fillStyle='#FFD700';ctx.fillRect(20,84,(W-40)*scorePct,12);
-  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
-  ctx.fillText(mg.score+'/'+mg.target,22,95);
+  ctx.fillStyle='#111';ctx.fillRect(20,94,W-40,16);
+  ctx.fillStyle='#FFD700';ctx.fillRect(20,94,(W-40)*scorePct,16);
+  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.score+'/'+mg.target,22,108);
 
   // Minigame visuals
   if(p.type==='tap'||p.type==='swipe'){
     // Pulsing circle target in center
-    var pulseR=50+Math.sin(t*6)*14;
+    var pulseR=60+Math.sin(t*6)*16;
     ctx.strokeStyle=p.color;ctx.lineWidth=3;
     ctx.beginPath();ctx.arc(W/2,H/2+20,pulseR,0,Math.PI*2);ctx.stroke();
-    ctx.font='52px serif';ctx.textAlign='center';
-    ctx.fillText(p.emoji,W/2,H/2+38);
+    ctx.font='60px serif';ctx.textAlign='center';
+    ctx.fillText(p.emoji,W/2,H/2+42);
     // Ripple effect on tap
     if(mg.score>0){
-      var rr=mg.score%10*10;
+      var rr=mg.score%10*12;
       ctx.strokeStyle=p.color+'44';ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(W/2,H/2+20,rr+25,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(W/2,H/2+20,rr+30,0,Math.PI*2);ctx.stroke();
     }
     // Instruction
-    ctx.font='18px Georgia';ctx.fillStyle='#ddd';
+    ctx.font='20px Georgia';ctx.fillStyle='#ddd';
     ctx.fillText('TAP or press SPACE!',W/2,H-50);
   }
 
@@ -13389,12 +13697,12 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
     for(var i=0;i<mg.entities.length;i++){
       var e=mg.entities[i];
       if(!e.alive)continue;
-      ctx.font='36px serif';ctx.textAlign='center';
+      ctx.font='44px serif';ctx.textAlign='center';
       var bob=Math.sin(t*5+i)*5;
-      ctx.fillText(e.emoji,e.x,e.y+110+bob);
+      ctx.fillText(e.emoji,e.x,e.y+120+bob);
       // Shadow
       ctx.fillStyle='rgba(0,0,0,0.3)';
-      ctx.beginPath();ctx.ellipse(e.x,e.y+130+bob,16,5,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(e.x,e.y+145+bob,20,6,0,0,Math.PI*2);ctx.fill();
     }
   }
 
@@ -13405,10 +13713,10 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
     ctx.beginPath();ctx.arc(W/2,H/2+20,75,0,Math.PI*2);ctx.stroke();
     ctx.strokeStyle=p.color;ctx.lineWidth=12;
     ctx.beginPath();ctx.arc(W/2,H/2+20,75,-Math.PI/2,-Math.PI/2+holdPct*Math.PI*2);ctx.stroke();
-    ctx.font='52px serif';ctx.textAlign='center';
-    ctx.fillText(mg.holding?'🪄':'👆',W/2,H/2+38);
-    ctx.font='16px Georgia';ctx.fillStyle='#ddd';
-    ctx.fillText(mg.holding?'HOLDING... Keep pressing!':'HOLD CLICK or SPACE!',W/2,H-50);
+    ctx.font='60px serif';ctx.textAlign='center';
+    ctx.fillText(mg.holding?'🪄':'👆',W/2,H/2+42);
+    ctx.font='18px Georgia';ctx.fillStyle='#ddd';
+    ctx.fillText(mg.holding?'HOLDING... Keep pressing!':'HOLD CLICK or TAP & HOLD!',W/2,H-50);
   }
 
   if(p.type==='dodge'){
@@ -13421,10 +13729,10 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
     // Safe zones
     for(var i=0;i<mg.safeZones.length;i++){
       var z=mg.safeZones[i];
-      ctx.fillStyle='rgba(74,222,128,0.2)';ctx.beginPath();ctx.arc(z.x,z.y+110,z.r+6,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.beginPath();ctx.arc(z.x,z.y+110,z.r+6,0,Math.PI*2);ctx.stroke();
-      ctx.font='15px Georgia';ctx.fillStyle='#4ade80';ctx.textAlign='center';
-      ctx.fillText('TAP',z.x,z.y+115);
+      ctx.fillStyle='rgba(74,222,128,0.2)';ctx.beginPath();ctx.arc(z.x,z.y+120,z.r+8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.beginPath();ctx.arc(z.x,z.y+120,z.r+8,0,Math.PI*2);ctx.stroke();
+      ctx.font='16px Georgia';ctx.fillStyle='#4ade80';ctx.textAlign='center';
+      ctx.fillText('TAP',z.x,z.y+125);
     }
   }
 }
@@ -13473,27 +13781,27 @@ function mrpg_drawRedSea(ctx,W,H,t,mg){
     for(var i=0;i<10;i++){
       var px=W/2-gapW/3+i*(gapW/12);
       var py=H*0.45+i*14+Math.sin(t*2+i)*4;
-      ctx.font='16px serif';ctx.textAlign='center';ctx.fillText(peeps[i%peeps.length],px,py);
+      ctx.font='20px serif';ctx.textAlign='center';ctx.fillText(peeps[i%peeps.length],px,py);
     }
   }
 
   // Title
-  ctx.font='bold 24px Georgia';ctx.fillStyle='#4488CC';ctx.textAlign='center';
-  ctx.fillText('🌊 PART THE RED SEA! 🌊',W/2,30);
-  ctx.font='15px Georgia';ctx.fillStyle='#aaa';
-  ctx.fillText('TAP or press SPACE rapidly to hold the waters apart!',W/2,52);
+  ctx.font='bold 28px Georgia';ctx.fillStyle='#4488CC';ctx.textAlign='center';
+  ctx.fillText('🌊 PART THE RED SEA! 🌊',W/2,32);
+  ctx.font='17px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText('TAP or press SPACE rapidly to hold the waters apart!',W/2,56);
 
   // Timer
   var pct=mg.timeLeft/10000;
-  ctx.fillStyle='#111';ctx.fillRect(20,62,W-40,12);
-  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,62,(W-40)*pct,12);
+  ctx.fillStyle='#111';ctx.fillRect(20,66,W-40,16);
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,66,(W-40)*pct,16);
 
   // Progress
   var tapPct=Math.min(1,mg.taps/mg.target);
-  ctx.fillStyle='#111';ctx.fillRect(20,78,W-40,12);
-  ctx.fillStyle='#FFD700';ctx.fillRect(20,78,(W-40)*tapPct,12);
-  ctx.font='11px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
-  ctx.fillText(mg.taps+'/'+mg.target+' taps',22,89);
+  ctx.fillStyle='#111';ctx.fillRect(20,86,W-40,16);
+  ctx.fillStyle='#FFD700';ctx.fillRect(20,86,(W-40)*tapPct,16);
+  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.taps+'/'+mg.target+' taps',22,100);
 }
 
 
