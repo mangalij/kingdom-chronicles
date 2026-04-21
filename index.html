@@ -12332,14 +12332,12 @@ function rMosesRPG(){
       '</div>'+
       '<div style="text-align:center;font-size:15px;color:#aaa;margin-bottom:3px">'+phaseLabel+'</div>'+
       heartBar+
-      '<canvas id="mrpgCanvas" width="720" height="580" style="width:100%;max-width:720px;border-radius:10px;border:2px solid #FFD70033;display:block;touch-action:none"></canvas>'+
+      '<canvas id="mrpgCanvas" width="720" height="580" style="width:100%;max-width:720px;aspect-ratio:720/580;border-radius:10px;border:2px solid #FFD70033;display:block;touch-action:none"></canvas>'+
       '<div id="mrpgDialog" style="display:none;background:linear-gradient(180deg,#0d0d1a,#0a0a12);border:1px solid #FFD70044;border-radius:0 0 10px 10px;padding:14px 16px;margin-top:-1px">'+
         '<div id="mrpgDialogText" style="font-size:18px;color:#ddd;line-height:1.6;text-align:center;min-height:40px"></div>'+
         '<div id="mrpgDialogBtns" style="text-align:center;margin-top:10px"></div>'+
       '</div>'+
-      '<div id="mrpgControls" style="display:flex;justify-content:center;align-items:center;gap:24px;margin-top:10px;user-select:none">'+
-        '<canvas id="mrpgJoystick" width="160" height="160" style="width:160px;height:160px;touch-action:none;cursor:pointer"></canvas>'+
-        '<button onclick="mrpg_interact()" style="background:linear-gradient(135deg,#1a1a00,#0d0d00);border:2px solid #FFD70066;color:#FFD700;font-size:18px;border-radius:50%;width:72px;height:72px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:Georgia,serif;box-shadow:0 0 12px #FFD70022">ACT</button>'+
+      '<div id="mrpgControls" style="display:flex;justify-content:center;align-items:center;gap:24px;margin-top:10px;user-select:none">'+(function(){var mob=window.innerWidth<600;var js=mob?200:160;var bs=mob?88:72;var bf=mob?22:18;return '<canvas id="mrpgJoystick" width="'+js+'" height="'+js+'" style="width:'+js+'px;height:'+js+'px;touch-action:none;cursor:pointer"></canvas>'+'<button onclick="mrpg_interact()" style="background:linear-gradient(135deg,#1a1a00,#0d0d00);border:2px solid #FFD70066;color:#FFD700;font-size:'+bf+'px;border-radius:50%;width:'+bs+'px;height:'+bs+'px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:Georgia,serif;box-shadow:0 0 12px #FFD70022">ACT</button>';})()+
       '</div>'+
     '</div>'+
   '</div>';
@@ -12354,12 +12352,13 @@ function mrpg_initJoystick(){
   var jc=document.getElementById('mrpgJoystick');
   if(!jc)return;
   var jctx=jc.getContext('2d');
-  var cx=80,cy=80,outerR=68,knobR=26;
+  var joyW=jc.width;
+  var cx=joyW/2,cy=joyW/2,outerR=joyW*0.425,knobR=joyW*0.1625;
   _mrpg_joy={ax:0,ay:0,active:false,knobX:cx,knobY:cy};
 
   function drawJoy(){
     if(!MRPG.active)return;
-    jctx.clearRect(0,0,160,160);
+    jctx.clearRect(0,0,joyW,joyW);
     // Outer ring
     jctx.beginPath();jctx.arc(cx,cy,outerR,0,Math.PI*2);
     jctx.fillStyle='rgba(255,255,255,0.06)';jctx.fill();
@@ -12376,9 +12375,10 @@ function mrpg_initJoystick(){
     jctx.fillStyle=grd;jctx.fill();
     jctx.strokeStyle=_mrpg_joy.active?'#FFD700':'#666';jctx.lineWidth=2;jctx.stroke();
     // Direction arrows around the ring
-    jctx.fillStyle='#ffffff22';jctx.font='16px sans-serif';jctx.textAlign='center';jctx.textBaseline='middle';
-    jctx.fillText('▲',cx,cy-outerR+14);jctx.fillText('▼',cx,cy+outerR-14);
-    jctx.fillText('◀',cx-outerR+14,cy);jctx.fillText('▶',cx+outerR-14,cy);
+    jctx.fillStyle='#ffffff22';jctx.font=Math.round(joyW*0.1)+'px sans-serif';jctx.textAlign='center';jctx.textBaseline='middle';
+    var arrOff=joyW*0.088;
+    jctx.fillText('▲',cx,cy-outerR+arrOff);jctx.fillText('▼',cx,cy+outerR-arrOff);
+    jctx.fillText('◀',cx-outerR+arrOff,cy);jctx.fillText('▶',cx+outerR-arrOff,cy);
     requestAnimationFrame(drawJoy);
   }
   drawJoy();
@@ -12468,6 +12468,11 @@ function mrpg_moveDir(dir){
 function mrpg_initCanvas(){
   var c=document.getElementById('mrpgCanvas');
   if(!c)return;
+  // Dynamic canvas sizing — match internal resolution to display for mobile readability
+  var rect=c.getBoundingClientRect();
+  var dw=Math.round(rect.width)||720;
+  var dh=Math.round(dw*580/720);
+  c.width=dw;c.height=dh;
   MRPG.canvas=c;MRPG.ctx=c.getContext('2d');
   // Init joystick
   mrpg_initJoystick();
@@ -12764,15 +12769,16 @@ function mrpg_startPlague(p){
     // For dodge type
     dodgeTargets:[], safeZones:[], dodgeScore:0
   };
-  // Pre-spawn entities for whack type
+  // Pre-spawn entities for whack type (proportional to canvas size)
+  var _cw=MRPG.canvas?MRPG.canvas.width:720,_ch=MRPG.canvas?MRPG.canvas.height:580;
   if(p.type==='whack'){
     for(var i=0;i<5;i++){
-      mg.entities.push({x:60+Math.random()*600,y:50+Math.random()*400,alive:true,timer:2+Math.random()*3,emoji:p.emoji});
+      mg.entities.push({x:_cw*0.08+Math.random()*_cw*0.83,y:_ch*0.29+Math.random()*_ch*0.62,alive:true,timer:2+Math.random()*3,emoji:p.emoji});
     }
   }
   if(p.type==='dodge'){
     for(var i=0;i<4;i++){
-      mg.safeZones.push({x:50+Math.random()*620,y:40+Math.random()*420,r:36});
+      mg.safeZones.push({x:_cw*0.07+Math.random()*_cw*0.86,y:_ch*0.29+Math.random()*_ch*0.62,r:Math.round(_ch*0.062)});
     }
   }
   MRPG.plagueMinigame=mg;
@@ -12840,7 +12846,8 @@ function mrpg_plagueTap(sx,sy,down){
         var z=mg.safeZones[i];
         if(Math.hypot(sx-z.x,sy-z.y)<z.r){
           mg.score++;
-          z.x=50+Math.random()*620;z.y=40+Math.random()*420;
+          var _cw2=MRPG.canvas?MRPG.canvas.width:720,_ch2=MRPG.canvas?MRPG.canvas.height:580;
+          z.x=_cw2*0.07+Math.random()*_cw2*0.86;z.y=_ch2*0.29+Math.random()*_ch2*0.62;
           SFX&&SFX.click&&SFX.click();
           break;
         }
@@ -12865,7 +12872,8 @@ function mrpg_updatePlague(dt){
       mg.spawnTimer=0;
       var aliveCount=mg.entities.filter(function(e){return e.alive;}).length;
       if(aliveCount<6){
-        mg.entities.push({x:50+Math.random()*620,y:40+Math.random()*400,alive:true,timer:2+Math.random()*2,emoji:mg.plague.emoji});
+        var _cw3=MRPG.canvas?MRPG.canvas.width:720,_ch3=MRPG.canvas?MRPG.canvas.height:580;
+        mg.entities.push({x:_cw3*0.08+Math.random()*_cw3*0.83,y:_ch3*0.29+Math.random()*_ch3*0.62,alive:true,timer:2+Math.random()*2,emoji:mg.plague.emoji});
       }
     }
     // Age out entities
@@ -13318,14 +13326,15 @@ function mrpg_draw(){
   var fx=MRPG.px+dx2,fy=MRPG.py+dy2;
   var fNpc=mrpg_npcAt(fx,fy);
   var fTile=(fx>=0&&fy>=0&&fx<MRPG.mapW&&fy<MRPG.mapH)?MRPG.tiles[fy*MRPG.mapW+fx]:-1;
+  var _s=W/720;
   if(fNpc||fTile===MT.BURNING_BUSH||fTile===MT.OASIS||fTile===MT.TENT||fTile===MT.WELL||fTile===MT.CAMPFIRE||fTile===MT.MARKET_STALL){
     var hx=(fx-camTX)*TS+TS/2,hy=(fy-camTY)*TS-8;
-    ctx.font='bold 16px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+    ctx.font='bold '+Math.max(16,Math.round(16*_s))+'px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
     ctx.fillText('❗',hx,hy+Math.sin(t*4)*3);
   }
 
   // Objective text
-  ctx.font='bold 15px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
+  ctx.font='bold '+Math.max(15,Math.round(15*_s))+'px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';
   var obj='';
   if(MRPG.phase==='midian'&&!MRPG.bushFound)obj='🔍 Explore the desert. Follow the eastern path.';
   if(MRPG.phase==='midian'&&MRPG.bushFound)obj='🔥 The Burning Bush! Approach it!';
@@ -13334,16 +13343,18 @@ function mrpg_draw(){
   if(obj){
     ctx.fillStyle='rgba(0,0,0,0.75)';
     var tw=ctx.measureText(obj).width+20;
-    ctx.beginPath();ctx.roundRect((W-tw)/2,H-32,tw,26,6);ctx.fill();
-    ctx.fillStyle='#FFD700';ctx.fillText(obj,W/2,H-15);
+    var objH=Math.round(26*_s),objY=H-Math.round(32*_s);
+    ctx.beginPath();ctx.roundRect((W-tw)/2,objY,tw,objH,6);ctx.fill();
+    ctx.fillStyle='#FFD700';ctx.fillText(obj,W/2,objY+objH-Math.round(11*_s));
   }
 
   // Staff indicator
   if(MRPG.staffObtained){
     ctx.fillStyle='rgba(0,0,0,0.6)';
-    ctx.beginPath();ctx.roundRect(4,H-32,130,26,6);ctx.fill();
-    ctx.font='15px serif';ctx.textAlign='left';ctx.fillStyle='#FFD700';
-    ctx.fillText('🪄 Staff of God',10,H-15);
+    var siW=Math.round(130*_s),siH=Math.round(26*_s),siY=H-Math.round(32*_s);
+    ctx.beginPath();ctx.roundRect(4,siY,siW,siH,6);ctx.fill();
+    ctx.font=Math.max(15,Math.round(15*_s))+'px serif';ctx.textAlign='left';ctx.fillStyle='#FFD700';
+    ctx.fillText('🪄 Staff of God',10,siY+siH-Math.round(11*_s));
   }
 
   // Fade overlay
@@ -13421,8 +13432,8 @@ function mrpg_drawMoses(ctx,x,y,s,t){
   ctx.fillStyle='#C49060';
   ctx.beginPath();ctx.moveTo(cx,y+s*0.24+bob);ctx.lineTo(cx-s*0.02,y+s*0.28+bob);ctx.lineTo(cx+s*0.02,y+s*0.28+bob);ctx.closePath();ctx.fill();
   // Name label
-  ctx.font='bold 14px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='top';
-  ctx.fillText('Moses',cx,y-12+bob);
+  ctx.font='bold '+Math.max(14,Math.round(s*0.35))+'px Georgia';ctx.fillStyle='#FFD700';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText('Moses',cx,y-s*0.3+bob);
   ctx.restore();
 }
 
@@ -13448,8 +13459,8 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
     // Legs
     ctx.fillStyle='#333';
     ctx.fillRect(cx-s*0.18,y+s*0.78+bob,3,s*0.15);ctx.fillRect(cx+s*0.12,y+s*0.78+bob,3,s*0.15);
-    ctx.font='bold 14px Georgia';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(npc.name,cx,y-10);
+    ctx.font='bold '+Math.max(14,Math.round(s*0.35))+'px Georgia';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-s*0.25);
     ctx.restore();return;
   }
 
@@ -13468,8 +13479,8 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
     // Tongue
     ctx.strokeStyle='#CC0000';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(cx-s*0.26,y+s*0.68+bob);ctx.lineTo(cx-s*0.32,y+s*0.65+bob);ctx.stroke();
-    ctx.font='bold 14px Georgia';ctx.fillStyle='#88CC88';ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(npc.name,cx,y-10);
+    ctx.font='bold '+Math.max(14,Math.round(s*0.35))+'px Georgia';ctx.fillStyle='#88CC88';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-s*0.25);
     ctx.restore();return;
   }
 
@@ -13488,8 +13499,8 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
     // Legs
     ctx.fillStyle='#886644';
     ctx.fillRect(cx-s*0.15,y+s*0.72+bob,3,s*0.18);ctx.fillRect(cx+s*0.1,y+s*0.72+bob,3,s*0.18);
-    ctx.font='bold 14px Georgia';ctx.fillStyle='#ccc';ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(npc.name,cx,y-10);
+    ctx.font='bold '+Math.max(14,Math.round(s*0.35))+'px Georgia';ctx.fillStyle='#ccc';ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(npc.name,cx,y-s*0.25);
     ctx.restore();return;
   }
 
@@ -13633,9 +13644,9 @@ function mrpg_drawNPC(ctx,x,y,s,t,npc){
   ctx.beginPath();ctx.arc(cx+s*0.05,y+s*0.22+bob,s*0.015,0,Math.PI*2);ctx.fill();
 
   // Name label
-  ctx.font='bold 14px Georgia';ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.font='bold '+Math.max(14,Math.round(s*0.35))+'px Georgia';ctx.textAlign='center';ctx.textBaseline='top';
   ctx.fillStyle=npc.isPharaoh?'#FFD700':npc.name.indexOf('Guard')>=0||npc.name==='Captain Khafre'||npc.name==='Taskmaster'?'#FF6666':npc.name.indexOf('Magician')>=0||npc.name.indexOf('Priest')>=0?'#CC88FF':npc.name==='Aaron'||npc.name==='Miriam'?'#88BBFF':npc.name.indexOf('Hebrew')>=0||npc.name.indexOf('Slave')>=0?'#AADDFF':'#ccc';
-  ctx.fillText(npc.name,cx,y-12+bob);
+  ctx.fillText(npc.name,cx,y-s*0.3+bob);
 
   // Pharaoh golden glow
   if(npc.isPharaoh){
@@ -13654,42 +13665,45 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
   ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
 
   // Title
-  ctx.font='bold 26px Georgia';ctx.fillStyle=p.color;ctx.textAlign='center';
-  ctx.fillText(p.emoji+' '+p.name,W/2,36);
-  ctx.font='16px Georgia';ctx.fillStyle='#aaa';
-  ctx.fillText(p.instruction+' (or press SPACE)',W/2,58);
+  var S=H/580;
+  ctx.font='bold '+Math.round(26*S)+'px Georgia';ctx.fillStyle=p.color;ctx.textAlign='center';
+  ctx.fillText(p.emoji+' '+p.name,W/2,Math.round(36*S));
+  ctx.font=Math.round(16*S)+'px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText(p.instruction+' (or press SPACE)',W/2,Math.round(58*S));
 
   // Timer bar
   var pct=mg.timeLeft/p.time;
-  ctx.fillStyle='#222';ctx.fillRect(20,70,W-40,18);
-  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,70,(W-40)*pct,18);
-  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='right';
-  ctx.fillText((mg.timeLeft/1000).toFixed(1)+'s',W-22,85);
+  var barM=Math.round(20*S),barY1=Math.round(70*S),barH1=Math.round(18*S);
+  ctx.fillStyle='#222';ctx.fillRect(barM,barY1,W-barM*2,barH1);
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(barM,barY1,(W-barM*2)*pct,barH1);
+  ctx.font=Math.round(14*S)+'px monospace';ctx.fillStyle='#fff';ctx.textAlign='right';
+  ctx.fillText((mg.timeLeft/1000).toFixed(1)+'s',W-Math.round(22*S),barY1+Math.round(15*S));
 
   // Score bar
   var scorePct=Math.min(1,mg.score/mg.target);
-  ctx.fillStyle='#111';ctx.fillRect(20,94,W-40,16);
-  ctx.fillStyle='#FFD700';ctx.fillRect(20,94,(W-40)*scorePct,16);
-  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
-  ctx.fillText(mg.score+'/'+mg.target,22,108);
+  var barY2=Math.round(94*S),barH2=Math.round(16*S);
+  ctx.fillStyle='#111';ctx.fillRect(barM,barY2,W-barM*2,barH2);
+  ctx.fillStyle='#FFD700';ctx.fillRect(barM,barY2,(W-barM*2)*scorePct,barH2);
+  ctx.font=Math.round(14*S)+'px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.score+'/'+mg.target,Math.round(22*S),barY2+Math.round(14*S));
 
   // Minigame visuals
   if(p.type==='tap'||p.type==='swipe'){
     // Pulsing circle target in center
-    var pulseR=60+Math.sin(t*6)*16;
+    var pulseR=H*0.103+Math.sin(t*6)*H*0.028;
     ctx.strokeStyle=p.color;ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(W/2,H/2+20,pulseR,0,Math.PI*2);ctx.stroke();
-    ctx.font='60px serif';ctx.textAlign='center';
-    ctx.fillText(p.emoji,W/2,H/2+42);
+    ctx.beginPath();ctx.arc(W/2,H/2+H*0.034,pulseR,0,Math.PI*2);ctx.stroke();
+    ctx.font=Math.round(H*0.103)+'px serif';ctx.textAlign='center';
+    ctx.fillText(p.emoji,W/2,H/2+H*0.072);
     // Ripple effect on tap
     if(mg.score>0){
-      var rr=mg.score%10*12;
+      var rr=mg.score%10*H*0.021;
       ctx.strokeStyle=p.color+'44';ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(W/2,H/2+20,rr+30,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(W/2,H/2+H*0.034,rr+H*0.052,0,Math.PI*2);ctx.stroke();
     }
     // Instruction
-    ctx.font='20px Georgia';ctx.fillStyle='#ddd';
-    ctx.fillText('TAP or press SPACE!',W/2,H-50);
+    ctx.font=Math.round(H*0.034)+'px Georgia';ctx.fillStyle='#ddd';
+    ctx.fillText('TAP or press SPACE!',W/2,H-H*0.086);
   }
 
   if(p.type==='whack'){
@@ -13697,26 +13711,27 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
     for(var i=0;i<mg.entities.length;i++){
       var e=mg.entities[i];
       if(!e.alive)continue;
-      ctx.font='44px serif';ctx.textAlign='center';
+      ctx.font=Math.round(H*0.076)+'px serif';ctx.textAlign='center';
       var bob=Math.sin(t*5+i)*5;
-      ctx.fillText(e.emoji,e.x,e.y+120+bob);
+      ctx.fillText(e.emoji,e.x,e.y+bob);
       // Shadow
       ctx.fillStyle='rgba(0,0,0,0.3)';
-      ctx.beginPath();ctx.ellipse(e.x,e.y+145+bob,20,6,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(e.x,e.y+H*0.04+bob,H*0.034,H*0.01,0,0,Math.PI*2);ctx.fill();
     }
   }
 
   if(p.type==='hold'){
     // Big circle that fills as you hold
     var holdPct=Math.min(1,mg.holdTime/mg.target);
-    ctx.strokeStyle='#333';ctx.lineWidth=12;
-    ctx.beginPath();ctx.arc(W/2,H/2+20,75,0,Math.PI*2);ctx.stroke();
-    ctx.strokeStyle=p.color;ctx.lineWidth=12;
-    ctx.beginPath();ctx.arc(W/2,H/2+20,75,-Math.PI/2,-Math.PI/2+holdPct*Math.PI*2);ctx.stroke();
-    ctx.font='60px serif';ctx.textAlign='center';
-    ctx.fillText(mg.holding?'🪄':'👆',W/2,H/2+42);
-    ctx.font='18px Georgia';ctx.fillStyle='#ddd';
-    ctx.fillText(mg.holding?'HOLDING... Keep pressing!':'HOLD CLICK or TAP & HOLD!',W/2,H-50);
+    var holdR=Math.round(H*0.13);
+    ctx.strokeStyle='#333';ctx.lineWidth=Math.round(H*0.021);
+    ctx.beginPath();ctx.arc(W/2,H/2+H*0.034,holdR,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle=p.color;ctx.lineWidth=Math.round(H*0.021);
+    ctx.beginPath();ctx.arc(W/2,H/2+H*0.034,holdR,-Math.PI/2,-Math.PI/2+holdPct*Math.PI*2);ctx.stroke();
+    ctx.font=Math.round(H*0.103)+'px serif';ctx.textAlign='center';
+    ctx.fillText(mg.holding?'🪄':'👆',W/2,H/2+H*0.072);
+    ctx.font=Math.round(H*0.031)+'px Georgia';ctx.fillStyle='#ddd';
+    ctx.fillText(mg.holding?'HOLDING... Keep pressing!':'HOLD CLICK or TAP & HOLD!',W/2,H-H*0.086);
   }
 
   if(p.type==='dodge'){
@@ -13724,15 +13739,15 @@ function mrpg_drawPlagueMinigame(ctx,W,H,t,mg){
     for(var i=0;i<25;i++){
       var hx=(i*73.7+t*80*(i%3+1))%W;
       var hy=(i*47+t*120*(i%2+1))%H;
-      ctx.fillStyle='#AACCEE';ctx.beginPath();ctx.arc(hx,hy,5+i%4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#AACCEE';ctx.beginPath();ctx.arc(hx,hy,Math.round(H*0.009)+i%4,0,Math.PI*2);ctx.fill();
     }
     // Safe zones
     for(var i=0;i<mg.safeZones.length;i++){
       var z=mg.safeZones[i];
-      ctx.fillStyle='rgba(74,222,128,0.2)';ctx.beginPath();ctx.arc(z.x,z.y+120,z.r+8,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.beginPath();ctx.arc(z.x,z.y+120,z.r+8,0,Math.PI*2);ctx.stroke();
-      ctx.font='16px Georgia';ctx.fillStyle='#4ade80';ctx.textAlign='center';
-      ctx.fillText('TAP',z.x,z.y+125);
+      ctx.fillStyle='rgba(74,222,128,0.2)';ctx.beginPath();ctx.arc(z.x,z.y,z.r+8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#4ade80';ctx.lineWidth=2;ctx.beginPath();ctx.arc(z.x,z.y,z.r+8,0,Math.PI*2);ctx.stroke();
+      ctx.font=Math.round(H*0.028)+'px Georgia';ctx.fillStyle='#4ade80';ctx.textAlign='center';
+      ctx.fillText('TAP',z.x,z.y+H*0.009);
     }
   }
 }
@@ -13773,35 +13788,38 @@ function mrpg_drawRedSea(ctx,W,H,t,mg){
   }
 
   // Moses at bottom center
-  mrpg_drawMoses(ctx,W/2-16,H*0.65,32,t);
+  var mosesS=Math.round(Math.max(32,W*0.06));
+  mrpg_drawMoses(ctx,W/2-mosesS/2,H*0.65,mosesS,t);
 
   // Israelites walking up if parted enough
   if(gapW>40){
     var peeps=['👤','👩','👦','👧','🧓','👳'];
     for(var i=0;i<10;i++){
       var px=W/2-gapW/3+i*(gapW/12);
-      var py=H*0.45+i*14+Math.sin(t*2+i)*4;
-      ctx.font='20px serif';ctx.textAlign='center';ctx.fillText(peeps[i%peeps.length],px,py);
+      var py=H*0.45+i*H*0.024+Math.sin(t*2+i)*4;
+      ctx.font=Math.round(H*0.034)+'px serif';ctx.textAlign='center';ctx.fillText(peeps[i%peeps.length],px,py);
     }
   }
 
   // Title
-  ctx.font='bold 28px Georgia';ctx.fillStyle='#4488CC';ctx.textAlign='center';
-  ctx.fillText('🌊 PART THE RED SEA! 🌊',W/2,32);
-  ctx.font='17px Georgia';ctx.fillStyle='#aaa';
-  ctx.fillText('TAP or press SPACE rapidly to hold the waters apart!',W/2,56);
+  var RS=H/580;
+  ctx.font='bold '+Math.round(28*RS)+'px Georgia';ctx.fillStyle='#4488CC';ctx.textAlign='center';
+  ctx.fillText('🌊 PART THE RED SEA! 🌊',W/2,Math.round(32*RS));
+  ctx.font=Math.round(17*RS)+'px Georgia';ctx.fillStyle='#aaa';
+  ctx.fillText('TAP or press SPACE rapidly to hold the waters apart!',W/2,Math.round(56*RS));
 
   // Timer
   var pct=mg.timeLeft/10000;
-  ctx.fillStyle='#111';ctx.fillRect(20,66,W-40,16);
-  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(20,66,(W-40)*pct,16);
+  var rsM=Math.round(20*RS);
+  ctx.fillStyle='#111';ctx.fillRect(rsM,Math.round(66*RS),W-rsM*2,Math.round(16*RS));
+  ctx.fillStyle=pct>0.3?'#4ade80':'#ef4444';ctx.fillRect(rsM,Math.round(66*RS),(W-rsM*2)*pct,Math.round(16*RS));
 
   // Progress
   var tapPct=Math.min(1,mg.taps/mg.target);
-  ctx.fillStyle='#111';ctx.fillRect(20,86,W-40,16);
-  ctx.fillStyle='#FFD700';ctx.fillRect(20,86,(W-40)*tapPct,16);
-  ctx.font='14px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
-  ctx.fillText(mg.taps+'/'+mg.target+' taps',22,100);
+  ctx.fillStyle='#111';ctx.fillRect(rsM,Math.round(86*RS),W-rsM*2,Math.round(16*RS));
+  ctx.fillStyle='#FFD700';ctx.fillRect(rsM,Math.round(86*RS),(W-rsM*2)*tapPct,Math.round(16*RS));
+  ctx.font=Math.round(14*RS)+'px monospace';ctx.fillStyle='#fff';ctx.textAlign='left';
+  ctx.fillText(mg.taps+'/'+mg.target+' taps',Math.round(22*RS),Math.round(100*RS));
 }
 
 
