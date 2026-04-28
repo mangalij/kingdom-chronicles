@@ -5154,50 +5154,55 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   ctx.fillStyle='#C89060';ctx.fillRect(hx+hw*0.3,hy+hh*0.62,hw*0.22,2);
 
   // Emoji above head (floating)
-  ctx.save();ctx.font=(ts*.55)+'px serif';ctx.textAlign='center';
+  var _emojiFs=Math.round(ts*.55);
+  ctx.save();ctx.font=_emojiFs+'px serif';ctx.textAlign='center';
   if(!CW_IS_MOBILE){ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;}
-  ctx.fillText(npc.emoji||'👤',cx,hy-Math.round(8*CW_MOBILE_SCALE));ctx.restore();
+  var _emojiY=hy-Math.round(6*CW_MOBILE_SCALE);
+  ctx.fillText(npc.emoji||'👤',cx,_emojiY);ctx.restore();
 
-  // Name tag (Roblox floating pill)
+  // Name tag (Roblox floating pill) — stacked above emoji
   var _nfs=Math.round(12*CW_MOBILE_SCALE),_nph=Math.round(14*CW_MOBILE_SCALE),_nppad=Math.round(12*CW_MOBILE_SCALE);
+  var _nameTagTop=_emojiY-_emojiFs-2;
   ctx.save();ctx.font='bold '+_nfs+'px "Segoe UI",sans-serif';
   var tw=ctx.measureText(npc.name).width+_nppad;
   ctx.fillStyle='rgba(0,0,0,0.82)';
-  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(24*CW_MOBILE_SCALE),tw,_nph,7);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx-tw/2,_nameTagTop-_nph,tw,_nph,7);ctx.fill();
   ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.8;
-  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(24*CW_MOBILE_SCALE),tw,_nph,7);ctx.stroke();
-  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,hy-Math.round(13*CW_MOBILE_SCALE));ctx.restore();
+  ctx.beginPath();ctx.roundRect(cx-tw/2,_nameTagTop-_nph,tw,_nph,7);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,_nameTagTop-3);ctx.restore();
 
-  // Relationship tier indicator (believer NPCs only)
+  // Relationship tier indicator (believer NPCs only) — stacked above name tag
   if(!npc.npcType){
     var _tier=cw_getNpcTier(npc.id);
     if(_tier>0){
       var _tfs=Math.round(10*CW_MOBILE_SCALE),_tph=Math.round(13*CW_MOBILE_SCALE),_tpad=Math.round(10*CW_MOBILE_SCALE);
+      var _tierTop=_nameTagTop-_nph-3;
       ctx.save();ctx.font='bold '+_tfs+'px monospace';ctx.textAlign='center';
       var _tc=CW_TIER_COLORS[_tier];
       var _tn=CW_TIER_NAMES[_tier];
       var _tw2=ctx.measureText(_tn).width+_tpad;
-      ctx.fillStyle=_tc+'33';ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-Math.round(38*CW_MOBILE_SCALE),_tw2,_tph,4);ctx.fill();
-      ctx.strokeStyle=_tc+'88';ctx.lineWidth=0.5;ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-Math.round(38*CW_MOBILE_SCALE),_tw2,_tph,4);ctx.stroke();
-      ctx.fillStyle=_tc;ctx.fillText(_tn,cx,hy-Math.round(28*CW_MOBILE_SCALE));ctx.restore();
+      ctx.fillStyle=_tc+'33';ctx.beginPath();ctx.roundRect(cx-_tw2/2,_tierTop-_tph,_tw2,_tph,4);ctx.fill();
+      ctx.strokeStyle=_tc+'88';ctx.lineWidth=0.5;ctx.beginPath();ctx.roundRect(cx-_tw2/2,_tierTop-_tph,_tw2,_tph,4);ctx.stroke();
+      ctx.fillStyle=_tc;ctx.fillText(_tn,cx,_tierTop-3);ctx.restore();
     }
   }
 
-  // Non-believer indicator (floating ? bubble or ✝ if evangelized)
+  // Non-believer indicator (floating ? bubble or ✝ if evangelized) — stacked above name tag
   if(npc.npcType==='nonbeliever'){
     ctx.save();
-    var ib=hy-Math.round(38*CW_MOBILE_SCALE),pulse=Math.sin(Date.now()/400)*3;
+    var _nbTop=_nameTagTop-_nph-Math.round(6*CW_MOBILE_SCALE);
+    var pulse=Math.sin(Date.now()/400)*3;
     if(CWS.evangelized&&CWS.evangelized[npc.id]){
       ctx.font='bold '+(ts*.45)+'px serif';ctx.textAlign='center';
       var _isBaptized=(G.pd.baptized||[]).includes(npc.id);
       ctx.shadowColor=_isBaptized?'#7EB8F7':'#4ade80';if(!CW_IS_MOBILE)ctx.shadowBlur=6;
-      ctx.fillStyle=_isBaptized?'#7EB8F7':'#4ade80';ctx.fillText(_isBaptized?'🕊️':'✝',cx,ib+pulse);
+      ctx.fillStyle=_isBaptized?'#7EB8F7':'#4ade80';ctx.fillText(_isBaptized?'🕊️':'✝',cx,_nbTop+pulse);
     }else{
       ctx.fillStyle='rgba(239,68,68,0.18)';
       ctx.beginPath();ctx.arc(cx,cy,ts*0.5,0,Math.PI*2);ctx.fill();
       ctx.font='bold '+(ts*.5)+'px serif';ctx.textAlign='center';
       ctx.shadowColor='#ef4444';if(!CW_IS_MOBILE)ctx.shadowBlur=8;
-      ctx.fillStyle='#fbbf24';ctx.fillText('❓',cx,ib+pulse);
+      ctx.fillStyle='#fbbf24';ctx.fillText('❓',cx,_nbTop+pulse);
     }
     ctx.restore();
   }
@@ -5338,7 +5343,7 @@ function cw_drawDialog(ctx,vw,vh){
 function cw_showActivityOverlay(html){
   var el=document.getElementById('cwActivity');
   if(el){el.innerHTML=html;el.style.display='flex';
-    if(CW_IS_MOBILE){el.style.fontSize='18px';el.style.padding='20px 12px 100px';}
+    if(CW_IS_MOBILE){el.style.zoom='1.18';el.style.padding='20px 12px 100px';}
   }
 }
 function cw_hideActivityOverlay(){
