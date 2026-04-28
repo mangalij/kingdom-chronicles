@@ -2221,7 +2221,8 @@ function rPvpLobby(){
   </div></div>`;}
 
 function openTcgPvP(){
-  window.open('https://kingdom-chronicles.vercel.app/tcg/','_blank','noopener');
+  const u=encodeURIComponent(G.username||'');
+  window.open('https://kingdom-chronicles.vercel.app/tcg/'+(u?'?kcPlayer='+u:''),'_blank','noopener');
 }
 
 function startPvP(name,charId,lv,tag){
@@ -3535,28 +3536,91 @@ var CW_NPC_REPLACEMENTS=[
    talk:[{text:'"If God created everything, who created God? I need answers that make sense."',xp:0}]},
   {name:"Becky",emoji:"😔",color:"#AAAA88",speed:46,bio:"Teacher. Going through a divorce and feeling lost.",portrait:"👩‍🏫",
    talk:[{text:'"My life is falling apart. I prayed once and nothing happened. What\'s the point?"',xp:0}]},
+  {name:"Marcus",emoji:"😑",color:"#99886B",speed:50,bio:"Barber. Thinks Christians are hypocrites.",portrait:"💈",
+   talk:[{text:'"I know too many church folks who act one way on Sunday and different Monday through Saturday."',xp:0}]},
+  {name:"Priya",emoji:"🤔",color:"#CC77AA",speed:48,bio:"Grad student. Grew up Hindu and exploring.",portrait:"👩‍🔬",
+   talk:[{text:'"I respect Jesus as a teacher, but why do Christians say He\'s the ONLY way?"',xp:0}]},
+  {name:"Tyrell",emoji:"😶",color:"#7799AA",speed:53,bio:"EMT. Sees tragedy daily and questions God.",portrait:"🚑",
+   talk:[{text:'"I pull people out of wrecks every week. Where is God in all that suffering?"',xp:0}]},
+  {name:"Hana",emoji:"😟",color:"#AA88CC",speed:47,bio:"Florist. Lonely and searching for community.",portrait:"💐",
+   talk:[{text:'"I just moved here and don\'t know anyone. Is church really for someone like me?"',xp:0}]},
+  {name:"Victor",emoji:"🙃",color:"#889977",speed:51,bio:"Retired military. Struggles with anger and guilt.",portrait:"🎖️",
+   talk:[{text:'"I\'ve done things I can\'t take back. Forgiveness sounds nice but it can\'t be that simple."',xp:0}]},
+  {name:"Destiny",emoji:"😕",color:"#BB7799",speed:49,bio:"Cosmetologist. Raised in church but walked away.",portrait:"💅",
+   talk:[{text:'"I grew up in church but it felt like a performance. I left and never looked back."',xp:0}]},
+  {name:"Ricky",emoji:"🤨",color:"#998866",speed:54,bio:"Mechanic. Thinks religion is for weak people.",portrait:"🔧",
+   talk:[{text:'"I handle my own problems. I don\'t need some invisible man in the sky to save me."',xp:0}]},
+  {name:"Amara",emoji:"😔",color:"#CC99AA",speed:46,bio:"Nursing student. Lost her mother and is grieving.",portrait:"👩‍⚕️",
+   talk:[{text:'"My mom died praying. She believed with everything and still... Why would I trust a God who let that happen?"',xp:0}]},
+  {name:"Jerome",emoji:"😤",color:"#AA7755",speed:52,bio:"Youth basketball coach. Angry at the system.",portrait:"🏀",
+   talk:[{text:'"The kids I coach need food and jobs, not prayers. When has the church actually helped?"',xp:0}]},
 ];
 var _cwNextReplacementId=0;
+
+// Wander zones for spawning replacement NPCs
+var _CW_NB_ZONES=[
+  {wx1:2,wy1:25,wx2:8,wy2:28},
+  {wx1:20,wy1:25,wx2:28,wy2:28},
+  {wx1:18,wy1:34,wx2:28,wy2:37},
+  {wx1:2,wy1:34,wx2:8,wy2:37}
+];
 
 function cw_spawnReplacement(baptizedNpcId){
   if(!CW_NPC_REPLACEMENTS.length)return;
   var tmpl=CW_NPC_REPLACEMENTS[_cwNextReplacementId%CW_NPC_REPLACEMENTS.length];
   _cwNextReplacementId++;
+  // Persist the replacement index so new NPCs survive church re-entry
+  G.pd._cwRepIdx=_cwNextReplacementId;
+  persistPlayer();
   var old=CW_NPCS.find(function(x){return x.id===baptizedNpcId;});
-  if(!old)return;
-  // Build new NPC in a nearby wander zone
-  var newId='nb_r'+_cwNextReplacementId+'_'+Date.now();
+  // Use old NPC's zone, or pick a zone from the pool
+  var zone=old?{wx1:old.wx1,wy1:old.wy1,wx2:old.wx2,wy2:old.wy2}:_CW_NB_ZONES[(_cwNextReplacementId-1)%_CW_NB_ZONES.length];
+  var newId='nb_r'+_cwNextReplacementId+'_restored';
   var newNpc={
-    id:newId, x:old.wx1+Math.floor(Math.random()*(old.wx2-old.wx1)),
-    y:old.wy1+Math.floor(Math.random()*(old.wy2-old.wy1)),
-    wx1:old.wx1, wy1:old.wy1, wx2:old.wx2, wy2:old.wy2,
+    id:newId, x:zone.wx1+Math.floor(Math.random()*(zone.wx2-zone.wx1)),
+    y:zone.wy1+Math.floor(Math.random()*(zone.wy2-zone.wy1)),
+    wx1:zone.wx1, wy1:zone.wy1, wx2:zone.wx2, wy2:zone.wy2,
     name:tmpl.name, emoji:tmpl.emoji, color:tmpl.color, speed:tmpl.speed,
     npcType:'nonbeliever', talk:tmpl.talk, bio:tmpl.bio, portrait:tmpl.portrait,
     _dir:0, _moveT:0, _tx:0, _ty:0
   };
   CW_NPCS.push(newNpc);
-  // Initialize wander state
   newNpc._tx=newNpc.x;newNpc._ty=newNpc.y;
+}
+
+// Re-spawn replacement NPCs on church entry so there's always someone to witness to
+function cw_restoreReplacements(){
+  _cwNextReplacementId=G.pd._cwRepIdx||0;
+  var baptized=G.pd.baptized||[];
+  var evangelized=G.pd.evangelized||[];
+  // Remove any stale dynamic NPCs from previous sessions
+  CW_NPCS=CW_NPCS.filter(function(n){return !n.id.startsWith('nb_r');});
+  // Count how many non-believers are still available (not yet fully baptized)
+  var availableNbs=CW_NPCS.filter(function(n){
+    return n.npcType==='nonbeliever'&&baptized.indexOf(n.id)<0;
+  });
+  // If all original non-believers are baptized, spawn replacements
+  if(availableNbs.length===0&&baptized.length>0){
+    // Spawn 4 fresh non-believers from the replacement pool
+    for(var i=0;i<4;i++){
+      var tmpl=CW_NPC_REPLACEMENTS[_cwNextReplacementId%CW_NPC_REPLACEMENTS.length];
+      _cwNextReplacementId++;
+      var zone=_CW_NB_ZONES[i%_CW_NB_ZONES.length];
+      var newId='nb_r'+_cwNextReplacementId+'_restored';
+      var newNpc={
+        id:newId, x:zone.wx1+Math.floor(Math.random()*(zone.wx2-zone.wx1)),
+        y:zone.wy1+Math.floor(Math.random()*(zone.wy2-zone.wy1)),
+        wx1:zone.wx1, wy1:zone.wy1, wx2:zone.wx2, wy2:zone.wy2,
+        name:tmpl.name, emoji:tmpl.emoji, color:tmpl.color, speed:tmpl.speed,
+        npcType:'nonbeliever', talk:tmpl.talk, bio:tmpl.bio, portrait:tmpl.portrait,
+        _dir:0, _moveT:0, _tx:0, _ty:0
+      };
+      CW_NPCS.push(newNpc);
+      newNpc._tx=newNpc.x;newNpc._ty=newNpc.y;
+    }
+    G.pd._cwRepIdx=_cwNextReplacementId;
+    persistPlayer();
+  }
 }
 
 // ── Romans Road Evangelism Data ────────────────────────
@@ -4167,6 +4231,8 @@ if(typeof CanvasRenderingContext2D!=='undefined'&&!CanvasRenderingContext2D.prot
 
 // ── Mobile detection for performance scaling ──────────
 var CW_IS_MOBILE='ontouchstart' in window || navigator.maxTouchPoints>0;
+// Mobile UI scale: enlarge tiles, fonts, and UI on small screens
+var CW_MOBILE_SCALE=CW_IS_MOBILE?1.6:1;
 
 // ── Tile cache: pre-render tiles to offscreen canvases ──
 var CW_TILE_CACHE={};
@@ -4223,7 +4289,7 @@ var CWS={
   dialog:null,activity:null,
   nearZone:null,nearNpc:null,
   done:{},talkIdx:{},onExit:null,evangelized:{},
-  TILE:28,
+  TILE:Math.round(28*CW_MOBILE_SCALE),
   npcTimers:{}, // per-npc wander timer
 };
 
@@ -4872,14 +4938,15 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer,isSwimmi
     }
     // Name tag
     if(tag){
-      ctx.save();ctx.font='bold 13px "Segoe UI",sans-serif';
-      var tw=ctx.measureText(tag).width+12;
+      var _stf=Math.round(13*CW_MOBILE_SCALE),_sth=Math.round(16*CW_MOBILE_SCALE),_stpad=Math.round(12*CW_MOBILE_SCALE);
+      ctx.save();ctx.font='bold '+_stf+'px "Segoe UI",sans-serif';
+      var tw=ctx.measureText(tag).width+_stpad;
       ctx.fillStyle=isPlayer?'rgba(0,0,0,0.85)':'rgba(0,0,0,0.75)';
-      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.fill();
+      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_sth,8);ctx.fill();
       ctx.strokeStyle=isPlayer?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.2)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.stroke();
+      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_sth,8);ctx.stroke();
       ctx.fillStyle=isPlayer?'#FFD700':'#fff';ctx.textAlign='center';
-      ctx.fillText(tag,cx,hy-6);ctx.restore();
+      ctx.fillText(tag,cx,hy-Math.round(6*CW_MOBILE_SCALE));ctx.restore();
     }
     return; // skip normal draw
   }
@@ -5007,16 +5074,17 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer,isSwimmi
   }
   // Name tag (floating above head, Roblox-style)
   if(tag){
-    ctx.save();ctx.font='bold 13px "Segoe UI",sans-serif';
-    var tw=ctx.measureText(tag).width+12;
+    var _ctf=Math.round(13*CW_MOBILE_SCALE),_cth=Math.round(16*CW_MOBILE_SCALE),_ctpad=Math.round(12*CW_MOBILE_SCALE);
+    ctx.save();ctx.font='bold '+_ctf+'px "Segoe UI",sans-serif';
+    var tw=ctx.measureText(tag).width+_ctpad;
     // Tag background (rounded pill)
     ctx.fillStyle=isPlayer?'rgba(0,0,0,0.85)':'rgba(0,0,0,0.75)';
-    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.fill();
+    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_cth,8);ctx.fill();
     // Tag border
     ctx.strokeStyle=isPlayer?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.2)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.stroke();
+    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_cth,8);ctx.stroke();
     ctx.fillStyle=isPlayer?'#FFD700':'#fff';ctx.textAlign='center';
-    ctx.fillText(tag,cx,hy-6);ctx.restore();
+    ctx.fillText(tag,cx,hy-Math.round(6*CW_MOBILE_SCALE));ctx.restore();
   }
 }
 
@@ -5088,35 +5156,37 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   // Emoji above head (floating)
   ctx.save();ctx.font=(ts*.55)+'px serif';ctx.textAlign='center';
   if(!CW_IS_MOBILE){ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;}
-  ctx.fillText(npc.emoji||'👤',cx,hy-8);ctx.restore();
+  ctx.fillText(npc.emoji||'👤',cx,hy-Math.round(8*CW_MOBILE_SCALE));ctx.restore();
 
   // Name tag (Roblox floating pill)
-  ctx.save();ctx.font='bold 12px "Segoe UI",sans-serif';
-  var tw=ctx.measureText(npc.name).width+12;
+  var _nfs=Math.round(12*CW_MOBILE_SCALE),_nph=Math.round(14*CW_MOBILE_SCALE),_nppad=Math.round(12*CW_MOBILE_SCALE);
+  ctx.save();ctx.font='bold '+_nfs+'px "Segoe UI",sans-serif';
+  var tw=ctx.measureText(npc.name).width+_nppad;
   ctx.fillStyle='rgba(0,0,0,0.82)';
-  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-24,tw,14,7);ctx.fill();
+  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(24*CW_MOBILE_SCALE),tw,_nph,7);ctx.fill();
   ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=0.8;
-  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-24,tw,14,7);ctx.stroke();
-  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,hy-13);ctx.restore();
+  ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(24*CW_MOBILE_SCALE),tw,_nph,7);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(npc.name,cx,hy-Math.round(13*CW_MOBILE_SCALE));ctx.restore();
 
   // Relationship tier indicator (believer NPCs only)
   if(!npc.npcType){
     var _tier=cw_getNpcTier(npc.id);
     if(_tier>0){
-      ctx.save();ctx.font='bold 10px monospace';ctx.textAlign='center';
+      var _tfs=Math.round(10*CW_MOBILE_SCALE),_tph=Math.round(13*CW_MOBILE_SCALE),_tpad=Math.round(10*CW_MOBILE_SCALE);
+      ctx.save();ctx.font='bold '+_tfs+'px monospace';ctx.textAlign='center';
       var _tc=CW_TIER_COLORS[_tier];
       var _tn=CW_TIER_NAMES[_tier];
-      var _tw2=ctx.measureText(_tn).width+10;
-      ctx.fillStyle=_tc+'33';ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-38,_tw2,13,4);ctx.fill();
-      ctx.strokeStyle=_tc+'88';ctx.lineWidth=0.5;ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-38,_tw2,13,4);ctx.stroke();
-      ctx.fillStyle=_tc;ctx.fillText(_tn,cx,hy-28);ctx.restore();
+      var _tw2=ctx.measureText(_tn).width+_tpad;
+      ctx.fillStyle=_tc+'33';ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-Math.round(38*CW_MOBILE_SCALE),_tw2,_tph,4);ctx.fill();
+      ctx.strokeStyle=_tc+'88';ctx.lineWidth=0.5;ctx.beginPath();ctx.roundRect(cx-_tw2/2,hy-Math.round(38*CW_MOBILE_SCALE),_tw2,_tph,4);ctx.stroke();
+      ctx.fillStyle=_tc;ctx.fillText(_tn,cx,hy-Math.round(28*CW_MOBILE_SCALE));ctx.restore();
     }
   }
 
   // Non-believer indicator (floating ? bubble or ✝ if evangelized)
   if(npc.npcType==='nonbeliever'){
     ctx.save();
-    var ib=hy-38,pulse=Math.sin(Date.now()/400)*3;
+    var ib=hy-Math.round(38*CW_MOBILE_SCALE),pulse=Math.sin(Date.now()/400)*3;
     if(CWS.evangelized&&CWS.evangelized[npc.id]){
       ctx.font='bold '+(ts*.45)+'px serif';ctx.textAlign='center';
       var _isBaptized=(G.pd.baptized||[]).includes(npc.id);
@@ -5135,10 +5205,10 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   // Talk bubble indicator
   if(CWS.nearNpc===npc.id){
     ctx.save();
-    var bx2=cx+ts*.25,by2=hy-28;
+    var bx2=cx+ts*.25,by2=hy-Math.round(28*CW_MOBILE_SCALE);
     ctx.fillStyle='rgba(255,215,0,0.15)';
     ctx.beginPath();ctx.arc(cx,cy,ts*0.55,0,Math.PI*2);ctx.fill();
-    ctx.font='bold 18px serif';ctx.textAlign='center';
+    ctx.font='bold '+Math.round(18*CW_MOBILE_SCALE)+'px serif';ctx.textAlign='center';
     ctx.shadowColor='#FFD700';if(!CW_IS_MOBILE)ctx.shadowBlur=6;
     ctx.fillStyle='#fff';ctx.fillText('💬',bx2,by2);
     ctx.restore();
@@ -5179,26 +5249,29 @@ function cw_rand(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 
 // ── HUD ────────────────────────────────────────────────
 function cw_drawHUD(ctx,vw,vh){
+  var _ms=CW_MOBILE_SCALE;
   // XP counter top-right
-  ctx.save();ctx.font='bold 13px monospace';ctx.textAlign='right';
-  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-80,4,76,18);
-  ctx.fillStyle='#FFD700';ctx.fillText('✨ '+G.pd.xp+' XP',vw-6,17);ctx.restore();
+  var _hf=Math.round(13*_ms),_hh=Math.round(18*_ms),_hw=Math.round(80*_ms);
+  ctx.save();ctx.font='bold '+_hf+'px monospace';ctx.textAlign='right';
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-_hw,4,_hw-4,_hh);
+  ctx.fillStyle='#FFD700';ctx.fillText('✨ '+G.pd.xp+' XP',vw-6,4+_hh-3);ctx.restore();
   // Coins counter
-  ctx.save();ctx.font='bold 13px monospace';ctx.textAlign='right';
-  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-80,24,76,18);
-  ctx.fillStyle='#F0C040';ctx.fillText('🪙 '+(G.pd.coins||0),vw-6,37);ctx.restore();
+  ctx.save();ctx.font='bold '+_hf+'px monospace';ctx.textAlign='right';
+  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(vw-_hw,4+_hh+2,_hw-4,_hh);
+  ctx.fillStyle='#F0C040';ctx.fillText('🪙 '+(G.pd.coins||0),vw-6,4+_hh*2);ctx.restore();
   // Devotional streak indicator
   var _streak=(G.pd.devotional&&G.pd.devotional.streak)||0;
   if(_streak>0){
-    ctx.save();ctx.font='bold 12px monospace';ctx.textAlign='right';
-    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(vw-76,44,72,16);
-    ctx.fillStyle='#FF8C00';ctx.fillText('🔥 '+_streak+' days',vw-6,56);ctx.restore();
+    var _sf=Math.round(12*_ms),_sh=Math.round(16*_ms);
+    ctx.save();ctx.font='bold '+_sf+'px monospace';ctx.textAlign='right';
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(vw-_hw,4+(_hh+2)*2,_hw-8,_sh);
+    ctx.fillStyle='#FF8C00';ctx.fillText('🔥 '+_streak+' days',vw-6,4+(_hh+2)*2+_sh-3);ctx.restore();
   }
   if(CWS.dialog||CWS.activity) return;
   var hint=null,hcol='#FFD700',hbg='rgba(0,0,0,0.88)';
   if(CWS.nearPeer&&MP.isConnected()){
     var pr=CWM.peers.find(function(p){return p.uid===CWS.nearPeer;});
-    if(pr){hint='⚔️ Challenge @'+pr.username+' — tap A';hcol='#7EB8F7';}
+    if(pr){hint='🤝 Join a game with @'+pr.username+' — tap A';hcol='#4ade80';}
   } else if(CWS.nearNpc){
     var n=CW_NPCS.find(function(x){return x.id===CWS.nearNpc;});
     if(n){
@@ -5212,12 +5285,13 @@ function cw_drawHUD(ctx,vw,vh){
     if(z){hint=z.icon+' '+z.label+' — tap A';hcol='#4ade80';}
   }
   if(hint){
-    ctx.save();ctx.font='bold 15px Georgia';
-    var tw=ctx.measureText(hint).width+24,bw=Math.min(tw,vw-20),bh=34;
-    var bx=(vw-bw)/2,by=vh-72;
+    var _hintf=Math.round(15*_ms);
+    ctx.save();ctx.font='bold '+_hintf+'px Georgia';
+    var tw=ctx.measureText(hint).width+Math.round(24*_ms),bw=Math.min(tw,vw-20),bh=Math.round(34*_ms);
+    var bx=(vw-bw)/2,by=vh-Math.round(72*_ms);
     ctx.fillStyle=hbg;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);ctx.fill();
     ctx.strokeStyle=hcol+'66';ctx.lineWidth=1;ctx.stroke();
-    ctx.fillStyle=hcol;ctx.textAlign='center';ctx.fillText(hint,vw/2,by+22);
+    ctx.fillStyle=hcol;ctx.textAlign='center';ctx.fillText(hint,vw/2,by+Math.round(bh*0.65));
     ctx.restore();
   }
 }
@@ -5225,7 +5299,8 @@ function cw_drawHUD(ctx,vw,vh){
 // ── DIALOG BOX (canvas) ────────────────────────────────
 function cw_drawDialog(ctx,vw,vh){
   var d=CWS.dialog;if(!d) return;
-  var bw=vw-24,bh=185,bx=12,by=vh-bh-12;
+  var _ms=CW_MOBILE_SCALE;
+  var bw=vw-24,bh=Math.round(185*_ms),bx=12,by=vh-bh-12;
   // Backdrop blur effect
   ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(0,0,vw,vh);
   // Box gradient
@@ -5239,20 +5314,21 @@ function cw_drawDialog(ctx,vw,vh){
   ag.addColorStop(0,'rgba(196,163,90,0)');ag.addColorStop(0.2,'#C4A35A');ag.addColorStop(0.8,'#C4A35A');ag.addColorStop(1,'rgba(196,163,90,0)');
   ctx.fillStyle=ag;ctx.fillRect(bx+14,by,bw-28,2);
   // Speaker
-  ctx.fillStyle='#C4A35A';ctx.font='bold 16px Georgia';ctx.textAlign='left';
-  ctx.fillText((d.emoji||'')+' '+(d.speaker||''),bx+16,by+24);
+  var _df1=Math.round(16*_ms);
+  ctx.fillStyle='#C4A35A';ctx.font='bold '+_df1+'px Georgia';ctx.textAlign='left';
+  ctx.fillText((d.emoji||'')+' '+(d.speaker||''),bx+16,by+Math.round(24*_ms));
   // Text wrap
-  ctx.fillStyle='#E8E0D0';ctx.font='16px Georgia';
-  var words=d.text.split(' '),line='',ty=by+46;
+  ctx.fillStyle='#E8E0D0';ctx.font=_df1+'px Georgia';
+  var words=d.text.split(' '),line='',ty=by+Math.round(46*_ms),_lineH=Math.round(19*_ms);
   for(var i=0;i<words.length;i++){
     var test=line+words[i]+' ';
-    if(ctx.measureText(test).width>bw-36&&line){ctx.fillText(line,bx+16,ty);ty+=19;line=words[i]+' ';}
+    if(ctx.measureText(test).width>bw-36&&line){ctx.fillText(line,bx+16,ty);ty+=_lineH;line=words[i]+' ';}
     else line=test;
   }
   ctx.fillText(line,bx+16,ty);
-  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold 14px monospace';ctx.fillText('+'+d.xp+' XP',bx+16,by+bh-32);}
-  ctx.fillStyle='#C4A35A66';ctx.font='13px monospace';ctx.textAlign='right';
-  ctx.fillText('Tap A →',bx+bw-12,by+bh-14);
+  if(d.xp){ctx.fillStyle='#FFD700';ctx.font='bold '+Math.round(14*_ms)+'px monospace';ctx.fillText('+'+d.xp+' XP',bx+16,by+bh-Math.round(32*_ms));}
+  ctx.fillStyle='#C4A35A66';ctx.font=Math.round(13*_ms)+'px monospace';ctx.textAlign='right';
+  ctx.fillText('Tap A \u2192',bx+bw-12,by+bh-Math.round(14*_ms));
 }
 
 // ── ACTIVITY OVERLAY — rendered as HTML for mobile ────
@@ -5261,7 +5337,9 @@ function cw_drawDialog(ctx,vw,vh){
 
 function cw_showActivityOverlay(html){
   var el=document.getElementById('cwActivity');
-  if(el){el.innerHTML=html;el.style.display='flex';}
+  if(el){el.innerHTML=html;el.style.display='flex';
+    if(CW_IS_MOBILE){el.style.fontSize='18px';el.style.padding='20px 12px 100px';}
+  }
 }
 function cw_hideActivityOverlay(){
   var el=document.getElementById('cwActivity');
@@ -7323,10 +7401,10 @@ function cw_interact(){SFX&&SFX.resume&&SFX.resume();SFX&&SFX.talk&&SFX.talk();
     else{a.skip=true;cw_renderActivity();}
     return;
   }
-  // Challenge a nearby player — show mode choice
+  // Join a co-op brawl with a nearby player
   if(s.nearPeer&&MP.isConnected()){
     var peer=CWM.peers.find(function(p){return p.uid===s.nearPeer;});
-    if(peer){pvp_showModeChoice(peer);return;}
+    if(peer){pvp_sendChallenge(peer,'brawl_coop');pvp_showOverlay();return;}
   }
   if(s.nearNpc){
     var npc=CW_NPCS.find(function(x){return x.id===s.nearNpc;});
@@ -7562,6 +7640,8 @@ function cw_init(canvas,onExit){
   CWS.dialog=null;CWS.activity=null;CWS.keys={};CWS.moveTimer=0;CWS.sitting=false;
   CWS.nearZone=null;CWS.nearNpc=null;CWS.nearPeer=null;CWS.npcTimers={};CWS._lastActivityRender=0;
   CWS.evangelized={};if(G.pd.evangelized){for(var ei=0;ei<G.pd.evangelized.length;ei++)CWS.evangelized[G.pd.evangelized[ei]]=true;}
+  // Restore replacement NPCs for all previously baptized people
+  cw_restoreReplacements();
   CWS._kd=function(e){
     var tag=document.activeElement&&document.activeElement.tagName;
     var isInput=(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||(document.activeElement&&document.activeElement.isContentEditable));
@@ -7644,12 +7724,12 @@ function rChurchWorld(){
 
   <!-- Virtual Joystick (Roblox-style) -->
   <div style="background:#0a0a0a;border-top:1px solid #1a1a1a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px">
-    <div id="cwJoystickArea" style="width:120px;height:120px;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0">
-      <div id="cwJoyBase" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.12)"></div>
-      <div id="cwJoyKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,0.25),rgba(255,255,255,0.08));border:2px solid rgba(255,255,255,0.2);box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.05s ease-out,box-shadow 0.15s ease"></div>
+    <div id="cwJoystickArea" style="width:140px;height:140px;position:relative;touch-action:none;user-select:none;-webkit-user-select:none;flex-shrink:0">
+      <div id="cwJoyBase" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.12)"></div>
+      <div id="cwJoyKnob" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,255,255,0.25),rgba(255,255,255,0.08));border:2px solid rgba(255,255,255,0.2);box-shadow:0 2px 8px rgba(0,0,0,0.4);transition:transform 0.05s ease-out,box-shadow 0.15s ease"></div>
     </div>
-    <div style="flex:1;text-align:center;font-size:15px;color:#555;line-height:1.5">Walk to glowing zones<br>&amp; tap <strong style="color:#C4A35A">A</strong></div>
-    <button ontouchstart="cw_interact();event.preventDefault()" onclick="cw_interact()" style="width:64px;height:64px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:22px;font-weight:bold;box-shadow:0 4px 14px rgba(196,163,90,.5);touch-action:manipulation;flex-shrink:0;user-select:none">A</button>
+    <div style="flex:1;text-align:center;font-size:16px;color:#555;line-height:1.5">Walk to glowing zones<br>&amp; tap <strong style="color:#C4A35A">A</strong></div>
+    <button ontouchstart="cw_interact();event.preventDefault()" onclick="cw_interact()" style="width:74px;height:74px;background:linear-gradient(135deg,#C4A35A,#8B6914);border:none;border-radius:50%;color:#000;font-size:26px;font-weight:bold;box-shadow:0 4px 14px rgba(196,163,90,.5);touch-action:manipulation;flex-shrink:0;user-select:none">A</button>
   </div>
 </div>`;}
 
@@ -7690,7 +7770,7 @@ function cw_initJoystick(){
   var knob=document.getElementById('cwJoyKnob');
   if(!area||!knob) return;
   var active=false,touchId=null;
-  var cx=0,cy=0,maxR=38; // center and max radius
+  var cx=0,cy=0,maxR=48; // center and max radius (matches larger joystick area)
 
   function getCenter(){
     var r=area.getBoundingClientRect();
@@ -8707,7 +8787,13 @@ function brawl_startCoop(role,roomId,peerData){
     // Smooth interpolation: store target and lerp in render
     B.coopAlly._targetX=d.x;B.coopAlly._targetY=d.y;
     B.coopAlly.hp=d.hp;B.coopAlly.dir=d.dir;
+    var wasAlive=B.coopAlly.alive;
     B.coopAlly.alive=d.alive!==false;
+    // Co-op defeat sync: if ally just died, both players lose
+    if(wasAlive&&!B.coopAlly.alive&&B.state!=='defeat'&&B.state!=='victory'){
+      B.pHp=0;B.state='defeat';
+      toast('\uD83D\uDC80 Ally has fallen \u2014 defeat!','err');
+    }
     // Initialize position on first sync
     if(!B.coopAlly._hasSync){B.coopAlly.x=d.x;B.coopAlly.y=d.y;B.coopAlly._hasSync=true;}
     // Ally shooting — spawn cosmetic bullet when ally fires
@@ -8794,6 +8880,29 @@ function brawl_startCoop(role,roomId,peerData){
     },function(err){console.error('[COOP] Host hits listener ERROR',err.message);});
     B._coopListeners.push(function(){hostHitRef.off('child_added',hostHitListener);});
   }
+  // Listen for co-op defeat sync (ally died → both lose)
+  var defeatRef=roomRef.child('defeat');
+  var defeatListener=defeatRef.on('value',function(snap){
+    var d=snap.val();
+    if(!d||!B.active||!B.coopMode) return;
+    // Only react if the OTHER player triggered it
+    if(d.by!==B.coopRole&&B.state!=='defeat'){
+      B.pHp=0;B.state='defeat';B.coopAlly.alive=false;
+      toast('\uD83D\uDC80 Ally has fallen — defeat!','err');
+    }
+  },function(err){console.error('[COOP] Defeat listener ERROR',err.message);});
+  B._coopListeners.push(function(){defeatRef.off('value',defeatListener);});
+  // Listen for co-op victory sync (ally's side finished last wave → both win)
+  var victoryRef=roomRef.child('victory');
+  var victoryListener=victoryRef.on('value',function(snap){
+    var d=snap.val();
+    if(!d||!B.active||!B.coopMode) return;
+    if(d.by!==B.coopRole&&B.state!=='victory'&&B.state!=='defeat'){
+      B.state='victory';
+      toast('\uD83C\uDFC6 Victory!');
+    }
+  },function(err){console.error('[COOP] Victory listener ERROR',err.message);});
+  B._coopListeners.push(function(){victoryRef.off('value',victoryListener);});
   // Listen for disconnect
   var dcRef=roomRef.child('dc');
   var dcListener=dcRef.on('child_added',function(snap){
@@ -8801,6 +8910,9 @@ function brawl_startCoop(role,roomId,peerData){
     if(key&&key!==uid&&B.active&&B.coopMode){
       toast('\u26A1 Ally disconnected!','err');
       B.coopAlly.alive=false;
+      if(B.state!=='defeat'&&B.state!=='victory'){
+        B.pHp=0;B.state='defeat';
+      }
     }
   },function(err){console.error('[COOP] DC listener ERROR',err.message);});
   B._coopListeners.push(function(){dcRef.off('child_added',dcListener);});
@@ -8862,6 +8974,25 @@ function brawl_coopSyncWave(){
   var B=BRAWL;
   if(!B.coopMode||!B._coopRoomRef||B.coopRole!=='host') return;
   B._coopRoomRef.child('wave').set(B.wave);
+}
+
+// Co-op: sync defeat state to Firebase so both players end together
+function brawl_coopSyncDefeat(){
+  var B=BRAWL;
+  if(!B.coopMode||!B._coopRoomRef) return;
+  // Write defeat to a dedicated node
+  B._coopRoomRef.child('defeat').set({by:B.coopRole,t:Date.now()});
+  // Also immediately sync alive:false to our position node
+  var myKey=B.coopRole==='host'?'host':'guest';
+  B._coopRoomRef.child(myKey).update({alive:false,hp:0,t:Date.now()});
+  console.log('[COOP] Synced defeat as',B.coopRole);
+}
+
+// Co-op: sync victory state to Firebase so both players end together
+function brawl_coopSyncVictory(){
+  var B=BRAWL;
+  if(!B.coopMode||!B._coopRoomRef) return;
+  B._coopRoomRef.child('victory').set({by:B.coopRole,t:Date.now()});
 }
 
 // Co-op cleanup
@@ -8940,9 +9071,8 @@ function rBrawlLobby(){
         '<div style="font-size:13px;color:#777;line-height:1.6">'+
           '1. Enter the Church world from the Home tab<br>'+
           '2. Walk near another online player<br>'+
-          '3. Tap <strong style="color:#C4A35A">A</strong> to challenge them<br>'+
-          '4. Choose "Brawl Co-op" instead of PvP<br>'+
-          '5. Both players enter the same arena!<br><br>'+
+          '3. Tap <strong style="color:#C4A35A">A</strong> to join a game with them<br>'+
+          '4. Both players enter the same arena!<br><br>'+
           '<span style="color:#C4A35A">Enemies scale up with 2 players. Revive each other when downed!</span>'+
         '</div>'+
       '</div>'+
@@ -9132,7 +9262,7 @@ function brawl_setupPointerJoy(areaId,knobId,type){
 // ── Spawn wave enemies ────────────────────────────────
 function brawl_spawnWave(){
   var B=BRAWL;
-  if(!B.campaign||B.wave<0||B.wave>=B.campaign.waves.length){if(B.wave>=0&&B.wave>=B.campaign.waves.length)B.state='victory';return;}
+  if(!B.campaign||B.wave<0||B.wave>=B.campaign.waves.length){if(B.wave>=0&&B.wave>=B.campaign.waves.length){B.state='victory';if(B.coopMode)brawl_coopSyncVictory();}return;}
   var army=BRAWL_ARMIES[B.campaign.id];
   var waveData=B.campaign.waves[B.wave];
   if(!waveData){return;}
@@ -9322,7 +9452,7 @@ function brawl_update(dt){
         if(B.pInvuln<=0){B.pHp-=e.atk;B.pInvuln=15;B.camShake=6;
           brawl_dmgNum(B.px,B.py-B.pRadius,e.atk,'#ef4444',false);
           SFX&&SFX.hit&&SFX.hit();brawl_particles(B.px,B.py,5,'#ef4444');
-          if(B.pHp<=0){if(brawl_tryRevive()){} else {B.pHp=0;B.state='defeat';return;}}}
+          if(B.pHp<=0){if(brawl_tryRevive()){} else {B.pHp=0;B.state='defeat';if(B.coopMode)brawl_coopSyncDefeat();return;}}}
       }
     }
     // Boss burst attack
@@ -9423,7 +9553,7 @@ function brawl_update(dt){
         brawl_dmgNum(B.px,B.py-B.pRadius,b.dmg,'#ef4444',false);
         brawl_particles(B.px,B.py,4,'#ef4444');SFX&&SFX.hit&&SFX.hit();
         B.bullets.splice(bi,1);
-        if(B.pHp<=0){if(brawl_tryRevive()){} else {B.pHp=0;B.state='defeat';return;}}
+        if(B.pHp<=0){if(brawl_tryRevive()){} else {B.pHp=0;B.state='defeat';if(B.coopMode)brawl_coopSyncDefeat();return;}}
       }
     }
   }
@@ -9460,7 +9590,7 @@ function brawl_update(dt){
   // Wave progression (host only in co-op — guest receives via listener)
   if(alive===0&&B.enemies.length>0&&!(B.coopMode&&B.coopRole==='guest')){
     B.wave++;B.score+=100*B.wave;B.xpEarned+=30+B.wave*15;B.coinsEarned+=5+B.wave*3;
-    if(B.wave>=B.campaign.waves.length){B.state='victory';SFX&&SFX.victory&&SFX.victory();}
+    if(B.wave>=B.campaign.waves.length){B.state='victory';SFX&&SFX.victory&&SFX.victory();if(B.coopMode)brawl_coopSyncVictory();}
     else{B.waveTimer=90;B.state='wave_clear';}
     if(B.coopMode&&B.coopRole==='host') brawl_coopSyncWave();
   }
@@ -15498,7 +15628,7 @@ function pvp_renderOverlay(){
     var modeColor=isCoop?'#4ade80':'#7EB8F7';
     el.innerHTML='<div style="background:linear-gradient(135deg,#0d0d1a,#0a0a12);border:2px solid '+modeColor+'55;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center">'+
       '<div style="font-size:40px;margin-bottom:8px;animation:spBob .8s ease-in-out infinite">'+(isCoop?'\uD83D\uDEE1\uFE0F':'\u2694\uFE0F')+'</div>'+
-      '<div style="font-size:18px;font-weight:bold;color:'+modeColor+';margin-bottom:4px">CHALLENGE SENT!</div>'+
+      '<div style="font-size:18px;font-weight:bold;color:'+modeColor+';margin-bottom:4px">'+(isCoop?'INVITE SENT!':'CHALLENGE SENT!')+'</div>'+
       '<div style="font-size:13px;color:'+modeColor+'88;margin-bottom:6px">'+modeLabel+'</div>'+
       '<div style="font-size:15px;color:#aaa;margin-bottom:16px">Waiting for <span style="color:#C4A35A;font-weight:bold">@'+escHtml(p.username)+'</span> to respond...</div>'+
       '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px">'+
@@ -15519,7 +15649,7 @@ function pvp_renderOverlay(){
     var modeLabel=isCoop?'\uD83D\uDEE1\uFE0F Brawl Co-op':'\u2694\uFE0F PvP Card Battle';
     var modeColor=isCoop?'#4ade80':'#ef4444';
     var titleText=isCoop?'CO-OP INVITE!':'BATTLE CHALLENGE!';
-    var subtitleText=isCoop?'wants to team up with you!':'wants to fight you!';
+    var subtitleText=isCoop?'wants to join a game with you!':'wants to fight you!';
     el.innerHTML='<div style="background:linear-gradient(135deg,'+(isCoop?'#0d1a0d,#0a120a':'#1a0d0d,#120a0a')+');border:2px solid '+modeColor+'55;border-radius:18px;padding:28px 22px;max-width:340px;width:90%;text-align:center;animation:storyFadeIn .4s ease">'+
       '<div style="font-size:40px;margin-bottom:8px;animation:spBob .6s ease-in-out infinite">'+(isCoop?'\uD83D\uDEE1\uFE0F':'\u2694\uFE0F')+'</div>'+
       '<div style="font-size:18px;font-weight:bold;color:'+modeColor+';margin-bottom:4px;letter-spacing:1px">'+titleText+'</div>'+
