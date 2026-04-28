@@ -4938,15 +4938,14 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer,isSwimmi
     }
     // Name tag
     if(tag){
-      var _stf=Math.round(13*CW_MOBILE_SCALE),_sth=Math.round(16*CW_MOBILE_SCALE),_stpad=Math.round(12*CW_MOBILE_SCALE);
-      ctx.save();ctx.font='bold '+_stf+'px "Segoe UI",sans-serif';
-      var tw=ctx.measureText(tag).width+_stpad;
+      ctx.save();ctx.font='bold 13px "Segoe UI",sans-serif';
+      var tw=ctx.measureText(tag).width+14;
       ctx.fillStyle=isPlayer?'rgba(0,0,0,0.85)':'rgba(0,0,0,0.75)';
-      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_sth,8);ctx.fill();
+      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.fill();
       ctx.strokeStyle=isPlayer?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.2)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_sth,8);ctx.stroke();
+      ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.stroke();
       ctx.fillStyle=isPlayer?'#FFD700':'#fff';ctx.textAlign='center';
-      ctx.fillText(tag,cx,hy-Math.round(6*CW_MOBILE_SCALE));ctx.restore();
+      ctx.fillText(tag,cx,hy-6);ctx.restore();
     }
     return; // skip normal draw
   }
@@ -5074,17 +5073,16 @@ function cw_drawChar(ctx,wx,wy,ts,skinIdx,outIdx,dir,animF,tag,isPlayer,isSwimmi
   }
   // Name tag (floating above head, Roblox-style)
   if(tag){
-    var _ctf=Math.round(13*CW_MOBILE_SCALE),_cth=Math.round(16*CW_MOBILE_SCALE),_ctpad=Math.round(12*CW_MOBILE_SCALE);
-    ctx.save();ctx.font='bold '+_ctf+'px "Segoe UI",sans-serif';
-    var tw=ctx.measureText(tag).width+_ctpad;
+    ctx.save();ctx.font='bold 13px "Segoe UI",sans-serif';
+    var tw=ctx.measureText(tag).width+14;
     // Tag background (rounded pill)
     ctx.fillStyle=isPlayer?'rgba(0,0,0,0.85)':'rgba(0,0,0,0.75)';
-    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_cth,8);ctx.fill();
+    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.fill();
     // Tag border
     ctx.strokeStyle=isPlayer?'rgba(255,215,0,0.5)':'rgba(255,255,255,0.2)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-Math.round(18*CW_MOBILE_SCALE),tw,_cth,8);ctx.stroke();
+    ctx.beginPath();ctx.roundRect(cx-tw/2,hy-18,tw,16,8);ctx.stroke();
     ctx.fillStyle=isPlayer?'#FFD700':'#fff';ctx.textAlign='center';
-    ctx.fillText(tag,cx,hy-Math.round(6*CW_MOBILE_SCALE));ctx.restore();
+    ctx.fillText(tag,cx,hy-6);ctx.restore();
   }
 }
 
@@ -5154,14 +5152,14 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   ctx.fillStyle='#C89060';ctx.fillRect(hx+hw*0.3,hy+hh*0.62,hw*0.22,2);
 
   // Emoji above head (floating)
-  var _emojiFs=Math.round(ts*.55);
+  var _emojiFs=Math.round(ts*.45);
   ctx.save();ctx.font=_emojiFs+'px serif';ctx.textAlign='center';
   if(!CW_IS_MOBILE){ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;}
-  var _emojiY=hy-Math.round(6*CW_MOBILE_SCALE);
+  var _emojiY=hy-4;
   ctx.fillText(npc.emoji||'👤',cx,_emojiY);ctx.restore();
 
   // Name tag (Roblox floating pill) — stacked above emoji
-  var _nfs=Math.round(12*CW_MOBILE_SCALE),_nph=Math.round(14*CW_MOBILE_SCALE),_nppad=Math.round(12*CW_MOBILE_SCALE);
+  var _nfs=12,_nph=15,_nppad=14;
   var _nameTagTop=_emojiY-_emojiFs-2;
   ctx.save();ctx.font='bold '+_nfs+'px "Segoe UI",sans-serif';
   var tw=ctx.measureText(npc.name).width+_nppad;
@@ -5175,7 +5173,7 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   if(!npc.npcType){
     var _tier=cw_getNpcTier(npc.id);
     if(_tier>0){
-      var _tfs=Math.round(10*CW_MOBILE_SCALE),_tph=Math.round(13*CW_MOBILE_SCALE),_tpad=Math.round(10*CW_MOBILE_SCALE);
+      var _tfs=10,_tph=14,_tpad=12;
       var _tierTop=_nameTagTop-_nph-3;
       ctx.save();ctx.font='bold '+_tfs+'px monospace';ctx.textAlign='center';
       var _tc=CW_TIER_COLORS[_tier];
@@ -5190,7 +5188,7 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   // Non-believer indicator (floating ? bubble or ✝ if evangelized) — stacked above name tag
   if(npc.npcType==='nonbeliever'){
     ctx.save();
-    var _nbTop=_nameTagTop-_nph-Math.round(6*CW_MOBILE_SCALE);
+    var _nbTop=_nameTagTop-_nph-6;
     var pulse=Math.sin(Date.now()/400)*3;
     if(CWS.evangelized&&CWS.evangelized[npc.id]){
       ctx.font='bold '+(ts*.45)+'px serif';ctx.textAlign='center';
@@ -5210,10 +5208,10 @@ function cw_drawNPC(ctx,npc,ts,camX,camY,vw,vh){
   // Talk bubble indicator
   if(CWS.nearNpc===npc.id){
     ctx.save();
-    var bx2=cx+ts*.25,by2=hy-Math.round(28*CW_MOBILE_SCALE);
+    var bx2=cx+ts*.25,by2=hy-22;
     ctx.fillStyle='rgba(255,215,0,0.15)';
     ctx.beginPath();ctx.arc(cx,cy,ts*0.55,0,Math.PI*2);ctx.fill();
-    ctx.font='bold '+Math.round(18*CW_MOBILE_SCALE)+'px serif';ctx.textAlign='center';
+    ctx.font='bold 18px serif';ctx.textAlign='center';
     ctx.shadowColor='#FFD700';if(!CW_IS_MOBILE)ctx.shadowBlur=6;
     ctx.fillStyle='#fff';ctx.fillText('💬',bx2,by2);
     ctx.restore();
@@ -5343,7 +5341,7 @@ function cw_drawDialog(ctx,vw,vh){
 function cw_showActivityOverlay(html){
   var el=document.getElementById('cwActivity');
   if(el){el.innerHTML=html;el.style.display='flex';
-    if(CW_IS_MOBILE){el.style.zoom='1.18';el.style.padding='20px 12px 100px';}
+    if(CW_IS_MOBILE){el.style.zoom='1.4';el.style.padding='20px 10px 100px';}
   }
 }
 function cw_hideActivityOverlay(){
@@ -6936,8 +6934,8 @@ function cw_loop(){
       // Determine facing direction
       if(Math.abs(ix)>Math.abs(iy)) s.pDir=ix>0?'right':'left';
       else s.pDir=iy>0?'down':'up';
-      // Smooth sub-pixel movement (speed = 0.12 tiles/frame ≈ 7.2 tiles/sec at 60fps)
-      var spd=0.12;
+      // Smooth sub-pixel movement — slower on mobile since tiles are bigger
+      var spd=CW_IS_MOBILE?0.075:0.12;
       var nx=s.fpx+ix*spd, ny=s.fpy+iy*spd;
       // Collision: AABB check against tiles the player body actually overlaps
       var margin=0.25;
